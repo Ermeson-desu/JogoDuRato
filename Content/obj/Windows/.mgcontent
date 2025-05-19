@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SourceFileCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Profile>Reach</Profile>
+  <Platform>Windows</Platform>
+  <Config />
+  <SourceFiles>
+    <File>C:/Users/ErmesonDesu/Desktop/GameDuRato/GameDuMouse/GameDuMouse/Content/Idle/Idle01.png</File>
+    <File>C:/Users/ErmesonDesu/Desktop/GameDuRato/GameDuMouse/GameDuMouse/Content/Idle/Idle02.png</File>
+    <File>C:/Users/ErmesonDesu/Desktop/GameDuRato/GameDuMouse/GameDuMouse/Content/Idle/Idle03.png</File>
+    <File>C:/Users/ErmesonDesu/Desktop/GameDuRato/GameDuMouse/GameDuMouse/Content/Idle/Idle04.png</File>
+    <File>C:/Users/ErmesonDesu/Desktop/GameDuRato/GameDuMouse/GameDuMouse/Content/Idle/Idle05.png</File>
+    <File>C:/Users/ErmesonDesu/Desktop/GameDuRato/GameDuMouse/GameDuMouse/Content/Idle/Idle06.png</File>
+  </SourceFiles>
+  <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+  </DestFiles>
+</SourceFileCollection>

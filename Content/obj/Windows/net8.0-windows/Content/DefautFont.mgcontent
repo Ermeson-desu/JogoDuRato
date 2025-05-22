@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SourceFile>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/File.spritefont</SourceFile>
+  <SourceTime>2025-05-19T09:18:15.7792897-03:00</SourceTime>
+  <DestFile>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/bin/Windows/Content/DefautFont.xnb</DestFile>
+  <DestTime>2025-05-19T09:18:41.5449792-03:00</DestTime>
+  <Importer>FontDescriptionImporter</Importer>
+  <ImporterTime>2025-04-05T07:10:54-03:00</ImporterTime>
+  <Processor>FontDescriptionProcessor</Processor>
+  <ProcessorTime>2025-04-05T07:10:54-03:00</ProcessorTime>
+  <Parameters>
+    <Key>PremultiplyAlpha</Key>
+    <Value>True</Value>
+  </Parameters>
+  <Parameters>
+    <Key>TextureFormat</Key>
+    <Value>Compressed</Value>
+  </Parameters>
+  <Dependencies />
+  <BuildAsset />
+  <BuildOutput />
+</PipelineBuildEvent>

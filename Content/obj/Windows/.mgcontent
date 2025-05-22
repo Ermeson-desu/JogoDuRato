@@ -4,14 +4,16 @@
   <Platform>Windows</Platform>
   <Config />
   <SourceFiles>
-    <File>C:/Users/ErmesonDesu/Desktop/GameDuRato/GameDuMouse/GameDuMouse/Content/Idle/Idle01.png</File>
-    <File>C:/Users/ErmesonDesu/Desktop/GameDuRato/GameDuMouse/GameDuMouse/Content/Idle/Idle02.png</File>
-    <File>C:/Users/ErmesonDesu/Desktop/GameDuRato/GameDuMouse/GameDuMouse/Content/Idle/Idle03.png</File>
-    <File>C:/Users/ErmesonDesu/Desktop/GameDuRato/GameDuMouse/GameDuMouse/Content/Idle/Idle04.png</File>
-    <File>C:/Users/ErmesonDesu/Desktop/GameDuRato/GameDuMouse/GameDuMouse/Content/Idle/Idle05.png</File>
-    <File>C:/Users/ErmesonDesu/Desktop/GameDuRato/GameDuMouse/GameDuMouse/Content/Idle/Idle06.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/File.spritefont</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle01.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle02.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle03.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle04.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle05.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle06.png</File>
   </SourceFiles>
   <DestFiles>
+    <File>DefautFont.spritefont</File>
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

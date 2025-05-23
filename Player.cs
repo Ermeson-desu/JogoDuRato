@@ -15,6 +15,7 @@ namespace GameDuMouse
         public Player(Game game)
         {
             this.game = game;
+            Initialize();
         }
         public void Initialize()
         {

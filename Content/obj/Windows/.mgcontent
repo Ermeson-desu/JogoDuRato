@@ -11,9 +11,11 @@
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle04.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle05.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle06.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/scenario/cenario_game.jpg</File>
   </SourceFiles>
   <DestFiles>
     <File>DefautFont.spritefont</File>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

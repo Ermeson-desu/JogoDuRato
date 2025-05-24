@@ -9,9 +9,8 @@ namespace GameDuMouse
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch spriteBatch;
-        private Texture2D scenario;
-        private Vector2 scenarioPosition, scenarioPosition2 ;
         private Player player1;
+        private Background background1;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -22,8 +21,6 @@ namespace GameDuMouse
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-            scenarioPosition = new Vector2(0, 0);
-            scenarioPosition2 = new Vector2(900, 0);
             base.Initialize();
         }
 
@@ -31,7 +28,9 @@ namespace GameDuMouse
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             Services.AddService(typeof(SpriteBatch), spriteBatch);
-            scenario = Content.Load<Texture2D>("scenario/cenario_game");
+
+            background1 = new Background(this);
+            background1.LoadContent(Content);
 
             player1 = new Player(this);
             player1.LoadContent(Content);
@@ -43,47 +42,8 @@ namespace GameDuMouse
             {
                 Exit();
             }
-            player1.Move(gameTime);
+            player1.Move(gameTime,background1);
             player1.Update(gameTime);
-            if (Keyboard.GetState().IsKeyDown(Keys.D))
-            {
-                //Movimento da primeira imagem do background
-                scenarioPosition += new Vector2(-10, 0);
-                //Lógica de repetição de imagem
-                if (scenarioPosition.X <= -890)
-                {
-                    scenarioPosition = new Vector2(890, 0);
-                }
-
-                //movimento da segunda imagem background 
-                scenarioPosition2 += new Vector2(-10, 0);
-                //lógica de repetição de imagem
-                if (scenarioPosition2.X <= -890)
-                {
-                    scenarioPosition2 = new Vector2(890, 0);
-                }
-                Console.WriteLine($"Posição do Background: 1- {scenarioPosition} 2- {scenarioPosition2}");
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.A))
-            {
-                    //Movimento da primeira imagem do background
-                    scenarioPosition += new Vector2(10, 0);
-                    //Lógica de repetição de imagem
-                    if (scenarioPosition.X >= 890)
-                    {
-                        scenarioPosition = new Vector2(-890, 0);
-                    }
-
-                    //movimento da segunda imagem background 
-                    scenarioPosition2 += new Vector2(10, 0);
-                    //lógica de repetição de imagem
-                    if (scenarioPosition2.X >= 890)
-                    {
-                        scenarioPosition2 = new Vector2(-890, 0);
-                    }
-                    Console.WriteLine($"Posição do Background: 1- {scenarioPosition} 2- {scenarioPosition2}");
-            }
-            
 
             base.Update(gameTime);
         }
@@ -92,9 +52,10 @@ namespace GameDuMouse
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
-            spriteBatch.Draw(scenario ,scenarioPosition, null ,Color.White, 0f, Vector2.Zero, 3f,SpriteEffects.None, 0f );
-            spriteBatch.Draw(scenario ,scenarioPosition2, null ,Color.White, 0f, Vector2.Zero, 3f,SpriteEffects.None, 0f );
+
+            background1.Draw(spriteBatch);
             player1.Draw(gameTime);
+            
             spriteBatch.End();
             
             // TODO: Add your drawing code here

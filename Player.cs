@@ -32,7 +32,7 @@ namespace GameDuMouse
             idleAnime.Position = new Vector2(100, personY);
         }
 
-        public void Move(GameTime gameTime)
+        public void Move(GameTime gameTime, Background background)
         {
             var KeyboardState = Keyboard.GetState();
             if (KeyboardState.IsKeyDown(Keys.D))
@@ -42,6 +42,7 @@ namespace GameDuMouse
                 if (idleAnime.Position.X >= wallRight.X)
                 {
                     idleAnime.Position = wallRight;
+                    background.ScrollLeft();
                 }
 
             }
@@ -52,6 +53,7 @@ namespace GameDuMouse
                 if (idleAnime.Position.X <= wallLeft.X)
                 {
                     idleAnime.Position = wallLeft;
+                    background.ScrollRight();
                 }
 
             }

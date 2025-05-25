@@ -4,6 +4,13 @@
   <Platform>Windows</Platform>
   <Config />
   <SourceFiles>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run01.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run02.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run03.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run04.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run05.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run06.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run07.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/File.spritefont</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle01.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle02.png</File>
@@ -11,10 +18,31 @@
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle04.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle05.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle06.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run01.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run02.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run03.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run04.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run05.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run06.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run07.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/scenario/cenario_game.jpg</File>
   </SourceFiles>
   <DestFiles>
+    <File>run/run01.png</File>
+    <File>run/run02.png</File>
+    <File>run/run03.png</File>
+    <File>run/run04.png</File>
+    <File>run/run05.png</File>
+    <File>run/run06.png</File>
+    <File>run/run07.png</File>
     <File>DefautFont.spritefont</File>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

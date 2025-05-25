@@ -1,3 +1,8 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/File.spritefont","C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/bin/Windows/DefautFont.xnb","FontDescriptionProcessor","SpriteFontContent",2068,21529,0,3003592
-"C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/scenario/cenario_game.jpg","C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/bin/Windows/scenario/cenario_game.xnb","TextureProcessor","Texture2DContent",6666,201685,0,0872055
+"C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run01.png","C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/bin/Windows/run/run01.xnb","TextureProcessor","Texture2DContent",9616,69077,0,1488041
+"C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run02.png","C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/bin/Windows/run/run02.xnb","TextureProcessor","Texture2DContent",9793,69077,0,0218189
+"C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run03.png","C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/bin/Windows/run/run03.xnb","TextureProcessor","Texture2DContent",9911,69077,0,0177233
+"C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run04.png","C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/bin/Windows/run/run04.xnb","TextureProcessor","Texture2DContent",8105,69077,0,0198892
+"C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run05.png","C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/bin/Windows/run/run05.xnb","TextureProcessor","Texture2DContent",7664,69077,0,0149798
+"C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run06.png","C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/bin/Windows/run/run06.xnb","TextureProcessor","Texture2DContent",8188,69077,0,0157927
+"C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run07.png","C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/bin/Windows/run/run07.xnb","TextureProcessor","Texture2DContent",9229,69077,0,0153467

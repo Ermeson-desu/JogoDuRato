@@ -65,3 +65,10 @@ C:\Users\ermes\Documentos\GitHub\JogoDuRato\obj\Debug\net8.0-windows\GameDuMouse
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\obj\Debug\net8.0-windows\ref\GameDuMouse.dll
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\DefautFont.xnb
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\scenario\cenario_game.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run\run01.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run\run02.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run\run03.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run\run04.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run\run05.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run\run06.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run\run07.xnb

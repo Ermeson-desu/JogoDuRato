@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -14,6 +15,9 @@ namespace GameDuMouse
         private Vector2 wallRight, wallLeft;
         private float personY;
         private bool positionInit = false;
+        private bool isTransitioning = false;
+        private double transitionTimer = 0;
+        private double transitionDuration = 50;
         public Player(Game game)
         {
             this.game = game;
@@ -55,26 +59,25 @@ namespace GameDuMouse
         {
 
             var KeyboardState = Keyboard.GetState();
-            idleAnime.Position = player.Position;
+            Vector2 currentPosition = player.Position;
+            idleAnime.Position = currentPosition;
+            runAnime.Position = currentPosition;
+            trans_idle.Position = currentPosition;
+            trans_run.Position = currentPosition;
+
             if (KeyboardState.IsKeyDown(Keys.D))
             {
-                MoveRight(background);
+                AnimationTransition(gameTime,background,runAnime,trans_run);
                 positionInit = false;
             }
             else if (KeyboardState.IsKeyDown(Keys.A))
             {
-                MoveLeft(background);
+                AnimationTransition(gameTime, background, runAnime,trans_run);
                 positionInit = true;
             }
-            else if (positionInit == false)
+            else
             {
-                player = idleAnime;
-                player.Effects = SpriteEffects.None;
-            }
-            else if (positionInit == true)
-            {
-                player = idleAnime;
-                player.Effects = SpriteEffects.FlipHorizontally;
+                IdleTransition(gameTime);
             }
         }
         private void MoveRight(Background background)
@@ -101,7 +104,64 @@ namespace GameDuMouse
             }
             Console.WriteLine($"Posição do player: {player.Position}");
         }
-
+        private void StartTransition(Animation trans)
+        {
+            isTransitioning = true;
+            transitionTimer = 0;
+            player = trans;
+            player.Position = trans.Position;
+            player.Effects = positionInit ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+        }
+        private void EndTransition(Animation trans)
+        {
+            isTransitioning = false;
+            transitionTimer = 0;
+            player = trans;
+            player.Position = trans.Position;
+            player.Effects = positionInit ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+        }
+        private void AnimationTransition(GameTime gameTime,Background background, Animation animationFinal, Animation animationTransition)
+        {
+            if (!isTransitioning && player != animationFinal)
+                {
+                    StartTransition(animationTransition);
+                }
+            if (isTransitioning)
+            {
+                transitionTimer += gameTime.ElapsedGameTime.TotalMicroseconds;
+                if (transitionTimer >= transitionDuration)
+                {
+                    EndTransition(animationFinal);
+                }
+            }
+            else
+            {
+                if (!positionInit)
+                {
+                    MoveRight(background);
+                }
+                else if (positionInit)
+                {
+                    MoveLeft(background);
+                    Console.WriteLine("MoveLeft();");
+                }
+            }
+        }
+        private void IdleTransition(GameTime gameTime)
+        {
+            if (player != idleAnime && !isTransitioning)
+            {
+                StartTransition(trans_idle);
+            }
+            if (isTransitioning)
+            {
+                transitionTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
+                if (transitionTimer >= transitionDuration)
+                {
+                    EndTransition(idleAnime);
+                }
+            }
+        }
         public void Update(GameTime gameTime)
         {
             player.Update(gameTime);

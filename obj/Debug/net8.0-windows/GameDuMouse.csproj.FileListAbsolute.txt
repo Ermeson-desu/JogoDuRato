@@ -72,3 +72,9 @@ C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run\run05.xnb
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run\run06.xnb
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run\run07.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\Trans\trans01.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\Trans\trans02.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\Trans\trans03.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\Trans\trans04.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\Trans\trans05.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\Trans\trans06.xnb

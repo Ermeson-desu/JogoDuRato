@@ -4,13 +4,12 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Mono.Helper;
-using SharpDX.Win32;
 
 namespace GameDuMouse
 {
     public class Player
     {
-        private Animation idleAnime, runAnime,player;
+        private Animation idleAnime, runAnime, player, trans_run, trans_idle;
         private Game game;
         private Vector2 wallRight, wallLeft;
         private float personY;
@@ -39,6 +38,16 @@ namespace GameDuMouse
                                 "run/run04", "run/run05", "run/run06", "run/run07");
             runAnime.Position = new Vector2(100, personY);
 
+            trans_idle = new Animation(game, 50f);
+            trans_idle.AddSprite("Trans/trans05", "Trans/trans04","Trans/trans03",
+                                 "Trans/trans02","Trans/trans01");
+            trans_idle.Position = new Vector2(100, personY);
+
+            trans_run = new Animation(game, 50f);
+            trans_run.AddSprite("Trans/trans01", "Trans/trans02","Trans/trans03",
+                                 "Trans/trans04","Trans/trans05","Trans/trans06");
+            trans_run.Position = new Vector2(100, personY);
+            
             player = idleAnime;
         }
 
@@ -67,8 +76,6 @@ namespace GameDuMouse
                 player = idleAnime;
                 player.Effects = SpriteEffects.FlipHorizontally;
             }
-            
-            
         }
         private void MoveRight(Background background)
         {

@@ -26,6 +26,12 @@
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run06.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run07.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/scenario/cenario_game.jpg</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans01.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans02.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans03.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans04.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans05.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans06.png</File>
   </SourceFiles>
   <DestFiles>
     <File>run/run01.png</File>
@@ -36,6 +42,12 @@
     <File>run/run06.png</File>
     <File>run/run07.png</File>
     <File>DefautFont.spritefont</File>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

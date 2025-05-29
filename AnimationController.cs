@@ -17,6 +17,7 @@ namespace GameDuMouse
     {
         private Dictionary<PlayerState, Animation> animations = new();
         public Animation CurrentAnimation { get; private set; }
+        private SpriteEffects currentEffects = SpriteEffects.None;
         public PlayerState CurrentState { get; private set; }
         private bool isTransitioning = false;
         private double transitionTimer = 0;
@@ -47,7 +48,9 @@ namespace GameDuMouse
             isTransitioning = true;
             transitionTimer = 0;
             transitionDuration = duration;
+            CurrentAnimation.Reset();
             CurrentAnimation = animations[nextState];
+            CurrentAnimation.Effects = currentEffects;
             CurrentState = nextState;
         }
         public void SetState(PlayerState state)
@@ -55,6 +58,8 @@ namespace GameDuMouse
             if (animations.ContainsKey(state))
             {
                 CurrentAnimation = animations[state];
+                CurrentAnimation.Effects = currentEffects;
+                CurrentAnimation.Reset();
                 CurrentState = state;
             }
         }
@@ -80,8 +85,15 @@ namespace GameDuMouse
         }
         public SpriteEffects Effects
         {
-            get => CurrentAnimation.Effects;
-            set => CurrentAnimation.Effects = value;
+            get => currentEffects;
+            set
+            {
+                currentEffects = value;
+                foreach (var anim in animations.Values)
+                {
+                    anim.Effects = currentEffects;
+                }
+            }
         }
     }
 }

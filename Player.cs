@@ -13,7 +13,6 @@ namespace GameDuMouse
         private Game game;
         private Vector2 wallRight, wallLeft;
         private float personY;
-        private bool facingLeft;
 
         public Player(Game game)
         {
@@ -26,7 +25,6 @@ namespace GameDuMouse
             wallRight = new Vector2(200, personY);
             wallLeft = new Vector2(0, personY);
             animationController = new AnimationController();
-            facingLeft = false;
         }
 
         public void LoadContent(ContentManager content)
@@ -63,7 +61,6 @@ namespace GameDuMouse
 
             if (KeyboardState.IsKeyDown(Keys.D))
             {
-                facingLeft = false;
                 animationController.Effects = SpriteEffects.None;
 
                 if (animationController.CurrentState != PlayerState.Running &&
@@ -78,11 +75,10 @@ namespace GameDuMouse
             }
             else if (KeyboardState.IsKeyDown(Keys.A))
             {
-                facingLeft = true;
                 animationController.Effects = SpriteEffects.FlipHorizontally;
 
                 if (animationController.CurrentState != PlayerState.Running &&
-                   animationController.CurrentState != PlayerState.TransitionToRun)
+                    animationController.CurrentState != PlayerState.TransitionToRun)
                 {
                     animationController.StartTransition(PlayerState.TransitionToRun, 80);
                 }

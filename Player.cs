@@ -1,5 +1,3 @@
-using System;
-using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,14 +8,13 @@ namespace GameDuMouse
 {
     public class Player
     {
-        private Animation idleAnime, runAnime, player, trans_run, trans_idle;
+        private Animation idleAnime, runAnime, trans_run, trans_idle;
+        private AnimationController animationController;
         private Game game;
         private Vector2 wallRight, wallLeft;
         private float personY;
-        private bool positionInit = false;
-        private bool isTransitioning = false;
-        private double transitionTimer = 0;
-        private double transitionDuration = 50;
+        private bool facingLeft;
+
         public Player(Game game)
         {
             this.game = game;
@@ -28,6 +25,8 @@ namespace GameDuMouse
             personY = 270;
             wallRight = new Vector2(200, personY);
             wallLeft = new Vector2(0, personY);
+            animationController = new AnimationController();
+            facingLeft = false;
         }
 
         public void LoadContent(ContentManager content)
@@ -43,132 +42,98 @@ namespace GameDuMouse
             runAnime.Position = new Vector2(100, personY);
 
             trans_idle = new Animation(game, 50f);
-            trans_idle.AddSprite("Trans/trans05", "Trans/trans04","Trans/trans03",
-                                 "Trans/trans02","Trans/trans01");
+            trans_idle.AddSprite("Trans/trans05", "Trans/trans04", "Trans/trans03",
+                                 "Trans/trans02", "Trans/trans01");
             trans_idle.Position = new Vector2(100, personY);
 
             trans_run = new Animation(game, 50f);
-            trans_run.AddSprite("Trans/trans01", "Trans/trans02","Trans/trans03",
-                                 "Trans/trans04","Trans/trans05","Trans/trans06");
+            trans_run.AddSprite("Trans/trans01", "Trans/trans02", "Trans/trans03",
+                                 "Trans/trans04", "Trans/trans05", "Trans/trans06");
             trans_run.Position = new Vector2(100, personY);
-            
-            player = idleAnime;
+
+            animationController.AddAnimation(PlayerState.Idle, idleAnime);
+            animationController.AddAnimation(PlayerState.Running, runAnime);
+            animationController.AddAnimation(PlayerState.TransitionToRun, trans_run);
+            animationController.AddAnimation(PlayerState.TransitionToIdle, trans_idle);
         }
 
         public void Move(GameTime gameTime, Background background)
         {
-
             var KeyboardState = Keyboard.GetState();
-            Vector2 currentPosition = player.Position;
-            idleAnime.Position = currentPosition;
-            runAnime.Position = currentPosition;
-            trans_idle.Position = currentPosition;
-            trans_run.Position = currentPosition;
 
             if (KeyboardState.IsKeyDown(Keys.D))
             {
-                AnimationTransition(gameTime,background,runAnime,trans_run);
-                positionInit = false;
+                facingLeft = false;
+                animationController.Effects = SpriteEffects.None;
+
+                if (animationController.CurrentState != PlayerState.Running &&
+                   animationController.CurrentState != PlayerState.TransitionToRun)
+                {
+                    animationController.StartTransition(PlayerState.TransitionToRun, 80);
+                }
+                if (animationController.CurrentState == PlayerState.Running)
+                {
+                    MoveRight(background);
+                }
             }
             else if (KeyboardState.IsKeyDown(Keys.A))
             {
-                AnimationTransition(gameTime, background, runAnime,trans_run);
-                positionInit = true;
+                facingLeft = true;
+                animationController.Effects = SpriteEffects.FlipHorizontally;
+
+                if (animationController.CurrentState != PlayerState.Running &&
+                   animationController.CurrentState != PlayerState.TransitionToRun)
+                {
+                    animationController.StartTransition(PlayerState.TransitionToRun, 80);
+                }
+
+                if (animationController.CurrentState == PlayerState.Running)
+                {
+                    MoveLeft(background);
+                }
             }
             else
             {
-                IdleTransition(gameTime);
+                if (animationController.CurrentState != PlayerState.Idle &&
+                   animationController.CurrentState != PlayerState.TransitionToIdle)
+                {
+                    animationController.StartTransition(PlayerState.TransitionToIdle, 80);
+                }
             }
         }
         private void MoveRight(Background background)
         {
-            player = runAnime;
-            player.Position += new Vector2(10, 0);
-            player.Effects = SpriteEffects.None;
-            if (player.Position.X >= wallRight.X)
+            var position = animationController.Position;
+            position += new Vector2(10, 0);
+
+            if (position.X >= wallRight.X)
             {
-                player.Position = wallRight;
+                position = wallRight;
                 background.ScrollLeft();
             }
-            Console.WriteLine($"Posição do player: {player.Position}");
+
+            animationController.Position = position;
         }
         private void MoveLeft(Background background)
         {
-            player = runAnime;
-            player.Position += new Vector2(-10, 0);
-            player.Effects = SpriteEffects.FlipHorizontally;
-            if (player.Position.X <= wallLeft.X)
+            var position = animationController.Position;
+            position += new Vector2(-10, 0);
+
+            if (position.X <= wallLeft.X)
             {
-                player.Position = wallLeft;
+                position = wallLeft;
                 background.ScrollRight();
             }
-            Console.WriteLine($"Posição do player: {player.Position}");
-        }
-        private void StartTransition(Animation trans)
-        {
-            isTransitioning = true;
-            transitionTimer = 0;
-            player = trans;
-            player.Position = trans.Position;
-            player.Effects = positionInit ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
-        }
-        private void EndTransition(Animation trans)
-        {
-            isTransitioning = false;
-            transitionTimer = 0;
-            player = trans;
-            player.Position = trans.Position;
-            player.Effects = positionInit ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
-        }
-        private void AnimationTransition(GameTime gameTime,Background background, Animation animationFinal, Animation animationTransition)
-        {
-            if (!isTransitioning && player != animationFinal)
-                {
-                    StartTransition(animationTransition);
-                }
-            if (isTransitioning)
-            {
-                transitionTimer += gameTime.ElapsedGameTime.TotalMicroseconds;
-                if (transitionTimer >= transitionDuration)
-                {
-                    EndTransition(animationFinal);
-                }
-            }
-            else
-            {
-                if (!positionInit)
-                {
-                    MoveRight(background);
-                }
-                else if (positionInit)
-                {
-                    MoveLeft(background);
-                    Console.WriteLine("MoveLeft();");
-                }
-            }
-        }
-        private void IdleTransition(GameTime gameTime)
-        {
-            if (player != idleAnime && !isTransitioning)
-            {
-                StartTransition(trans_idle);
-            }
-            if (isTransitioning)
-            {
-                transitionTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
-                if (transitionTimer >= transitionDuration)
-                {
-                    EndTransition(idleAnime);
-                }
-            }
+
+            animationController.Position = position;
         }
         public void Update(GameTime gameTime)
         {
-            player.Update(gameTime);
+            animationController.Update(gameTime);
         }
         public void Draw(GameTime gameTime)
         {
-            player.Draw(gameTime);
+            animationController.Draw(gameTime);
         }
 
     }

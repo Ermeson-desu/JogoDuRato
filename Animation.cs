@@ -222,6 +222,12 @@ namespace Mono.Helper
             Animation animation = new Animation(this);
             return animation;
         }
+        public void Reset()
+        {
+            Index = 0;
+            FrameIndex = 0;
+            Current = Sprites[0];
+        }
 
         #region DISPOSE
 

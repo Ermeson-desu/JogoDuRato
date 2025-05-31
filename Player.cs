@@ -18,6 +18,7 @@ namespace GameDuMouse
         private bool isTransitioning = false;
         private double transitionTimer = 0;
         private double transitionDuration = 50;
+        
         public Player(Game game)
         {
             this.game = game;
@@ -65,12 +66,12 @@ namespace GameDuMouse
             trans_idle.Position = currentPosition;
             trans_run.Position = currentPosition;
 
-            if (KeyboardState.IsKeyDown(Keys.D))
+            if (KeyboardState.IsKeyDown(Keys.D) || KeyboardState.IsKeyDown(Keys.Right))
             {
                 AnimationTransition(gameTime,background,runAnime,trans_run);
                 positionInit = false;
             }
-            else if (KeyboardState.IsKeyDown(Keys.A))
+            else if (KeyboardState.IsKeyDown(Keys.A) || KeyboardState.IsKeyDown(Keys.Left))
             {
                 AnimationTransition(gameTime, background, runAnime,trans_run);
                 positionInit = true;

@@ -11,8 +11,9 @@ namespace GameDuMouse
         private Animation idleAnime, runAnime, trans_run, trans_idle;
         private AnimationController animationController;
         private Game game;
-        private Vector2 wallRight, wallLeft;
-        private float personY;
+        private Vector2 wallRight, wallLeft, velocity;
+        private float groundY, gravity, jumpStrength;
+        private bool isGrounded;
 
         public Player(Game game)
         {
@@ -21,10 +22,12 @@ namespace GameDuMouse
         }
         public void Initialize()
         {
-            personY = 270;
-            wallRight = new Vector2(200, personY);
-            wallLeft = new Vector2(0, personY);
+            groundY = 270;
+            wallRight = new Vector2(200, groundY);
+            wallLeft = new Vector2(0, groundY);
             animationController = new AnimationController();
+            gravity = 0.5f;
+            jumpStrength = -10f;
         }
 
         public void LoadContent(ContentManager content)
@@ -32,22 +35,22 @@ namespace GameDuMouse
             idleAnime = new Animation(game, 170f);
             idleAnime.AddSprite("Idle/Idle01", "Idle/Idle02", "Idle/Idle03",
                                 "Idle/Idle04", "Idle/Idle05", "Idle/Idle06");
-            idleAnime.Position = new Vector2(100, personY);
+            idleAnime.Position = new Vector2(100, groundY);
 
             runAnime = new Animation(game, 50f);
             runAnime.AddSprite("run/run01", "run/run02", "run/run03",
                                 "run/run04", "run/run05", "run/run06", "run/run07");
-            runAnime.Position = new Vector2(100, personY);
+            runAnime.Position = new Vector2(100, groundY);
 
             trans_idle = new Animation(game, 50f);
             trans_idle.AddSprite("Trans/trans05", "Trans/trans04", "Trans/trans03",
                                  "Trans/trans02", "Trans/trans01");
-            trans_idle.Position = new Vector2(100, personY);
+            trans_idle.Position = new Vector2(100, groundY);
 
             trans_run = new Animation(game, 50f);
             trans_run.AddSprite("Trans/trans01", "Trans/trans02", "Trans/trans03",
                                  "Trans/trans04", "Trans/trans05", "Trans/trans06");
-            trans_run.Position = new Vector2(100, personY);
+            trans_run.Position = new Vector2(100, groundY);
 
             animationController.AddAnimation(PlayerState.Idle, idleAnime);
             animationController.AddAnimation(PlayerState.Running, runAnime);
@@ -58,44 +61,48 @@ namespace GameDuMouse
         public void Move(GameTime gameTime, Background background)
         {
             var KeyboardState = Keyboard.GetState();
-
+            if (KeyboardState.IsKeyDown(Keys.Space) && isGrounded)
+            {
+                velocity.Y = jumpStrength;
+                isGrounded = false;
+            }
             if (KeyboardState.IsKeyDown(Keys.D))
-            {
-                animationController.Effects = SpriteEffects.None;
+                {
+                    animationController.Effects = SpriteEffects.None;
 
-                if (animationController.CurrentState != PlayerState.Running &&
-                   animationController.CurrentState != PlayerState.TransitionToRun)
-                {
-                    animationController.StartTransition(PlayerState.TransitionToRun, 80);
+                    if (animationController.CurrentState != PlayerState.Running &&
+                       animationController.CurrentState != PlayerState.TransitionToRun)
+                    {
+                        animationController.StartTransition(PlayerState.TransitionToRun, 80);
+                    }
+                    if (animationController.CurrentState == PlayerState.Running)
+                    {
+                        MoveRight(background);
+                    }
                 }
-                if (animationController.CurrentState == PlayerState.Running)
+                else if (KeyboardState.IsKeyDown(Keys.A))
                 {
-                    MoveRight(background);
-                }
-            }
-            else if (KeyboardState.IsKeyDown(Keys.A))
-            {
-                animationController.Effects = SpriteEffects.FlipHorizontally;
+                    animationController.Effects = SpriteEffects.FlipHorizontally;
 
-                if (animationController.CurrentState != PlayerState.Running &&
-                    animationController.CurrentState != PlayerState.TransitionToRun)
-                {
-                    animationController.StartTransition(PlayerState.TransitionToRun, 80);
-                }
+                    if (animationController.CurrentState != PlayerState.Running &&
+                        animationController.CurrentState != PlayerState.TransitionToRun)
+                    {
+                        animationController.StartTransition(PlayerState.TransitionToRun, 80);
+                    }
 
-                if (animationController.CurrentState == PlayerState.Running)
-                {
-                    MoveLeft(background);
+                    if (animationController.CurrentState == PlayerState.Running)
+                    {
+                        MoveLeft(background);
+                    }
                 }
-            }
-            else
-            {
-                if (animationController.CurrentState != PlayerState.Idle &&
-                   animationController.CurrentState != PlayerState.TransitionToIdle)
+                else
                 {
-                    animationController.StartTransition(PlayerState.TransitionToIdle, 80);
+                    if (animationController.CurrentState != PlayerState.Idle &&
+                       animationController.CurrentState != PlayerState.TransitionToIdle)
+                    {
+                        animationController.StartTransition(PlayerState.TransitionToIdle, 80);
+                    }
                 }
-            }
         }
         private void MoveRight(Background background)
         {
@@ -123,8 +130,26 @@ namespace GameDuMouse
 
             animationController.Position = position;
         }
+        private void ApplyPhysics()
+        {
+            velocity.Y += gravity;
+            var position = animationController.Position;
+            position += velocity;
+            if (position.Y >= groundY)
+            {
+                position.Y = groundY;
+                velocity.Y = 0;
+                isGrounded = true;
+            }
+            else
+            {
+                isGrounded = false;
+            }
+            animationController.Position = position;
+        }
         public void Update(GameTime gameTime)
         {
+            ApplyPhysics();
             animationController.Update(gameTime);
         }
         public void Draw(GameTime gameTime)

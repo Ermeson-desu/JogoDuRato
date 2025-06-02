@@ -1,3 +1,4 @@
+using System.Drawing.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,6 +11,7 @@ namespace GameDuMouse
     {
         private Animation idleAnime, runAnime, trans_run, trans_idle;
         private AnimationController animationController;
+        private KeyboardState previousKeyboardState,keyboardState ;
         private Game game;
         private Vector2 wallRight, wallLeft, velocity;
         private float groundY, gravity, jumpStrength;
@@ -60,13 +62,17 @@ namespace GameDuMouse
 
         public void Move(GameTime gameTime, Background background)
         {
-            var KeyboardState = Keyboard.GetState();
-            if (KeyboardState.IsKeyDown(Keys.Space) && isGrounded)
+            keyboardState = Keyboard.GetState();
+            bool SpacePressed = keyboardState.IsKeyDown(Keys.Space) &&
+                                previousKeyboardState.IsKeyUp(Keys.Space);
+            
+            if (SpacePressed && isGrounded)
             {
                 velocity.Y = jumpStrength;
                 isGrounded = false;
             }
-            if (KeyboardState.IsKeyDown(Keys.D))
+            
+            if (keyboardState.IsKeyDown(Keys.D))
                 {
                     animationController.Effects = SpriteEffects.None;
 
@@ -80,7 +86,7 @@ namespace GameDuMouse
                         MoveRight(background);
                     }
                 }
-                else if (KeyboardState.IsKeyDown(Keys.A))
+                else if (keyboardState.IsKeyDown(Keys.A))
                 {
                     animationController.Effects = SpriteEffects.FlipHorizontally;
 
@@ -151,6 +157,7 @@ namespace GameDuMouse
         {
             ApplyPhysics();
             animationController.Update(gameTime);
+            previousKeyboardState = keyboardState;
         }
         public void Draw(GameTime gameTime)
         {

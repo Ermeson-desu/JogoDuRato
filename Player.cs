@@ -1,21 +1,20 @@
-using System.Drawing.Text;
-using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Mono.Helper;
-using SharpDX.MediaFoundation.DirectX;
 
 namespace GameDuMouse
 {
     public class Player
     {
+        private Texture2D debugTexture;
+
         private Animation idleAnime, runAnime, trans_run, trans_idle;
         private AnimationController animationController;
         private KeyboardState previousKeyboardState,keyboardState ;
         private Game game;
-        private Vector2 wallRight, wallLeft, velocity;
+        private Vector2 velocity;
         private float groundY, gravity, jumpStrength;
         private bool isGrounded;
         private Rectangle groundCollider,rightBarrerCollider, leftBarrerCollider;
@@ -24,7 +23,7 @@ namespace GameDuMouse
             get
             {
                 var pos = animationController.Position;
-                return new Rectangle((int)pos.X, (int)pos.Y, 50, 70);
+                return new Rectangle((int)pos.X, (int)pos.Y, 100, 110);
             }
         }
 
@@ -36,8 +35,6 @@ namespace GameDuMouse
         public void Initialize()
         {
             groundY = 270;
-            wallRight = new Vector2(200, groundY);
-            wallLeft = new Vector2(0, groundY);
             animationController = new AnimationController();
             gravity = 0.5f;
             jumpStrength = -10f;
@@ -49,6 +46,9 @@ namespace GameDuMouse
 
         public void LoadContent(ContentManager content)
         {
+            debugTexture = new Texture2D(game.GraphicsDevice,1,1);
+            debugTexture.SetData(new[]{ Color.White});
+
             idleAnime = new Animation(game, 170f);
             idleAnime.AddSprite("Idle/Idle01", "Idle/Idle02", "Idle/Idle03",
                                 "Idle/Idle04", "Idle/Idle05", "Idle/Idle06");
@@ -129,7 +129,7 @@ namespace GameDuMouse
         {
             var position = animationController.Position;
             var nextPosition = position + new Vector2(10, 0);
-            var futureCollider = new Rectangle((int)nextPosition.X,(int)nextPosition.Y,50,70);
+            var futureCollider = new Rectangle((int)nextPosition.X,(int)nextPosition.Y,100,110);
 
             if (futureCollider.Intersects(rightBarrerCollider))
             {
@@ -143,7 +143,7 @@ namespace GameDuMouse
         {
             var position = animationController.Position;
             var nextPosition = position + new Vector2(-10, 0);
-            var futureCollider = new Rectangle((int)nextPosition.X,(int)nextPosition.Y,50,70);
+            var futureCollider = new Rectangle((int)nextPosition.X,(int)nextPosition.Y,100,110);
 
             if (futureCollider.Intersects(leftBarrerCollider))
             {
@@ -156,12 +156,12 @@ namespace GameDuMouse
         private void ApplyPhysics()
         {
             var position = animationController.Position;
-            var playerCollider = new Rectangle((int)position.X,(int)position.Y,50,70);
+            var playerCollider = new Rectangle((int)position.X,(int)position.Y,100,110);
             velocity.Y += gravity;
             position += velocity;
             if (playerCollider.Intersects(groundCollider))
             {
-                position.Y = groundCollider.Top - 70;
+                position.Y = groundCollider.Top - 110;
                 velocity.Y = 0;
                 isGrounded = true;
             }
@@ -180,6 +180,20 @@ namespace GameDuMouse
         public void Draw(GameTime gameTime)
         {
             animationController.Draw(gameTime);
+
+            var spriteBatch = (SpriteBatch)game.Services.GetService(typeof(SpriteBatch));
+
+            // Chão - vermelho translúcido
+            spriteBatch.Draw(debugTexture, groundCollider, Color.Red * 0.4f);
+
+            // Barreira direita - azul translúcido
+            spriteBatch.Draw(debugTexture, rightBarrerCollider, Color.Blue * 0.4f);
+
+            // Barreira esquerda - verde translúcido
+            spriteBatch.Draw(debugTexture, leftBarrerCollider, Color.Green * 0.4f);
+
+            // Collider do próprio player - amarelo
+            spriteBatch.Draw(debugTexture, Collider, Color.Yellow * 0.5f);
         }
 
     }

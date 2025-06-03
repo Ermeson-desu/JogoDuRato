@@ -1,9 +1,11 @@
 using System.Drawing.Text;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Mono.Helper;
+using SharpDX.MediaFoundation.DirectX;
 
 namespace GameDuMouse
 {
@@ -16,6 +18,15 @@ namespace GameDuMouse
         private Vector2 wallRight, wallLeft, velocity;
         private float groundY, gravity, jumpStrength;
         private bool isGrounded;
+        private Rectangle groundCollider,rightBarrerCollider, leftBarrerCollider;
+        private Rectangle Collider
+        {
+            get
+            {
+                var pos = animationController.Position;
+                return new Rectangle((int)pos.X, (int)pos.Y, 50, 70);
+            }
+        }
 
         public Player(Game game)
         {
@@ -30,6 +41,10 @@ namespace GameDuMouse
             animationController = new AnimationController();
             gravity = 0.5f;
             jumpStrength = -10f;
+            groundCollider = new Rectangle(0, (int)groundY + 70, 800, 50);
+            rightBarrerCollider = new Rectangle(200 + 50, (int)groundY, 10, 200);
+            leftBarrerCollider = new Rectangle(0,(int)groundY, 10,200);
+            
         }
 
         public void LoadContent(ContentManager content)
@@ -113,37 +128,40 @@ namespace GameDuMouse
         private void MoveRight(Background background)
         {
             var position = animationController.Position;
-            position += new Vector2(10, 0);
+            var nextPosition = position + new Vector2(10, 0);
+            var futureCollider = new Rectangle((int)nextPosition.X,(int)nextPosition.Y,50,70);
 
-            if (position.X >= wallRight.X)
+            if (futureCollider.Intersects(rightBarrerCollider))
             {
-                position = wallRight;
                 background.ScrollLeft();
+                return;
             }
 
-            animationController.Position = position;
+            animationController.Position = nextPosition;
         }
         private void MoveLeft(Background background)
         {
             var position = animationController.Position;
-            position += new Vector2(-10, 0);
+            var nextPosition = position + new Vector2(-10, 0);
+            var futureCollider = new Rectangle((int)nextPosition.X,(int)nextPosition.Y,50,70);
 
-            if (position.X <= wallLeft.X)
+            if (futureCollider.Intersects(leftBarrerCollider))
             {
-                position = wallLeft;
                 background.ScrollRight();
+                return;
             }
 
-            animationController.Position = position;
+            animationController.Position = nextPosition;
         }
         private void ApplyPhysics()
         {
-            velocity.Y += gravity;
             var position = animationController.Position;
+            var playerCollider = new Rectangle((int)position.X,(int)position.Y,50,70);
+            velocity.Y += gravity;
             position += velocity;
-            if (position.Y >= groundY)
+            if (playerCollider.Intersects(groundCollider))
             {
-                position.Y = groundY;
+                position.Y = groundCollider.Top - 70;
                 velocity.Y = 0;
                 isGrounded = true;
             }

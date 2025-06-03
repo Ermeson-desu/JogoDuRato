@@ -36,11 +36,11 @@ namespace GameDuMouse
         {
             groundY = 270;
             animationController = new AnimationController();
-            gravity = 0.5f;
-            jumpStrength = -10f;
-            groundCollider = new Rectangle(0, (int)groundY + 70, 800, 50);
-            rightBarrerCollider = new Rectangle(200 + 50, (int)groundY, 10, 200);
-            leftBarrerCollider = new Rectangle(0,(int)groundY, 10,200);
+            gravity = 1f;
+            jumpStrength = -15f;
+            groundCollider = new Rectangle(0, 400, 800, 50);
+            rightBarrerCollider = new Rectangle(400, 1, 10, 500);
+            leftBarrerCollider = new Rectangle(200,1, 10,500);
             
         }
 
@@ -87,7 +87,7 @@ namespace GameDuMouse
                 isGrounded = false;
             }
             
-            if (keyboardState.IsKeyDown(Keys.D))
+            if (keyboardState.IsKeyDown(Keys.D) || keyboardState.IsKeyDown(Keys.Right))
                 {
                     animationController.Effects = SpriteEffects.None;
 
@@ -101,7 +101,7 @@ namespace GameDuMouse
                         MoveRight(background);
                     }
                 }
-                else if (keyboardState.IsKeyDown(Keys.A))
+                else if (keyboardState.IsKeyDown(Keys.A) || keyboardState.IsKeyDown(Keys.Left))
                 {
                     animationController.Effects = SpriteEffects.FlipHorizontally;
 

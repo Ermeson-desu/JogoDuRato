@@ -45,7 +45,7 @@ namespace GameDuMouse
             {
                 backgroundPosition2 = new Vector2(890, 0);
             }
-            Console.WriteLine($"Posição do Background: 1- {backgroundPosition} 2- {backgroundPosition2}");
+
         }
         public void ScrollRight()
         {
@@ -64,7 +64,6 @@ namespace GameDuMouse
             {
                 backgroundPosition2 = new Vector2(-890, 0);
             }
-            Console.WriteLine($"Posição do Background: 1- {backgroundPosition} 2- {backgroundPosition2}");
         }
         public void Draw(SpriteBatch spriteBatch)
         {

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -32,16 +33,21 @@ namespace GameDuMouse
             this.game = game;
             Initialize();
         }
+        public Vector2 GetPosition()
+        {
+            Vector2 positionPlayer = new Vector2(Collider.X,Collider.Y);
+            return positionPlayer;
+        }
         public void Initialize()
         {
-            groundY = 270;
+            groundY = 400;
             animationController = new AnimationController();
             gravity = 1f;
             jumpStrength = -15f;
-            groundCollider = new Rectangle(0, 400, 800, 50);
-            rightBarrerCollider = new Rectangle(400, 1, 10, 500);
-            leftBarrerCollider = new Rectangle(200,1, 10,500);
-            
+            groundCollider = new Rectangle(0, (int)groundY, 800, 50);
+            rightBarrerCollider = new Rectangle(800, 1, 10, 500);
+            leftBarrerCollider = new Rectangle(10, 1, 10, 500);
+
         }
 
         public void LoadContent(ContentManager content)
@@ -52,22 +58,22 @@ namespace GameDuMouse
             idleAnime = new Animation(game, 170f);
             idleAnime.AddSprite("Idle/Idle01", "Idle/Idle02", "Idle/Idle03",
                                 "Idle/Idle04", "Idle/Idle05", "Idle/Idle06");
-            idleAnime.Position = new Vector2(100, groundY);
+            idleAnime.Position = new Vector2(210, groundY);
 
             runAnime = new Animation(game, 50f);
             runAnime.AddSprite("run/run01", "run/run02", "run/run03",
                                 "run/run04", "run/run05", "run/run06", "run/run07");
-            runAnime.Position = new Vector2(100, groundY);
+            runAnime.Position = new Vector2(210, groundY);
 
             trans_idle = new Animation(game, 50f);
             trans_idle.AddSprite("Trans/trans05", "Trans/trans04", "Trans/trans03",
                                  "Trans/trans02", "Trans/trans01");
-            trans_idle.Position = new Vector2(100, groundY);
+            trans_idle.Position = new Vector2(210, groundY);
 
             trans_run = new Animation(game, 50f);
             trans_run.AddSprite("Trans/trans01", "Trans/trans02", "Trans/trans03",
                                  "Trans/trans04", "Trans/trans05", "Trans/trans06");
-            trans_run.Position = new Vector2(100, groundY);
+            trans_run.Position = new Vector2(210, groundY);
 
             animationController.AddAnimation(PlayerState.Idle, idleAnime);
             animationController.AddAnimation(PlayerState.Running, runAnime);
@@ -75,9 +81,8 @@ namespace GameDuMouse
             animationController.AddAnimation(PlayerState.TransitionToIdle, trans_idle);
         }
 
-        public void Move(GameTime gameTime, Background background)
+        public void Move( Background background)
         {
-            keyboardState = Keyboard.GetState();
             bool SpacePressed = keyboardState.IsKeyDown(Keys.Space) &&
                                 previousKeyboardState.IsKeyUp(Keys.Space);
             
@@ -156,7 +161,7 @@ namespace GameDuMouse
         private void ApplyPhysics()
         {
             var position = animationController.Position;
-            var playerCollider = new Rectangle((int)position.X,(int)position.Y,100,110);
+            var playerCollider = Collider;
             velocity.Y += gravity;
             position += velocity;
             if (playerCollider.Intersects(groundCollider))
@@ -171,9 +176,11 @@ namespace GameDuMouse
             }
             animationController.Position = position;
         }
-        public void Update(GameTime gameTime)
+        public void Update(GameTime gameTime,Background background)
         {
+            keyboardState = Keyboard.GetState();
             ApplyPhysics();
+            Move(background);
             animationController.Update(gameTime);
             previousKeyboardState = keyboardState;
         }

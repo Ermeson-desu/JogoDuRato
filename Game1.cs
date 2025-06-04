@@ -9,6 +9,7 @@ namespace GameDuMouse
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch spriteBatch;
+        private Camera camera;
         private Player player1;
         private Background background1;
         public Game1()
@@ -21,6 +22,7 @@ namespace GameDuMouse
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
+            camera = new Camera();
             base.Initialize();
         }
 
@@ -42,16 +44,15 @@ namespace GameDuMouse
             {
                 Exit();
             }
-            player1.Move(gameTime,background1);
-            player1.Update(gameTime);
-
+            player1.Update(gameTime,background1);
+            camera.Follow(player1.GetPosition());
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            spriteBatch.Begin();
+            spriteBatch.Begin(transformMatrix: camera.Transform);
 
             background1.Draw(spriteBatch);
             player1.Draw(gameTime);

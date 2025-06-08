@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -35,7 +34,7 @@ namespace GameDuMouse
         }
         public Vector2 GetPosition()
         {
-            Vector2 positionPlayer = new Vector2(Collider.X,Collider.Y);
+            Vector2 positionPlayer = new Vector2(Collider.X,300);
             return positionPlayer;
         }
         public void Initialize()
@@ -44,8 +43,8 @@ namespace GameDuMouse
             animationController = new AnimationController();
             gravity = 1f;
             jumpStrength = -15f;
-            groundCollider = new Rectangle(0, (int)groundY, 800, 50);
-            rightBarrerCollider = new Rectangle(800, 1, 10, 500);
+            groundCollider = new Rectangle(0, (int)groundY, 6650, 50);
+            rightBarrerCollider = new Rectangle(6650, 1, 10, 500);
             leftBarrerCollider = new Rectangle(10, 1, 10, 500);
 
         }
@@ -81,7 +80,7 @@ namespace GameDuMouse
             animationController.AddAnimation(PlayerState.TransitionToIdle, trans_idle);
         }
 
-        public void Move( Background background)
+        public void Move()
         {
             bool SpacePressed = keyboardState.IsKeyDown(Keys.Space) &&
                                 previousKeyboardState.IsKeyUp(Keys.Space);
@@ -103,7 +102,7 @@ namespace GameDuMouse
                     }
                     if (animationController.CurrentState == PlayerState.Running)
                     {
-                        MoveRight(background);
+                        MoveRight();
                     }
                 }
                 else if (keyboardState.IsKeyDown(Keys.A) || keyboardState.IsKeyDown(Keys.Left))
@@ -118,7 +117,7 @@ namespace GameDuMouse
 
                     if (animationController.CurrentState == PlayerState.Running)
                     {
-                        MoveLeft(background);
+                        MoveLeft();
                     }
                 }
                 else
@@ -130,7 +129,7 @@ namespace GameDuMouse
                     }
                 }
         }
-        private void MoveRight(Background background)
+        private void MoveRight()
         {
             var position = animationController.Position;
             var nextPosition = position + new Vector2(10, 0);
@@ -138,13 +137,12 @@ namespace GameDuMouse
 
             if (futureCollider.Intersects(rightBarrerCollider))
             {
-                background.ScrollLeft();
                 return;
             }
 
             animationController.Position = nextPosition;
         }
-        private void MoveLeft(Background background)
+        private void MoveLeft()
         {
             var position = animationController.Position;
             var nextPosition = position + new Vector2(-10, 0);
@@ -152,7 +150,6 @@ namespace GameDuMouse
 
             if (futureCollider.Intersects(leftBarrerCollider))
             {
-                background.ScrollRight();
                 return;
             }
 
@@ -176,11 +173,11 @@ namespace GameDuMouse
             }
             animationController.Position = position;
         }
-        public void Update(GameTime gameTime,Background background)
+        public void Update(GameTime gameTime)
         {
             keyboardState = Keyboard.GetState();
             ApplyPhysics();
-            Move(background);
+            Move();
             animationController.Update(gameTime);
             previousKeyboardState = keyboardState;
         }

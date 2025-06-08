@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GameDuMouse")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e7879d3c80584e7015ee7d4a430c06c59eebe291")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b24664f3d4de14dd46e910579610bd8646eaea75")]
 [assembly: System.Reflection.AssemblyProductAttribute("GameDuMouse")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GameDuMouse")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

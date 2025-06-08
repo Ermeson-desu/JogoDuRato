@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -44,7 +43,7 @@ namespace GameDuMouse
             {
                 Exit();
             }
-            player1.Update(gameTime,background1);
+            player1.Update(gameTime);
             camera.Follow(player1.GetPosition());
             base.Update(gameTime);
         }

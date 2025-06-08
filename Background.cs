@@ -1,15 +1,13 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using System;
 
 namespace GameDuMouse
 {
     public class Background
     {
         private Game game;
-        private Texture2D background;
+        private Texture2D background,background2;
         private Vector2 backgroundPosition, backgroundPosition2;
 
         public Background(Game game)
@@ -19,13 +17,14 @@ namespace GameDuMouse
         }
         public void Initialize()
         {
-            backgroundPosition = new Vector2(0, 0);
-            backgroundPosition2 = new Vector2(900, 0);
+            backgroundPosition = new Vector2(-150, -100);
+            backgroundPosition2 = new Vector2(3250, -100);
 
         }
         public void LoadContent(ContentManager content)
         {
-            background = content.Load<Texture2D>("scenario/cenario_game");
+            background = content.Load<Texture2D>("scenario/background_image(01)");
+            background2 = content.Load<Texture2D>("scenario/background_image(02)");
         }
         public void ScrollLeft()
         {
@@ -67,8 +66,8 @@ namespace GameDuMouse
         }
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(background, backgroundPosition, null ,Color.White, 0f, Vector2.Zero, 3f,SpriteEffects.None, 0f );
-            spriteBatch.Draw(background, backgroundPosition2, null ,Color.White, 0f, Vector2.Zero, 3f,SpriteEffects.None, 0f );
+            spriteBatch.Draw(background, backgroundPosition, null ,Color.White, 0f, Vector2.Zero, 1f,SpriteEffects.None, 0f );
+            spriteBatch.Draw(background2, backgroundPosition2, null ,Color.White, 0f, Vector2.Zero, 1f,SpriteEffects.None, 0f );
         }
 
     }

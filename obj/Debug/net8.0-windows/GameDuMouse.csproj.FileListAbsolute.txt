@@ -64,7 +64,6 @@ C:\Users\ermes\Documentos\GitHub\JogoDuRato\obj\Debug\net8.0-windows\GameDuMouse
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\obj\Debug\net8.0-windows\GameDuMouse.genruntimeconfig.cache
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\obj\Debug\net8.0-windows\ref\GameDuMouse.dll
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\DefautFont.xnb
-C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\scenario\cenario_game.xnb
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run\run01.xnb
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run\run02.xnb
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\run\run03.xnb
@@ -78,3 +77,6 @@ C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\Tra
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\Trans\trans04.xnb
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\Trans\trans05.xnb
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\Trans\trans06.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\scenario\JogoDuRatoOficial.xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\scenario\background_image(01).xnb
+C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\scenario\background_image(02).xnb

@@ -92,6 +92,7 @@ namespace GameDuMouse
                 foreach (var anim in animations.Values)
                 {
                     anim.Effects = currentEffects;
+                    
                 }
             }
         }

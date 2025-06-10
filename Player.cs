@@ -18,7 +18,7 @@ namespace GameDuMouse
         private Vector2 velocity;
         private float groundY, gravity, jumpStrength;
         private bool isGrounded;
-        private int widthColliderPlayer,heightColliderPlayer;
+        private int widthColliderPlayer,heightColliderPlayer, heightPlayerRun;
         private Rectangle groundCollider, rightBarrerCollider, leftBarrerCollider;
         private Rectangle? manualCollider;
         private Rectangle Collider
@@ -51,6 +51,7 @@ namespace GameDuMouse
         }
         public void Initialize()
         {
+            heightPlayerRun = 55;
             groundY = 400;
             animationController = new AnimationController();
             gravity = 1f;
@@ -94,6 +95,7 @@ namespace GameDuMouse
 
         public void Move()
         {
+            var pos = animationController.Position;
             bool SpacePressed = keyboardState.IsKeyDown(Keys.Space);
 
             if (SpacePressed && isGrounded)
@@ -113,6 +115,7 @@ namespace GameDuMouse
                 }
                 if (animationController.CurrentState == PlayerState.Running)
                 {
+                    Collider = new Rectangle((int)pos.X, (int)pos.Y + heightPlayerRun ,widthColliderPlayer,heightPlayerRun);
                     MoveRight();
                 }
             }
@@ -128,6 +131,7 @@ namespace GameDuMouse
 
                 if (animationController.CurrentState == PlayerState.Running)
                 {
+                    Collider = new Rectangle((int)pos.X , (int)pos.Y + heightPlayerRun ,widthColliderPlayer, heightPlayerRun);
                     MoveLeft();
                 }
             }
@@ -136,6 +140,7 @@ namespace GameDuMouse
                 if (animationController.CurrentState != PlayerState.Idle &&
                    animationController.CurrentState != PlayerState.TransitionToIdle)
                 {
+                    manualCollider = null;
                     animationController.StartTransition(PlayerState.TransitionToIdle, 80);
                 }
             }
@@ -144,7 +149,7 @@ namespace GameDuMouse
         {
             var position = animationController.Position;
             var nextPosition = position + new Vector2(10, 0);
-            var futureCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, 100, 110);
+            var futureCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
 
             if (futureCollider.Intersects(rightBarrerCollider))
             {
@@ -157,7 +162,7 @@ namespace GameDuMouse
         {
             var position = animationController.Position;
             var nextPosition = position + new Vector2(-10, 0);
-            var futureCollider = new Rectangle((int)nextPosition.X , (int)nextPosition.Y, 100, 110);
+            var futureCollider = new Rectangle((int)nextPosition.X , (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
 
             if (futureCollider.Intersects(leftBarrerCollider))
             {
@@ -174,7 +179,7 @@ namespace GameDuMouse
             position += velocity;
             if (playerCollider.Intersects(groundCollider))
             {
-                position.Y = groundCollider.Top - 110;
+                position.Y = groundCollider.Top - heightColliderPlayer;
                 velocity.Y = 0;
                 isGrounded = true;
             }

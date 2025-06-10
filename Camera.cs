@@ -7,7 +7,7 @@ namespace GameDuMouse
     {
         public Matrix Transform { get; set; }
         public Vector2 Position { get; set; }
-
+        
         public void Follow(Vector2 targetPosition)
         {
             Position = targetPosition;

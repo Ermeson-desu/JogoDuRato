@@ -1,4 +1,4 @@
-using System.Threading;
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -21,8 +21,9 @@ namespace GameDuMouse
         private float groundY, gravity, jumpStrength;
         private bool isGrounded;
         private int widthColliderPlayer,heightColliderPlayer, heightPlayerRun;
-        private Rectangle groundCollider, rightBarrerCollider, leftBarrerCollider;
-        private Rectangle? manualCollider;
+        private Rectangle saltLid, upStove,platform1, platform2;
+        private Rectangle groundCollider, groundCollider2, rightBarrerCollider, leftBarrerCollider;
+        private Rectangle? manualCollider,footManualCollider;
         private Rectangle Collider
         {
             get
@@ -38,6 +39,22 @@ namespace GameDuMouse
             set
             {
                 manualCollider = value;
+            }
+        }
+        private Rectangle footPlayer
+        {
+            get
+            {
+                var pos = animationController.Position;
+
+                if (footManualCollider.HasValue)
+                    return footManualCollider.Value;
+
+                return new Rectangle((int)pos.X, (int)pos.Y + heightColliderPlayer, widthColliderPlayer, 5);
+            }
+            set
+            {
+                footManualCollider = value;
             }
         }
 
@@ -58,9 +75,11 @@ namespace GameDuMouse
             animationController = new AnimationController();
             gravity = 1f;
             jumpStrength = -18f;
-            groundCollider = new Rectangle(0, (int)groundY, 6650, 50);
-            rightBarrerCollider = new Rectangle(6650, 1, 10, 500);
+            groundCollider = new Rectangle(0, (int)groundY, 2600, 5);
+            groundCollider2 = new Rectangle(3000, (int)groundY, 2700, 5);
+            rightBarrerCollider = new Rectangle(5700, 1, 10, 500);
             leftBarrerCollider = new Rectangle(10, 1, 10, 500);
+            saltLid = new Rectangle(1150,291,100,5);
 
         }
 
@@ -118,6 +137,7 @@ namespace GameDuMouse
                 if (animationController.CurrentState == PlayerState.Running)
                 {
                     Collider = new Rectangle((int)pos.X + 50, (int)pos.Y + heightPlayerRun ,widthColliderPlayer,heightPlayerRun);
+                    footPlayer = new Rectangle((int)pos.X + 50, (int)pos.Y + heightColliderPlayer, widthColliderPlayer, 5);
                     MoveRight();
                 }
             }
@@ -133,8 +153,10 @@ namespace GameDuMouse
 
                 if (animationController.CurrentState == PlayerState.Running)
                 {
-                    Collider = new Rectangle((int)pos.X , (int)pos.Y + heightPlayerRun ,widthColliderPlayer, heightPlayerRun);
+                    Collider = new Rectangle((int)pos.X, (int)pos.Y + heightPlayerRun, widthColliderPlayer, heightPlayerRun);
+                    footPlayer = new Rectangle((int)pos.X , (int)pos.Y + heightColliderPlayer, widthColliderPlayer, 5);
                     MoveLeft();
+                    
                 }
             }
             else
@@ -143,6 +165,7 @@ namespace GameDuMouse
                    animationController.CurrentState != PlayerState.TransitionToIdle)
                 {
                     manualCollider = null;
+                    footManualCollider = null;
                     animationController.StartTransition(PlayerState.TransitionToIdle, 80);
                 }
             }
@@ -159,29 +182,47 @@ namespace GameDuMouse
             }
 
             animationController.Position = nextPosition;
+            Console.WriteLine(position);
         }
         private void MoveLeft()
         {
             var position = animationController.Position;
             var nextPosition = position + new Vector2(-10, 0);
-            var futureCollider = new Rectangle((int)nextPosition.X , (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
+            var futureCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
 
             if (futureCollider.Intersects(leftBarrerCollider))
             {
                 return;
             }
+            
 
             animationController.Position = nextPosition;
+            Console.WriteLine(position);
         }
         private void ApplyPhysics()
         {
             var position = animationController.Position;
             var playerCollider = Collider;
+            var footPlayerCollider = footPlayer;
+
             velocity.Y += gravity;
             position += velocity;
+
             if (playerCollider.Intersects(groundCollider))
             {
                 position.Y = groundCollider.Top - heightColliderPlayer;
+                velocity.Y = 0;
+                isGrounded = true;
+            }
+            else if (playerCollider.Intersects(groundCollider2))
+            {
+                position.Y = groundCollider2.Top - heightColliderPlayer;
+                velocity.Y = 0;
+                isGrounded = true;
+            }
+            else if (footPlayer.Intersects(saltLid))
+            {
+                position.Y = saltLid.Top - heightColliderPlayer;
                 velocity.Y = 0;
                 isGrounded = true;
             }
@@ -205,8 +246,10 @@ namespace GameDuMouse
 
             var spriteBatch = (SpriteBatch)game.Services.GetService(typeof(SpriteBatch));
 
+            spriteBatch.Draw(debugTexture, saltLid, Color.Blue * 0.4f);
             // Chão - vermelho translúcido
             spriteBatch.Draw(debugTexture, groundCollider, Color.Red * 0.4f);
+            spriteBatch.Draw(debugTexture, groundCollider2, Color.Red * 0.4f);
 
             // Barreira direita - azul translúcido
             spriteBatch.Draw(debugTexture, rightBarrerCollider, Color.Blue * 0.4f);
@@ -216,6 +259,7 @@ namespace GameDuMouse
 
             // Collider do próprio player - amarelo
             spriteBatch.Draw(debugTexture, Collider, Color.Yellow * 0.5f);
+            spriteBatch.Draw(debugTexture, footPlayer, Color.Blue*0.5f);
         }
 
     }

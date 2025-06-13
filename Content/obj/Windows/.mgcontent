@@ -11,6 +11,8 @@
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run05.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run06.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run07.png</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/background_image(01).jpg</File>
+    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/background_image(02).jpg</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/File.spritefont</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle01.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle02.png</File>
@@ -25,8 +27,6 @@
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run05.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run06.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run07.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/scenario/background_image(01).jpg</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/scenario/background_image(02).jpg</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans01.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans02.png</File>
     <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans03.png</File>
@@ -42,9 +42,9 @@
     <File>run/run05.png</File>
     <File>run/run06.png</File>
     <File>run/run07.png</File>
+    <File>scenario/background_image(01).jpg</File>
+    <File>scenario/background_image(02).jpg</File>
     <File>DefautFont.spritefont</File>
-    <File xsi:nil="true" />
-    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

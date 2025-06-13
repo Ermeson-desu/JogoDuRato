@@ -97,6 +97,30 @@
 /processorParam:TextureFormat=Color
 /build:../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run07.png;run/run07.png
 
+#begin ../../../../Imagens/JogoDuRato/background_image(01).jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:../../../../Imagens/JogoDuRato/background_image(01).jpg;scenario/background_image(01).jpg
+
+#begin ../../../../Imagens/JogoDuRato/background_image(02).jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:../../../../Imagens/JogoDuRato/background_image(02).jpg;scenario/background_image(02).jpg
+
 #begin File.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
@@ -259,30 +283,6 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:run/run07.png
-
-#begin scenario/background_image(01).jpg
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:scenario/background_image(01).jpg
-
-#begin scenario/background_image(02).jpg
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:scenario/background_image(02).jpg
 
 #begin Trans/trans01.png
 /importer:TextureImporter

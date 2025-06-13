@@ -9,6 +9,8 @@ namespace GameDuMouse
 {
     public class Player
     {
+        private const int tailOfiset = 44;
+
         private Texture2D debugTexture;
 
         private Animation idleAnime, runAnime, trans_run, trans_idle;
@@ -115,7 +117,7 @@ namespace GameDuMouse
                 }
                 if (animationController.CurrentState == PlayerState.Running)
                 {
-                    Collider = new Rectangle((int)pos.X, (int)pos.Y + heightPlayerRun ,widthColliderPlayer,heightPlayerRun);
+                    Collider = new Rectangle((int)pos.X + 50, (int)pos.Y + heightPlayerRun ,widthColliderPlayer,heightPlayerRun);
                     MoveRight();
                 }
             }

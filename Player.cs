@@ -217,39 +217,99 @@ namespace GameDuMouse
             velocity.Y += gravity;
             var nextPosition = position + velocity;
 
-            var nextCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
-            var nextFootY = (int)nextPosition.Y + heightColliderPlayer;
-            var prevFootY = (int)prevPosition.Y + heightColliderPlayer;
-            int nextLeft = (int)nextPosition.X;
-            int nextRight = nextLeft + widthColliderPlayer;
-
-            bool HorizOverlap(Rectangle r) => nextRight > r.Left && nextLeft < r.Right;
-            
-            // Colisor dos pés para verificação de plataformas
-            var nextFootCollider = new Rectangle((int)nextPosition.X + 15, (int)nextPosition.Y + heightColliderPlayer, widthColliderPlayer - 30, 5);
-
-            if (nextCollider.Intersects(groundCollider))
+            // Se houver um Collider manual, mantenha o offset/size ao calcular o próximo colisor do corpo
+            Rectangle nextBodyCollider;
+            if (manualCollider.HasValue)
             {
-                position.Y = groundCollider.Top - heightColliderPlayer;
+                var offsetX = manualCollider.Value.X - (int)position.X;
+                var offsetY = manualCollider.Value.Y - (int)position.Y;
+                nextBodyCollider = new Rectangle((int)nextPosition.X + offsetX, (int)nextPosition.Y + offsetY, manualCollider.Value.Width, manualCollider.Value.Height);
+            }
+            else
+            {
+                nextBodyCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
+            }
+
+            // Função local para construir o colisor dos pés na posição fornecida (prev/next)
+            Rectangle FootColliderAt(Vector2 p)
+            {
+                if (footManualCollider.HasValue)
+                {
+                    var offsetX = footManualCollider.Value.X - (int)position.X;
+                    var offsetY = footManualCollider.Value.Y - (int)position.Y;
+                    return new Rectangle((int)p.X + offsetX, (int)p.Y + offsetY, footManualCollider.Value.Width, footManualCollider.Value.Height);
+                }
+
+                // padrão reduzido (mesma lógica que a propriedade FootPlayer)
+                return new Rectangle((int)p.X + 15, (int)p.Y + heightColliderPlayer, widthColliderPlayer - 30, 5);
+            }
+
+            var nextFootCollider = FootColliderAt(nextPosition);
+            var prevFootCollider = FootColliderAt(prevPosition);
+            var nextFootY = nextFootCollider.Top;
+            var prevFootY = prevFootCollider.Top;
+
+            // Altura atual do jogador (considera collider manual quando existente)
+            int currentPlayerHeight = manualCollider.HasValue ? manualCollider.Value.Height : heightColliderPlayer;
+
+            if (nextBodyCollider.Intersects(groundCollider))
+            {
+                if (manualCollider.HasValue)
+                {
+                    var offsetY = manualCollider.Value.Y - (int)position.Y;
+                    position.Y = groundCollider.Top - manualCollider.Value.Height - offsetY;
+                }
+                else
+                {
+                    position.Y = groundCollider.Top - heightColliderPlayer;
+                }
+
                 velocity.Y = 0;
                 isGrounded = true;
             }
-            else if (nextCollider.Intersects(groundCollider2))
+            else if (nextBodyCollider.Intersects(groundCollider2))
             {
-                position.Y = groundCollider2.Top - heightColliderPlayer;
+                if (manualCollider.HasValue)
+                {
+                    var offsetY = manualCollider.Value.Y - (int)position.Y;
+                    position.Y = groundCollider2.Top - manualCollider.Value.Height - offsetY;
+                }
+                else
+                {
+                    position.Y = groundCollider2.Top - heightColliderPlayer;
+                }
+
                 velocity.Y = 0;
                 isGrounded = true;
             }
-            else if (nextFootCollider.Intersects(saltLid) && velocity.Y >= 0f)
+            else if (prevFootY <= saltLid.Top && nextFootY >= saltLid.Top && nextFootCollider.Intersects(saltLid) && velocity.Y >= 0f)
             {
-                position.Y = saltLid.Top - heightColliderPlayer;
+                if (manualCollider.HasValue)
+                {
+                    var offsetY = manualCollider.Value.Y - (int)position.Y;
+                    position.Y = saltLid.Top - manualCollider.Value.Height - offsetY;
+                }
+                else
+                {
+                    position.Y = saltLid.Top - heightColliderPlayer;
+                }
+
                 velocity.Y = 0.5f;
                 isGrounded = true;
             }
             // Up stove platform
-            else if (nextFootCollider.Intersects(upStove) && velocity.Y >= 0f)
+            else if (prevFootY <= upStove.Top && nextFootY >= upStove.Top && nextFootCollider.Intersects(upStove) && velocity.Y >= 0f)
             {
-                position.Y = upStove.Top - heightColliderPlayer;
+                if (manualCollider.HasValue)
+                {
+                    var offsetY = manualCollider.Value.Y - (int)position.Y;
+                    position.Y = upStove.Top - manualCollider.Value.Height - offsetY;
+                }
+                else
+                {
+                    position.Y = upStove.Top - heightColliderPlayer;
+                }
+
                 velocity.Y = 0;
                 isGrounded = true;   
             }

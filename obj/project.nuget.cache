@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "T4ziasZLS9E=",
+  "dgSpecHash": "KkSLWEUGUKM=",
   "success": true,
   "projectFilePath": "C:\\Users\\ermes\\Documentos\\GitHub\\JogoDuRato\\GameDuMouse.csproj",
   "expectedPackageFiles": [
@@ -11,8 +11,8 @@
     "C:\\Users\\ermes\\.nuget\\packages\\microsoft.netcore.jit\\2.0.8\\microsoft.netcore.jit.2.0.8.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\microsoft.netcore.platforms\\2.1.14\\microsoft.netcore.platforms.2.1.14.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\microsoft.netcore.targets\\2.0.0\\microsoft.netcore.targets.2.0.0.nupkg.sha512",
-    "C:\\Users\\ermes\\.nuget\\packages\\monogame.content.builder.task\\3.8.4\\monogame.content.builder.task.3.8.4.nupkg.sha512",
-    "C:\\Users\\ermes\\.nuget\\packages\\monogame.framework.windowsdx\\3.8.4\\monogame.framework.windowsdx.3.8.4.nupkg.sha512",
+    "C:\\Users\\ermes\\.nuget\\packages\\monogame.content.builder.task\\3.8.4.1\\monogame.content.builder.task.3.8.4.1.nupkg.sha512",
+    "C:\\Users\\ermes\\.nuget\\packages\\monogame.framework.windowsdx\\3.8.4.1\\monogame.framework.windowsdx.3.8.4.1.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\netstandard.library\\2.0.3\\netstandard.library.2.0.3.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\runtime.debian.8-x64.runtime.native.system.security.cryptography.openssl\\4.3.2\\runtime.debian.8-x64.runtime.native.system.security.cryptography.openssl.4.3.2.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\runtime.fedora.23-x64.runtime.native.system.security.cryptography.openssl\\4.3.2\\runtime.fedora.23-x64.runtime.native.system.security.cryptography.openssl.4.3.2.nupkg.sha512",
@@ -69,7 +69,11 @@
     "C:\\Users\\ermes\\.nuget\\packages\\system.security.cryptography.x509certificates\\4.3.2\\system.security.cryptography.x509certificates.4.3.2.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\system.text.encoding\\4.3.0\\system.text.encoding.4.3.0.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\system.threading\\4.3.0\\system.threading.4.3.0.nupkg.sha512",
-    "C:\\Users\\ermes\\.nuget\\packages\\system.threading.tasks\\4.3.0\\system.threading.tasks.4.3.0.nupkg.sha512"
+    "C:\\Users\\ermes\\.nuget\\packages\\system.threading.tasks\\4.3.0\\system.threading.tasks.4.3.0.nupkg.sha512",
+    "C:\\Users\\ermes\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.23\\microsoft.netcore.app.ref.8.0.23.nupkg.sha512",
+    "C:\\Users\\ermes\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.23\\microsoft.windowsdesktop.app.ref.8.0.23.nupkg.sha512",
+    "C:\\Users\\ermes\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.23\\microsoft.aspnetcore.app.ref.8.0.23.nupkg.sha512",
+    "C:\\Users\\ermes\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.23\\microsoft.netcore.app.host.win-x64.8.0.23.nupkg.sha512"
   ],
   "logs": []
 }

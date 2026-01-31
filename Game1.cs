@@ -20,7 +20,6 @@ namespace GameDuMouse
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
             camera = new Camera();
             base.Initialize();
         }
@@ -35,6 +34,8 @@ namespace GameDuMouse
 
             player1 = new Player(this);
             player1.LoadContent(Content);
+
+
         }
 
         protected override void Update(GameTime gameTime)
@@ -45,6 +46,9 @@ namespace GameDuMouse
             }
             player1.Update(gameTime);
             camera.Follow(player1.GetPosition());
+
+
+
             base.Update(gameTime);
         }
 
@@ -57,8 +61,7 @@ namespace GameDuMouse
             player1.Draw(gameTime);
             
             spriteBatch.End();
-            
-            // TODO: Add your drawing code here
+        
 
             base.Draw(gameTime);
         }

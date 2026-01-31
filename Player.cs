@@ -20,6 +20,7 @@ namespace GameDuMouse
         private Vector2 velocity;
         private float groundY, gravity, jumpStrength;
         private bool isGrounded;
+        private bool canJump = true; 
         private int widthColliderPlayer,heightColliderPlayer, heightPlayerRun;
         private Rectangle saltLid, upStove,platform1, platform2;
         private Rectangle groundCollider, groundCollider2, rightBarrerCollider, leftBarrerCollider;
@@ -41,7 +42,7 @@ namespace GameDuMouse
                 manualCollider = value;
             }
         }
-        private Rectangle footPlayer
+        private Rectangle FootPlayer
         {
             get
             {
@@ -50,7 +51,8 @@ namespace GameDuMouse
                 if (footManualCollider.HasValue)
                     return footManualCollider.Value;
 
-                return new Rectangle((int)pos.X, (int)pos.Y + heightColliderPlayer, widthColliderPlayer, 5);
+                // Reduz a largura dos pés em 30 pixels de cada lado para evitar flutuação nas bordas
+                return new Rectangle((int)pos.X + 15, (int)pos.Y + heightColliderPlayer, widthColliderPlayer - 30, 5);
             }
             set
             {
@@ -79,7 +81,8 @@ namespace GameDuMouse
             groundCollider2 = new Rectangle(3000, (int)groundY, 2700, 5);
             rightBarrerCollider = new Rectangle(5700, 1, 10, 500);
             leftBarrerCollider = new Rectangle(10, 1, 10, 500);
-            saltLid = new Rectangle(1150,291,100,5);
+            saltLid = new Rectangle(1155, 291, 95, 5);
+            upStove = new Rectangle(1310,173,95,5);
 
         }
 
@@ -118,11 +121,18 @@ namespace GameDuMouse
         {
             var pos = animationController.Position;
             bool SpacePressed = keyboardState.IsKeyDown(Keys.Space);
+            bool SpacePressedPrevious = previousKeyboardState.IsKeyDown(Keys.Space);
 
-            if (SpacePressed && isGrounded)
+            // Jump only on fresh Space press AND when grounded
+            if (SpacePressed && !SpacePressedPrevious && isGrounded)
             {
                 velocity.Y = jumpStrength;
                 isGrounded = false;
+            }
+
+            if (isGrounded)
+            {
+                canJump = true;
             }
 
             if (keyboardState.IsKeyDown(Keys.D) || keyboardState.IsKeyDown(Keys.Right))
@@ -137,7 +147,7 @@ namespace GameDuMouse
                 if (animationController.CurrentState == PlayerState.Running)
                 {
                     Collider = new Rectangle((int)pos.X + 50, (int)pos.Y + heightPlayerRun ,widthColliderPlayer,heightPlayerRun);
-                    footPlayer = new Rectangle((int)pos.X + 50, (int)pos.Y + heightColliderPlayer, widthColliderPlayer, 5);
+                    FootPlayer = new Rectangle((int)pos.X + 50 + 15, (int)pos.Y + heightColliderPlayer, widthColliderPlayer - 30, 5);
                     MoveRight();
                 }
             }
@@ -154,7 +164,7 @@ namespace GameDuMouse
                 if (animationController.CurrentState == PlayerState.Running)
                 {
                     Collider = new Rectangle((int)pos.X, (int)pos.Y + heightPlayerRun, widthColliderPlayer, heightPlayerRun);
-                    footPlayer = new Rectangle((int)pos.X , (int)pos.Y + heightColliderPlayer, widthColliderPlayer, 5);
+                    FootPlayer = new Rectangle((int)pos.X + 15, (int)pos.Y + heightColliderPlayer, widthColliderPlayer - 30, 5);
                     MoveLeft();
                     
                 }
@@ -202,34 +212,53 @@ namespace GameDuMouse
         private void ApplyPhysics()
         {
             var position = animationController.Position;
-            var playerCollider = Collider;
-            var footPlayerCollider = footPlayer;
+            var prevPosition = position;
 
             velocity.Y += gravity;
-            position += velocity;
+            var nextPosition = position + velocity;
 
-            if (playerCollider.Intersects(groundCollider))
+            var nextCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
+            var nextFootY = (int)nextPosition.Y + heightColliderPlayer;
+            var prevFootY = (int)prevPosition.Y + heightColliderPlayer;
+            int nextLeft = (int)nextPosition.X;
+            int nextRight = nextLeft + widthColliderPlayer;
+
+            bool HorizOverlap(Rectangle r) => nextRight > r.Left && nextLeft < r.Right;
+            
+            // Colisor dos pés para verificação de plataformas
+            var nextFootCollider = new Rectangle((int)nextPosition.X + 15, (int)nextPosition.Y + heightColliderPlayer, widthColliderPlayer - 30, 5);
+
+            if (nextCollider.Intersects(groundCollider))
             {
                 position.Y = groundCollider.Top - heightColliderPlayer;
                 velocity.Y = 0;
                 isGrounded = true;
             }
-            else if (playerCollider.Intersects(groundCollider2))
+            else if (nextCollider.Intersects(groundCollider2))
             {
                 position.Y = groundCollider2.Top - heightColliderPlayer;
                 velocity.Y = 0;
                 isGrounded = true;
             }
-            else if (footPlayer.Intersects(saltLid))
+            else if (nextFootCollider.Intersects(saltLid) && velocity.Y >= 0f)
             {
                 position.Y = saltLid.Top - heightColliderPlayer;
-                velocity.Y = 0;
+                velocity.Y = 0.5f;
                 isGrounded = true;
+            }
+            // Up stove platform
+            else if (nextFootCollider.Intersects(upStove) && velocity.Y >= 0f)
+            {
+                position.Y = upStove.Top - heightColliderPlayer;
+                velocity.Y = 0;
+                isGrounded = true;   
             }
             else
             {
+                position = nextPosition;
                 isGrounded = false;
             }
+
             animationController.Position = position;
         }
         public void Update(GameTime gameTime)
@@ -239,6 +268,14 @@ namespace GameDuMouse
             Move();
             animationController.Update(gameTime);
             previousKeyboardState = keyboardState;
+
+            // Reset player to initial position if falls beyond Y = 1500
+            if (animationController.Position.Y > 1500)
+            {
+                animationController.Position = new Vector2(210, groundY);
+                velocity = Vector2.Zero;
+                isGrounded = false;
+            }
         }
         public void Draw(GameTime gameTime)
         {
@@ -247,6 +284,7 @@ namespace GameDuMouse
             var spriteBatch = (SpriteBatch)game.Services.GetService(typeof(SpriteBatch));
 
             spriteBatch.Draw(debugTexture, saltLid, Color.Blue * 0.4f);
+            spriteBatch.Draw(debugTexture, upStove, Color.Blue * 0.4f);
             // Chão - vermelho translúcido
             spriteBatch.Draw(debugTexture, groundCollider, Color.Red * 0.4f);
             spriteBatch.Draw(debugTexture, groundCollider2, Color.Red * 0.4f);
@@ -259,7 +297,7 @@ namespace GameDuMouse
 
             // Collider do próprio player - amarelo
             spriteBatch.Draw(debugTexture, Collider, Color.Yellow * 0.5f);
-            spriteBatch.Draw(debugTexture, footPlayer, Color.Blue*0.5f);
+            spriteBatch.Draw(debugTexture, FootPlayer, Color.Blue*0.5f);
         }
 
     }

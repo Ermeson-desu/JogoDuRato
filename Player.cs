@@ -83,6 +83,8 @@ namespace GameDuMouse
             leftBarrerCollider = new Rectangle(10, 1, 10, 500);
             saltLid = new Rectangle(1155, 291, 95, 5);
             upStove = new Rectangle(1310,173,95,5);
+            platform1 = new Rectangle(3300,291,190,5);
+            platform2 = new Rectangle(3650,230,190,5);
 
         }
 
@@ -313,6 +315,36 @@ namespace GameDuMouse
                 velocity.Y = 0;
                 isGrounded = true;   
             }
+            else if (prevFootY <= platform1.Top && nextFootY >= platform1.Top && nextFootCollider.Intersects(platform1) && velocity.Y >= 0f)
+            {
+                if (manualCollider.HasValue)
+                {
+                    var offsetY = manualCollider.Value.Y - (int)position.Y;
+                    position.Y = platform1.Top - manualCollider.Value.Height - offsetY;
+                }
+                else
+                {
+                    position.Y = platform1.Top - heightColliderPlayer;
+                }
+
+                velocity.Y = 0;
+                isGrounded = true;   
+            }
+            else if (prevFootY <= platform2.Top && nextFootY >= platform2.Top && nextFootCollider.Intersects(platform2) && velocity.Y >= 0f)
+            {
+                if (manualCollider.HasValue)
+                {
+                    var offsetY = manualCollider.Value.Y - (int)position.Y;
+                    position.Y = platform2.Top - manualCollider.Value.Height - offsetY;
+                }
+                else
+                {
+                    position.Y = platform2.Top - heightColliderPlayer;
+                }
+
+                velocity.Y = 0;
+                isGrounded = true;   
+            }
             else
             {
                 position = nextPosition;
@@ -345,6 +377,8 @@ namespace GameDuMouse
 
             spriteBatch.Draw(debugTexture, saltLid, Color.Blue * 0.4f);
             spriteBatch.Draw(debugTexture, upStove, Color.Blue * 0.4f);
+            spriteBatch.Draw(debugTexture, platform1, Color.Blue * 0.4f);
+            spriteBatch.Draw(debugTexture, platform2, Color.Blue * 0.4f);
             // Chão - vermelho translúcido
             spriteBatch.Draw(debugTexture, groundCollider, Color.Red * 0.4f);
             spriteBatch.Draw(debugTexture, groundCollider2, Color.Red * 0.4f);

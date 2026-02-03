@@ -1,4 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+// Developed by Danilo Borges
+// 22/03/2019
+// danilo.bsto@gmail.com
+// Essa é uma classe de animação referente ao meu projeto piloto Mono.Helper.
+// O código está incompleto.
+// Pode-se usar a vontade em outros projetos.
+
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System;

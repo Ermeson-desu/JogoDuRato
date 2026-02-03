@@ -1,10 +1,4 @@
-﻿// Developed by Danilo Borges
-// 22/03/2019
-// danilo.bsto@gmail.com
-// Essa é uma classe de carregamento de arquivos referente ao meu projeto piloto Mono.Helper.
-// Pode-se usar a vontade em outros projetos.
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Media;

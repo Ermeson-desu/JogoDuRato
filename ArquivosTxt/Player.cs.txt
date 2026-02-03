@@ -25,7 +25,6 @@ namespace GameDuMouse
         private Rectangle saltLid, upStove,platform1, platform2;
         private Rectangle groundCollider, groundCollider2, rightBarrerCollider, leftBarrerCollider;
         private Rectangle? manualCollider,footManualCollider;
-        private Obstacle hotPan;
         private Rectangle Collider
         {
             get
@@ -118,8 +117,6 @@ namespace GameDuMouse
             animationController.AddAnimation(PlayerState.Running, runAnime);
             animationController.AddAnimation(PlayerState.TransitionToRun, trans_run);
             animationController.AddAnimation(PlayerState.TransitionToIdle, trans_idle);
-
-            hotPan = new Obstacle(game, 1360, 300, 150, 100, "square");
         }
 
         public void Move()
@@ -371,14 +368,6 @@ namespace GameDuMouse
                 velocity = Vector2.Zero;
                 isGrounded = false;
             }
-            if (hotPan.CollidesWith(Collider))
-            {
-                // reaproveita a lógica de reset já usada quando o player cai
-                animationController.Position = new Vector2(210, groundY);
-                velocity = Vector2.Zero;
-                isGrounded = false;
-                Console.WriteLine("O ratinho morreu pela panela quente!");
-            }
         }
         public void Draw(GameTime gameTime)
         {
@@ -403,8 +392,6 @@ namespace GameDuMouse
             // Collider do próprio player - amarelo
             spriteBatch.Draw(debugTexture, Collider, Color.Yellow * 0.5f);
             spriteBatch.Draw(debugTexture, FootPlayer, Color.Blue*0.5f);
-
-            hotPan.Draw(spriteBatch);
         }
 
     }

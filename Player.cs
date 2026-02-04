@@ -25,7 +25,7 @@ namespace GameDuMouse
         private Rectangle saltLid, upStove,platform1, platform2;
         private Rectangle groundCollider, groundCollider2, rightBarrerCollider, leftBarrerCollider;
         private Rectangle? manualCollider,footManualCollider;
-        private Obstacle hotPan;
+        private Obstacle hotPan,venom1,venom2,venom3,venom4,venom5, venom6;
         private Rectangle Collider
         {
             get
@@ -119,7 +119,13 @@ namespace GameDuMouse
             animationController.AddAnimation(PlayerState.TransitionToRun, trans_run);
             animationController.AddAnimation(PlayerState.TransitionToIdle, trans_idle);
 
-            hotPan = new Obstacle(game, 1360, 300, 150, 100, "square");
+            hotPan = new Obstacle(game, 1330,250, 200, 150, "square");
+            venom1 = new Obstacle(game, 3425,330, 80,70, "triangle");
+            venom2 = new Obstacle(game, 3510,330, 80,70, "triangle");
+            venom3 = new Obstacle(game, 3600,330, 80,70, "triangle");
+            venom4 = new Obstacle(game, 3930, 330, 80,70, "triangle");
+            venom5 = new Obstacle(game, 4565, 330, 80,70, "triangle");
+            venom6 = new Obstacle(game, 4720, 330, 80,70, "triangle");
         }
 
         public void Move()
@@ -364,21 +370,27 @@ namespace GameDuMouse
             animationController.Update(gameTime);
             previousKeyboardState = keyboardState;
 
-            // Reset player to initial position if falls beyond Y = 1500
+
             if (animationController.Position.Y > 1500)
             {
                 animationController.Position = new Vector2(210, groundY);
                 velocity = Vector2.Zero;
                 isGrounded = false;
             }
-            if (hotPan.CollidesWith(Collider))
+            if (hotPan.CollidesWith(Collider) || 
+                venom1.CollidesWith(Collider) ||
+                venom2.CollidesWith(Collider) ||
+                venom3.CollidesWith(Collider) ||
+                venom4.CollidesWith(Collider) ||
+                venom5.CollidesWith(Collider) ||
+                venom6.CollidesWith(Collider))
             {
                 // reaproveita a lógica de reset já usada quando o player cai
                 animationController.Position = new Vector2(210, groundY);
                 velocity = Vector2.Zero;
                 isGrounded = false;
-                Console.WriteLine("O ratinho morreu pela panela quente!");
             }
+            
         }
         public void Draw(GameTime gameTime)
         {
@@ -405,6 +417,12 @@ namespace GameDuMouse
             spriteBatch.Draw(debugTexture, FootPlayer, Color.Blue*0.5f);
 
             hotPan.Draw(spriteBatch);
+            venom1.Draw(spriteBatch);
+            venom2.Draw(spriteBatch);
+            venom3.Draw(spriteBatch);
+            venom4.Draw(spriteBatch);
+            venom5.Draw(spriteBatch);
+            venom6.Draw(spriteBatch);
         }
 
     }

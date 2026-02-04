@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "KkSLWEUGUKM=",
+  "dgSpecHash": "eHEKq3jwG+4=",
   "success": true,
-  "projectFilePath": "C:\\Users\\ermes\\Documentos\\GitHub\\JogoDuRato\\GameDuMouse.csproj",
+  "projectFilePath": "C:\\Users\\ermes\\Documentos\\JogoDuRato_Backup\\JogoDuRato\\GameDuMouse.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ermes\\.nuget\\packages\\microsoft.netcore.app\\2.1.30\\microsoft.netcore.app.2.1.30.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\microsoft.netcore.dotnetapphost\\2.1.30\\microsoft.netcore.dotnetapphost.2.1.30.nupkg.sha512",

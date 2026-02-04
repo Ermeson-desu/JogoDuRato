@@ -4164,11 +4164,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\ermes\\Documentos\\GitHub\\JogoDuRato\\GameDuMouse.csproj",
+      "projectUniqueName": "C:\\Users\\ermes\\Documentos\\JogoDuRato_Backup\\JogoDuRato\\GameDuMouse.csproj",
       "projectName": "GameDuMouse",
-      "projectPath": "C:\\Users\\ermes\\Documentos\\GitHub\\JogoDuRato\\GameDuMouse.csproj",
+      "projectPath": "C:\\Users\\ermes\\Documentos\\JogoDuRato_Backup\\JogoDuRato\\GameDuMouse.csproj",
       "packagesPath": "C:\\Users\\ermes\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\ermes\\Documentos\\GitHub\\JogoDuRato\\obj\\",
+      "outputPath": "C:\\Users\\ermes\\Documentos\\JogoDuRato_Backup\\JogoDuRato\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\ermes\\AppData\\Roaming\\NuGet\\NuGet.Config"

@@ -4,35 +4,35 @@
   <Platform>Windows</Platform>
   <Config />
   <SourceFiles>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run01.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run02.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run03.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run04.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run05.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run06.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run07.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/background_image(01).jpg</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/../../../../Imagens/JogoDuRato/background_image(02).jpg</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/File.spritefont</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle01.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle02.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle03.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle04.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle05.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Idle/Idle06.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run01.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run02.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run03.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run04.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run05.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run06.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/run/run07.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans01.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans02.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans03.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans04.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans05.png</File>
-    <File>C:/Users/ermes/Documentos/GitHub/JogoDuRato/Content/Trans/trans06.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run01.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run02.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run03.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run04.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run05.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run06.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run07.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/../../../../Imagens/JogoDuRato/background_image(01).jpg</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/../../../../Imagens/JogoDuRato/background_image(02).jpg</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/File.spritefont</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Idle/Idle01.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Idle/Idle02.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Idle/Idle03.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Idle/Idle04.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Idle/Idle05.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Idle/Idle06.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/run/run01.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/run/run02.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/run/run03.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/run/run04.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/run/run05.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/run/run06.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/run/run07.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Trans/trans01.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Trans/trans02.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Trans/trans03.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Trans/trans04.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Trans/trans05.png</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Trans/trans06.png</File>
   </SourceFiles>
   <DestFiles>
     <File>run/run01.png</File>

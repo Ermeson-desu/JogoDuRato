@@ -1,0 +1,47 @@
+# Build results
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+[Aa]rtifacts/
+
+# Visual Studio files
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# MonoGame specific
+Content/bin/
+Content/obj/
+*.mgcb
+*.mgcb.tmp
+
+# NuGet packages
+packages/
+*.nupkg
+*.snupkg
+
+# Logs and temp
+*.log
+*.tlog
+*.tmp
+*.bak
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# JetBrains Rider
+.idea/
+*.iml
+
+# Others
+*.dbmdl
+*.jfm

@@ -362,6 +362,12 @@ namespace GameDuMouse
 
             animationController.Position = position;
         }
+        private void ResetPlayer()
+        {
+            animationController.Position = new Vector2(210, groundY-50);
+            velocity = Vector2.Zero;
+            isGrounded = true;
+        }
         public void Update(GameTime gameTime)
         {
             keyboardState = Keyboard.GetState();
@@ -371,13 +377,8 @@ namespace GameDuMouse
             previousKeyboardState = keyboardState;
 
 
-            if (animationController.Position.Y > 1500)
-            {
-                animationController.Position = new Vector2(210, groundY);
-                velocity = Vector2.Zero;
-                isGrounded = false;
-            }
-            if (hotPan.CollidesWith(Collider) || 
+            if (animationController.Position.Y > 1500 ||
+                hotPan.CollidesWith(Collider) || 
                 venom1.CollidesWith(Collider) ||
                 venom2.CollidesWith(Collider) ||
                 venom3.CollidesWith(Collider) ||
@@ -385,10 +386,7 @@ namespace GameDuMouse
                 venom5.CollidesWith(Collider) ||
                 venom6.CollidesWith(Collider))
             {
-                // reaproveita a lógica de reset já usada quando o player cai
-                animationController.Position = new Vector2(210, groundY);
-                velocity = Vector2.Zero;
-                isGrounded = false;
+                ResetPlayer();
             }
             
         }
@@ -396,13 +394,13 @@ namespace GameDuMouse
         {
             animationController.Draw(gameTime);
 
-            var spriteBatch = (SpriteBatch)game.Services.GetService(typeof(SpriteBatch));
+             var spriteBatch = (SpriteBatch)game.Services.GetService(typeof(SpriteBatch));
 
             spriteBatch.Draw(debugTexture, saltLid, Color.Blue * 0.4f);
             spriteBatch.Draw(debugTexture, upStove, Color.Blue * 0.4f);
             spriteBatch.Draw(debugTexture, platform1, Color.Blue * 0.4f);
             spriteBatch.Draw(debugTexture, platform2, Color.Blue * 0.4f);
-            // Chão - vermelho translúcido
+            //Chão - vermelho translúcido
             spriteBatch.Draw(debugTexture, groundCollider, Color.Red * 0.4f);
             spriteBatch.Draw(debugTexture, groundCollider2, Color.Red * 0.4f);
 
@@ -413,8 +411,8 @@ namespace GameDuMouse
             spriteBatch.Draw(debugTexture, leftBarrerCollider, Color.Green * 0.4f);
 
             // Collider do próprio player - amarelo
-            spriteBatch.Draw(debugTexture, Collider, Color.Yellow * 0.5f);
-            spriteBatch.Draw(debugTexture, FootPlayer, Color.Blue*0.5f);
+             spriteBatch.Draw(debugTexture, Collider, Color.Yellow * 0.5f);
+             spriteBatch.Draw(debugTexture, FootPlayer, Color.Blue*0.5f);
 
             hotPan.Draw(spriteBatch);
             venom1.Draw(spriteBatch);
@@ -422,7 +420,7 @@ namespace GameDuMouse
             venom3.Draw(spriteBatch);
             venom4.Draw(spriteBatch);
             venom5.Draw(spriteBatch);
-            venom6.Draw(spriteBatch);
+             venom6.Draw(spriteBatch);
         }
 
     }

@@ -26,7 +26,8 @@ namespace GameDuMouse
         private Rectangle groundCollider, groundCollider2, rightBarrerCollider, leftBarrerCollider;
         private Rectangle? manualCollider,footManualCollider;
         private Obstacle hotPan,venom1,venom2,venom3,venom4,venom5, venom6;
-        private Rectangle Collider
+        
+        public Rectangle Collider
         {
             get
             {
@@ -362,9 +363,9 @@ namespace GameDuMouse
 
             animationController.Position = position;
         }
-        private void ResetPlayer()
+        public void ResetPlayer()
         {
-            animationController.Position = new Vector2(210, groundY-50);
+            animationController.Position = new Vector2(210,300);
             velocity = Vector2.Zero;
             isGrounded = true;
         }
@@ -377,14 +378,16 @@ namespace GameDuMouse
             previousKeyboardState = keyboardState;
 
 
-            if (animationController.Position.Y > 1500 ||
-                hotPan.CollidesWith(Collider) || 
-                venom1.CollidesWith(Collider) ||
-                venom2.CollidesWith(Collider) ||
-                venom3.CollidesWith(Collider) ||
-                venom4.CollidesWith(Collider) ||
-                venom5.CollidesWith(Collider) ||
-                venom6.CollidesWith(Collider))
+            if (animationController.Position.Y > 1500 
+                //||
+                // hotPan.CollidesWith(Collider) || 
+                // venom1.CollidesWith(Collider) ||
+                // venom2.CollidesWith(Collider) ||
+                // venom3.CollidesWith(Collider) ||
+                // venom4.CollidesWith(Collider) ||
+                // venom5.CollidesWith(Collider) ||
+                // venom6.CollidesWith(Collider)
+                )
             {
                 ResetPlayer();
             }

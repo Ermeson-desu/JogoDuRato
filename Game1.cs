@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -11,6 +12,9 @@ namespace GameDuMouse
         private Camera camera;
         private Player player1;
         private Background background1;
+        private ReturnStage returnStage;
+        private Cheese cheese;
+        private bool isReturning = false;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -35,6 +39,9 @@ namespace GameDuMouse
             player1 = new Player(this);
             player1.LoadContent(Content);
 
+            cheese = new Cheese(this, 5500,330,80,70);
+            returnStage = new ReturnStage(this);
+            
 
         }
 
@@ -44,9 +51,25 @@ namespace GameDuMouse
             {
                 Exit();
             }
-            player1.Update(gameTime);
-            camera.Follow(player1.GetPosition());
+            if (!isReturning)
+            {
+                player1.Update(gameTime);
 
+            // Se colidir com o queijo da primeira fase
+                if (cheese.CollidesWith(player1.Collider))
+                {
+                    Console.WriteLine("O ratinho pegou o queijo! Agora começa o retorno.");
+                    isReturning = true;
+                }
+
+                camera.Follow(player1.GetPosition());
+
+            }
+            else
+            {
+                player1.Update(gameTime);
+                camera.Follow(player1.GetPosition());
+            }
 
 
             base.Update(gameTime);
@@ -57,8 +80,17 @@ namespace GameDuMouse
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin(transformMatrix: camera.Transform);
 
-            background1.Draw(spriteBatch);
-            player1.Draw(gameTime);
+            if (isReturning)
+            {
+                returnStage.Draw(spriteBatch);
+                player1.Draw(gameTime);
+            }
+            else
+            {
+                background1.Draw(spriteBatch);
+                cheese.Draw(spriteBatch);
+                player1.Draw(gameTime);
+            }
             
             spriteBatch.End();
         

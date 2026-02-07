@@ -48,7 +48,7 @@ namespace GameDuMouse
             if (cheese.CollidesWith(player.Collider))
             {
                 // Aqui você pode colocar lógica de "fim da fase"
-                System.Console.WriteLine("O ratinho pegou o queijo e voltou para casa!");
+                System.Console.WriteLine("O ratinho pegou o queijo!");
             }
         }
 

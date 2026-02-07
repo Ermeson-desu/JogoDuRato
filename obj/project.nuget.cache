@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "eHEKq3jwG+4=",
+  "dgSpecHash": "WNaTDp9xZgY=",
   "success": true,
   "projectFilePath": "C:\\Users\\ermes\\Documentos\\JogoDuRato_Backup\\JogoDuRato\\GameDuMouse.csproj",
   "expectedPackageFiles": [
@@ -29,10 +29,11 @@
     "C:\\Users\\ermes\\.nuget\\packages\\runtime.ubuntu.14.04-x64.runtime.native.system.security.cryptography.openssl\\4.3.2\\runtime.ubuntu.14.04-x64.runtime.native.system.security.cryptography.openssl.4.3.2.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\runtime.ubuntu.16.04-x64.runtime.native.system.security.cryptography.openssl\\4.3.2\\runtime.ubuntu.16.04-x64.runtime.native.system.security.cryptography.openssl.4.3.2.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl\\4.3.2\\runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl.4.3.2.nupkg.sha512",
-    "C:\\Users\\ermes\\.nuget\\packages\\sharpdx\\4.0.1\\sharpdx.4.0.1.nupkg.sha512",
+    "C:\\Users\\ermes\\.nuget\\packages\\sharpdx\\4.2.0\\sharpdx.4.2.0.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\sharpdx.direct2d1\\4.0.1\\sharpdx.direct2d1.4.0.1.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\sharpdx.direct3d11\\4.0.1\\sharpdx.direct3d11.4.0.1.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\sharpdx.direct3d9\\4.0.1\\sharpdx.direct3d9.4.0.1.nupkg.sha512",
+    "C:\\Users\\ermes\\.nuget\\packages\\sharpdx.directinput\\4.2.0\\sharpdx.directinput.4.2.0.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\sharpdx.dxgi\\4.0.1\\sharpdx.dxgi.4.0.1.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\sharpdx.mathematics\\4.0.1\\sharpdx.mathematics.4.0.1.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\sharpdx.mediafoundation\\4.0.1\\sharpdx.mediafoundation.4.0.1.nupkg.sha512",
@@ -70,10 +71,10 @@
     "C:\\Users\\ermes\\.nuget\\packages\\system.text.encoding\\4.3.0\\system.text.encoding.4.3.0.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\system.threading\\4.3.0\\system.threading.4.3.0.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\system.threading.tasks\\4.3.0\\system.threading.tasks.4.3.0.nupkg.sha512",
-    "C:\\Users\\ermes\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.23\\microsoft.netcore.app.ref.8.0.23.nupkg.sha512",
-    "C:\\Users\\ermes\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.23\\microsoft.windowsdesktop.app.ref.8.0.23.nupkg.sha512",
     "C:\\Users\\ermes\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.23\\microsoft.aspnetcore.app.ref.8.0.23.nupkg.sha512",
-    "C:\\Users\\ermes\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.23\\microsoft.netcore.app.host.win-x64.8.0.23.nupkg.sha512"
+    "C:\\Users\\ermes\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.23\\microsoft.netcore.app.host.win-x64.8.0.23.nupkg.sha512",
+    "C:\\Users\\ermes\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.23\\microsoft.netcore.app.ref.8.0.23.nupkg.sha512",
+    "C:\\Users\\ermes\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.23\\microsoft.windowsdesktop.app.ref.8.0.23.nupkg.sha512"
   ],
   "logs": []
 }

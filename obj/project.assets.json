@@ -641,19 +641,19 @@
           }
         }
       },
-      "SharpDX/4.0.1": {
+      "SharpDX/4.2.0": {
         "type": "package",
         "dependencies": {
-          "Microsoft.NETCore.App": "1.0.5"
+          "NETStandard.Library": "1.6.1"
         },
         "compile": {
-          "lib/netcoreapp1.0/SharpDX.dll": {
-            "related": ".xml"
+          "lib/netstandard1.1/SharpDX.dll": {
+            "related": ".pdb"
           }
         },
         "runtime": {
-          "lib/netcoreapp1.0/SharpDX.dll": {
-            "related": ".xml"
+          "lib/netstandard1.1/SharpDX.dll": {
+            "related": ".pdb"
           }
         }
       },
@@ -707,6 +707,23 @@
         "runtime": {
           "lib/netcoreapp1.0/SharpDX.Direct3D9.dll": {
             "related": ".xml"
+          }
+        }
+      },
+      "SharpDX.DirectInput/4.2.0": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.1",
+          "SharpDX": "4.2.0"
+        },
+        "compile": {
+          "lib/netstandard1.3/SharpDX.DirectInput.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard1.3/SharpDX.DirectInput.dll": {
+            "related": ".pdb;.xml"
           }
         }
       },
@@ -2157,25 +2174,27 @@
         "runtimes/ubuntu.16.10-x64/native/System.Security.Cryptography.Native.OpenSsl.so"
       ]
     },
-    "SharpDX/4.0.1": {
-      "sha512": "8YA1VFg1/K8Emb8FEZDobojcv1BLuppVo7CRJQEgA1V748VIMPBru0i0OnsCjLSThzTn7juOvH85qjFL9Grl1w==",
+    "SharpDX/4.2.0": {
+      "sha512": "3pv0LFMvfK/dv1qISJnn8xBeeT6R/FRvr0EV4KI2DGsL84Qlv6P7isWqxGyU0LCwlSVCJN3jgHJ4Bl0KI2PJww==",
       "type": "package",
-      "path": "sharpdx/4.0.1",
+      "path": "sharpdx/4.2.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
+        "lib/net40/.xml",
         "lib/net40/SharpDX.dll",
-        "lib/net40/SharpDX.xml",
+        "lib/net40/SharpDX.pdb",
+        "lib/net45/.xml",
         "lib/net45/SharpDX.dll",
-        "lib/net45/SharpDX.xml",
-        "lib/netcoreapp1.0/SharpDX.dll",
-        "lib/netcoreapp1.0/SharpDX.xml",
+        "lib/net45/SharpDX.pdb",
+        "lib/netstandard1.1/.xml",
         "lib/netstandard1.1/SharpDX.dll",
-        "lib/netstandard1.1/SharpDX.xml",
+        "lib/netstandard1.1/SharpDX.pdb",
+        "lib/uap10.0/.xml",
         "lib/uap10.0/SharpDX.dll",
+        "lib/uap10.0/SharpDX.pdb",
         "lib/uap10.0/SharpDX.pri",
-        "lib/uap10.0/SharpDX.xml",
-        "sharpdx.4.0.1.nupkg.sha512",
+        "sharpdx.4.2.0.nupkg.sha512",
         "sharpdx.nuspec"
       ]
     },
@@ -2240,6 +2259,26 @@
         "lib/netstandard1.3/SharpDX.Direct3D9.xml",
         "sharpdx.direct3d9.4.0.1.nupkg.sha512",
         "sharpdx.direct3d9.nuspec"
+      ]
+    },
+    "SharpDX.DirectInput/4.2.0": {
+      "sha512": "is6Lm9zULyeTbUaLXktF+MwzmUYE8jofhA+6qgR1HBIyRJ/c2rZbeG1VvvGf4w6ktfq/q3AvUWTNzwgdU/+XOg==",
+      "type": "package",
+      "path": "sharpdx.directinput/4.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net40/SharpDX.DirectInput.dll",
+        "lib/net40/SharpDX.DirectInput.pdb",
+        "lib/net40/SharpDX.DirectInput.xml",
+        "lib/net45/SharpDX.DirectInput.dll",
+        "lib/net45/SharpDX.DirectInput.pdb",
+        "lib/net45/SharpDX.DirectInput.xml",
+        "lib/netstandard1.3/SharpDX.DirectInput.dll",
+        "lib/netstandard1.3/SharpDX.DirectInput.pdb",
+        "lib/netstandard1.3/SharpDX.DirectInput.xml",
+        "sharpdx.directinput.4.2.0.nupkg.sha512",
+        "sharpdx.directinput.nuspec"
       ]
     },
     "SharpDX.DXGI/4.0.1": {
@@ -4155,7 +4194,8 @@
   "projectFileDependencyGroups": {
     "net8.0-windows7.0": [
       "MonoGame.Content.Builder.Task >= 3.8.*",
-      "MonoGame.Framework.WindowsDX >= 3.8.*"
+      "MonoGame.Framework.WindowsDX >= 3.8.*",
+      "SharpDX.DirectInput >= 4.2.0"
     ]
   },
   "packageFolders": {
@@ -4208,6 +4248,10 @@
           "MonoGame.Framework.WindowsDX": {
             "target": "Package",
             "version": "[3.8.*, )"
+          },
+          "SharpDX.DirectInput": {
+            "target": "Package",
+            "version": "[4.2.0, )"
           }
         },
         "imports": [

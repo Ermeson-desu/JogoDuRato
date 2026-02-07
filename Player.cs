@@ -19,6 +19,7 @@ namespace GameDuMouse
         private Game game;
         private Vector2 velocity;
         private float groundY, gravity, jumpStrength;
+        private bool previousJumpButton = false;
         private bool isGrounded;
         private bool canJump = true; 
         private int widthColliderPlayer,heightColliderPlayer, heightPlayerRun;
@@ -26,6 +27,7 @@ namespace GameDuMouse
         private Rectangle groundCollider, groundCollider2, rightBarrerCollider, leftBarrerCollider;
         private Rectangle? manualCollider,footManualCollider;
         private Obstacle hotPan,venom1,venom2,venom3,venom4,venom5, venom6;
+        private DirectInputController directController;
         
         public Rectangle Collider
         {
@@ -66,6 +68,8 @@ namespace GameDuMouse
         {
             this.game = game;
             Initialize();
+            directController = new DirectInputController();
+
         }
         public Vector2 GetPosition()
         {
@@ -369,14 +373,111 @@ namespace GameDuMouse
             velocity = Vector2.Zero;
             isGrounded = true;
         }
+
+        private void HandleInput()
+        {
+            var keyboard = Keyboard.GetState();
+            var state = directController.GetState();
+
+
+            // --- PULO ---
+            bool jumpPressed = keyboard.IsKeyDown(Keys.Space);
+            bool jumpPressedPrevious = previousKeyboardState.IsKeyDown(Keys.Space);
+
+            // Botão X do controle genérico (ajuste índice conforme seu modelo)
+            bool gamepadJump = state != null && state.Buttons[2]; // geralmente [1] ou [2]
+            bool gamepadJumpPrevious = previousJumpButton;
+
+            // Atualiza memória do botão
+            previousJumpButton = gamepadJump;
+
+            // Agora a lógica é idêntica ao Space: só pula se foi pressionado agora
+            if (((jumpPressed && !jumpPressedPrevious) || (gamepadJump && !gamepadJumpPrevious)) && isGrounded)
+            {
+                velocity.Y = jumpStrength;
+                isGrounded = false;
+            }
+
+            // --- MOVIMENTO ---
+            bool moveRight = keyboard.IsKeyDown(Keys.D) || keyboard.IsKeyDown(Keys.Right);
+            bool moveLeft  = keyboard.IsKeyDown(Keys.A) || keyboard.IsKeyDown(Keys.Left);
+
+            if (state != null)
+            {
+                if(state.Buttons[8]) game.Exit();
+                // Joystick esquerdo eixo X
+                if (state.X > 50000) moveRight = true;
+                if (state.X < 10000) moveLeft  = true;
+
+                //D-PAD
+                if (state.PointOfViewControllers.Length > 0)
+                {
+                    int pov = state.PointOfViewControllers[0];
+                    if (pov == 9000) moveRight = true;
+                    if (pov == 27000) moveLeft = true;
+                }
+
+            }
+
+            if (moveRight)
+            {
+                animationController.Effects = SpriteEffects.None;
+
+                if (animationController.CurrentState != PlayerState.Running &&
+                    animationController.CurrentState != PlayerState.TransitionToRun)
+                {
+                    animationController.StartTransition(PlayerState.TransitionToRun, 80);
+                }
+                if (animationController.CurrentState == PlayerState.Running)
+                {
+                    Collider = new Rectangle((int)animationController.Position.X + 50,
+                                            (int)animationController.Position.Y + heightPlayerRun,
+                                            widthColliderPlayer, heightPlayerRun);
+                    FootPlayer = new Rectangle((int)animationController.Position.X + 65,
+                                            (int)animationController.Position.Y + heightColliderPlayer,
+                                            widthColliderPlayer - 30, 5);
+                    MoveRight();
+                }
+            }
+            else if (moveLeft)
+            {
+                animationController.Effects = SpriteEffects.FlipHorizontally;
+
+                if (animationController.CurrentState != PlayerState.Running &&
+                    animationController.CurrentState != PlayerState.TransitionToRun)
+                {
+                    animationController.StartTransition(PlayerState.TransitionToRun, 80);
+                }
+                if (animationController.CurrentState == PlayerState.Running)
+                {
+                    Collider = new Rectangle((int)animationController.Position.X,
+                                            (int)animationController.Position.Y + heightPlayerRun,
+                                            widthColliderPlayer, heightPlayerRun);
+                    FootPlayer = new Rectangle((int)animationController.Position.X + 15,
+                                            (int)animationController.Position.Y + heightColliderPlayer,
+                                            widthColliderPlayer - 30, 5);
+                    MoveLeft();
+                }
+            }
+            else
+            {
+                if (animationController.CurrentState != PlayerState.Idle &&
+                    animationController.CurrentState != PlayerState.TransitionToIdle)
+                {
+                    manualCollider = null;
+                    footManualCollider = null;
+                    animationController.StartTransition(PlayerState.TransitionToIdle, 80);
+                }
+            }
+        }
         public void Update(GameTime gameTime)
         {
             keyboardState = Keyboard.GetState();
             ApplyPhysics();
-            Move();
+            HandleInput();
             animationController.Update(gameTime);
             previousKeyboardState = keyboardState;
-
+            
 
             if (animationController.Position.Y > 1500 
                 //||

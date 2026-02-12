@@ -306,13 +306,28 @@ namespace GameDuMouse
             previousKeyboardState = keyboardState;
 
             bool collideWithObstacle = false;
-            foreach (var obstacle in fase.Obstacles)
+            if(!fase.IsReturning)
             {
-                if(obstacle.CollidesWith(Collider))
+                foreach (var obstacle in fase.Obstacles1)
                 {
-                    collideWithObstacle = true;
-                    break;
+                    if(obstacle.CollidesWith(Collider))
+                    {
+                        collideWithObstacle = true;
+                        break;
+                    }
                 }
+            }
+            else
+            {
+                foreach (var obstacle in fase.Obstacles2)
+                {
+                    if (obstacle.CollidesWith(Collider))
+                    {
+                        collideWithObstacle = true;
+                        break;
+                    }
+                }
+
             }
 
             if (animationController.Position.Y > 1500 

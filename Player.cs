@@ -9,10 +9,7 @@ namespace GameDuMouse
 {
     public class Player
     {
-        private const int tailOfiset = 44;
-
         private Texture2D debugTexture;
-
         private Animation idleAnime, runAnime, trans_run, trans_idle;
         private AnimationController animationController;
         private KeyboardState previousKeyboardState, keyboardState;
@@ -21,14 +18,11 @@ namespace GameDuMouse
         private float groundY, gravity, jumpStrength;
         private bool previousJumpButton = false;
         private bool isGrounded;
-        private bool canJump = true; 
-        private int widthColliderPlayer,heightColliderPlayer, heightPlayerRun;
-        private Rectangle saltLid, upStove,platform1, platform2;
-        private Rectangle groundCollider, groundCollider2, rightBarrerCollider, leftBarrerCollider;
-        private Rectangle? manualCollider,footManualCollider;
-        private Obstacle hotPan,venom1,venom2,venom3,venom4,venom5, venom6;
+        private int widthColliderPlayer, heightColliderPlayer, heightPlayerRun;
+        private Rectangle rightBarrerCollider, leftBarrerCollider;
+        private Rectangle? manualCollider, footManualCollider;
         private DirectInputController directController;
-        
+
         public Rectangle Collider
         {
             get
@@ -41,27 +35,20 @@ namespace GameDuMouse
 
                 return new Rectangle((int)pos.X, (int)pos.Y, widthColliderPlayer, heightColliderPlayer);
             }
-            set
-            {
-                manualCollider = value;
-            }
+            set { manualCollider = value; }
         }
+
         private Rectangle FootPlayer
         {
             get
             {
                 var pos = animationController.Position;
-
                 if (footManualCollider.HasValue)
                     return footManualCollider.Value;
 
-                // Reduz a largura dos pés em 30 pixels de cada lado para evitar flutuação nas bordas
                 return new Rectangle((int)pos.X + 15, (int)pos.Y + heightColliderPlayer, widthColliderPlayer - 30, 5);
             }
-            set
-            {
-                footManualCollider = value;
-            }
+            set { footManualCollider = value; }
         }
 
         public Player(Game game)
@@ -69,13 +56,10 @@ namespace GameDuMouse
             this.game = game;
             Initialize();
             directController = new DirectInputController();
+        }
 
-        }
-        public Vector2 GetPosition()
-        {
-            Vector2 positionPlayer = new Vector2(Collider.X, 300);
-            return positionPlayer;
-        }
+        public Vector2 GetPosition() => new Vector2(Collider.X, 300);
+
         public void Initialize()
         {
             heightPlayerRun = 55;
@@ -83,15 +67,8 @@ namespace GameDuMouse
             animationController = new AnimationController();
             gravity = 1f;
             jumpStrength = -18f;
-            groundCollider = new Rectangle(0, (int)groundY, 2600, 5);
-            groundCollider2 = new Rectangle(3000, (int)groundY, 2700, 5);
             rightBarrerCollider = new Rectangle(5700, 1, 10, 500);
             leftBarrerCollider = new Rectangle(10, 1, 10, 500);
-            saltLid = new Rectangle(1155, 291, 95, 5);
-            upStove = new Rectangle(1310,173,95,5);
-            platform1 = new Rectangle(3300,291,190,5);
-            platform2 = new Rectangle(3650,240,190,5);
-
         }
 
         public void LoadContent(ContentManager content)
@@ -123,255 +100,6 @@ namespace GameDuMouse
             animationController.AddAnimation(PlayerState.Running, runAnime);
             animationController.AddAnimation(PlayerState.TransitionToRun, trans_run);
             animationController.AddAnimation(PlayerState.TransitionToIdle, trans_idle);
-
-            hotPan = new Obstacle(game, 1330,250, 200, 150, "square");
-            venom1 = new Obstacle(game, 3425,330, 80,70, "triangle");
-            venom2 = new Obstacle(game, 3510,330, 80,70, "triangle");
-            venom3 = new Obstacle(game, 3600,330, 80,70, "triangle");
-            venom4 = new Obstacle(game, 3930, 330, 80,70, "triangle");
-            venom5 = new Obstacle(game, 4565, 330, 80,70, "triangle");
-            venom6 = new Obstacle(game, 4720, 330, 80,70, "triangle");
-        }
-
-        public void Move()
-        {
-            var pos = animationController.Position;
-            bool SpacePressed = keyboardState.IsKeyDown(Keys.Space);
-            bool SpacePressedPrevious = previousKeyboardState.IsKeyDown(Keys.Space);
-
-            // Jump only on fresh Space press AND when grounded
-            if (SpacePressed && !SpacePressedPrevious && isGrounded)
-            {
-                velocity.Y = jumpStrength;
-                isGrounded = false;
-            }
-
-            if (isGrounded)
-            {
-                canJump = true;
-            }
-
-            if (keyboardState.IsKeyDown(Keys.D) || keyboardState.IsKeyDown(Keys.Right))
-            {
-                animationController.Effects = SpriteEffects.None;
-
-                if (animationController.CurrentState != PlayerState.Running &&
-                   animationController.CurrentState != PlayerState.TransitionToRun)
-                {
-                    animationController.StartTransition(PlayerState.TransitionToRun, 80);
-                }
-                if (animationController.CurrentState == PlayerState.Running)
-                {
-                    Collider = new Rectangle((int)pos.X + 50, (int)pos.Y + heightPlayerRun ,widthColliderPlayer,heightPlayerRun);
-                    FootPlayer = new Rectangle((int)pos.X + 50 + 15, (int)pos.Y + heightColliderPlayer, widthColliderPlayer - 30, 5);
-                    MoveRight();
-                }
-            }
-            else if (keyboardState.IsKeyDown(Keys.A) || keyboardState.IsKeyDown(Keys.Left))
-            {
-                animationController.Effects = SpriteEffects.FlipHorizontally;
-
-                if (animationController.CurrentState != PlayerState.Running &&
-                    animationController.CurrentState != PlayerState.TransitionToRun)
-                {
-                    animationController.StartTransition(PlayerState.TransitionToRun, 80);
-                }
-
-                if (animationController.CurrentState == PlayerState.Running)
-                {
-                    Collider = new Rectangle((int)pos.X, (int)pos.Y + heightPlayerRun, widthColliderPlayer, heightPlayerRun);
-                    FootPlayer = new Rectangle((int)pos.X + 15, (int)pos.Y + heightColliderPlayer, widthColliderPlayer - 30, 5);
-                    MoveLeft();
-                    
-                }
-            }
-            else
-            {
-                if (animationController.CurrentState != PlayerState.Idle &&
-                   animationController.CurrentState != PlayerState.TransitionToIdle)
-                {
-                    manualCollider = null;
-                    footManualCollider = null;
-                    animationController.StartTransition(PlayerState.TransitionToIdle, 80);
-                }
-            }
-        }
-        private void MoveRight()
-        {
-            var position = animationController.Position;
-            var nextPosition = position + new Vector2(10, 0);
-            var futureCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
-
-            if (futureCollider.Intersects(rightBarrerCollider))
-            {
-                return;
-            }
-
-            animationController.Position = nextPosition;
-            Console.WriteLine(position);
-        }
-        private void MoveLeft()
-        {
-            var position = animationController.Position;
-            var nextPosition = position + new Vector2(-10, 0);
-            var futureCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
-
-            if (futureCollider.Intersects(leftBarrerCollider))
-            {
-                return;
-            }
-            
-
-            animationController.Position = nextPosition;
-            Console.WriteLine(position);
-        }
-        private void ApplyPhysics()
-        {
-            var position = animationController.Position;
-            var prevPosition = position;
-
-            velocity.Y += gravity;
-            var nextPosition = position + velocity;
-
-            // Se houver um Collider manual, mantenha o offset/size ao calcular o próximo colisor do corpo
-            Rectangle nextBodyCollider;
-            if (manualCollider.HasValue)
-            {
-                var offsetX = manualCollider.Value.X - (int)position.X;
-                var offsetY = manualCollider.Value.Y - (int)position.Y;
-                nextBodyCollider = new Rectangle((int)nextPosition.X + offsetX, (int)nextPosition.Y + offsetY, manualCollider.Value.Width, manualCollider.Value.Height);
-            }
-            else
-            {
-                nextBodyCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
-            }
-
-            // Função local para construir o colisor dos pés na posição fornecida (prev/next)
-            Rectangle FootColliderAt(Vector2 p)
-            {
-                if (footManualCollider.HasValue)
-                {
-                    var offsetX = footManualCollider.Value.X - (int)position.X;
-                    var offsetY = footManualCollider.Value.Y - (int)position.Y;
-                    return new Rectangle((int)p.X + offsetX, (int)p.Y + offsetY, footManualCollider.Value.Width, footManualCollider.Value.Height);
-                }
-
-                // padrão reduzido (mesma lógica que a propriedade FootPlayer)
-                return new Rectangle((int)p.X + 15, (int)p.Y + heightColliderPlayer, widthColliderPlayer - 30, 5);
-            }
-
-            var nextFootCollider = FootColliderAt(nextPosition);
-            var prevFootCollider = FootColliderAt(prevPosition);
-            var nextFootY = nextFootCollider.Top;
-            var prevFootY = prevFootCollider.Top;
-
-            // Altura atual do jogador (considera collider manual quando existente)
-            int currentPlayerHeight = manualCollider.HasValue ? manualCollider.Value.Height : heightColliderPlayer;
-
-            if (nextBodyCollider.Intersects(groundCollider))
-            {
-                if (manualCollider.HasValue)
-                {
-                    var offsetY = manualCollider.Value.Y - (int)position.Y;
-                    position.Y = groundCollider.Top - manualCollider.Value.Height - offsetY;
-                }
-                else
-                {
-                    position.Y = groundCollider.Top - heightColliderPlayer;
-                }
-
-                velocity.Y = 0;
-                isGrounded = true;
-            }
-            else if (nextBodyCollider.Intersects(groundCollider2))
-            {
-                if (manualCollider.HasValue)
-                {
-                    var offsetY = manualCollider.Value.Y - (int)position.Y;
-                    position.Y = groundCollider2.Top - manualCollider.Value.Height - offsetY;
-                }
-                else
-                {
-                    position.Y = groundCollider2.Top - heightColliderPlayer;
-                }
-
-                velocity.Y = 0;
-                isGrounded = true;
-            }
-            else if (prevFootY <= saltLid.Top && nextFootY >= saltLid.Top && nextFootCollider.Intersects(saltLid) && velocity.Y >= 0f)
-            {
-                if (manualCollider.HasValue)
-                {
-                    var offsetY = manualCollider.Value.Y - (int)position.Y;
-                    position.Y = saltLid.Top - manualCollider.Value.Height - offsetY;
-                }
-                else
-                {
-                    position.Y = saltLid.Top - heightColliderPlayer;
-                }
-
-                velocity.Y = 0.5f;
-                isGrounded = true;
-            }
-            // Up stove platform
-            else if (prevFootY <= upStove.Top && nextFootY >= upStove.Top && nextFootCollider.Intersects(upStove) && velocity.Y >= 0f)
-            {
-                if (manualCollider.HasValue)
-                {
-                    var offsetY = manualCollider.Value.Y - (int)position.Y;
-                    position.Y = upStove.Top - manualCollider.Value.Height - offsetY;
-                }
-                else
-                {
-                    position.Y = upStove.Top - heightColliderPlayer;
-                }
-
-                velocity.Y = 0;
-                isGrounded = true;   
-            }
-            else if (prevFootY <= platform1.Top && nextFootY >= platform1.Top && nextFootCollider.Intersects(platform1) && velocity.Y >= 0f)
-            {
-                if (manualCollider.HasValue)
-                {
-                    var offsetY = manualCollider.Value.Y - (int)position.Y;
-                    position.Y = platform1.Top - manualCollider.Value.Height - offsetY;
-                }
-                else
-                {
-                    position.Y = platform1.Top - heightColliderPlayer;
-                }
-
-                velocity.Y = 0;
-                isGrounded = true;   
-            }
-            else if (prevFootY <= platform2.Top && nextFootY >= platform2.Top && nextFootCollider.Intersects(platform2) && velocity.Y >= 0f)
-            {
-                if (manualCollider.HasValue)
-                {
-                    var offsetY = manualCollider.Value.Y - (int)position.Y;
-                    position.Y = platform2.Top - manualCollider.Value.Height - offsetY;
-                }
-                else
-                {
-                    position.Y = platform2.Top - heightColliderPlayer;
-                }
-
-                velocity.Y = 0;
-                isGrounded = true;   
-            }
-            else
-            {
-                position = nextPosition;
-                isGrounded = false;
-            }
-
-            animationController.Position = position;
-        }
-        public void ResetPlayer()
-        {
-            animationController.Position = new Vector2(210,300);
-            velocity = Vector2.Zero;
-            isGrounded = true;
         }
 
         private void HandleInput()
@@ -379,19 +107,14 @@ namespace GameDuMouse
             var keyboard = Keyboard.GetState();
             var state = directController.GetState();
 
-
             // --- PULO ---
             bool jumpPressed = keyboard.IsKeyDown(Keys.Space);
             bool jumpPressedPrevious = previousKeyboardState.IsKeyDown(Keys.Space);
 
-            // Botão X do controle genérico (ajuste índice conforme seu modelo)
-            bool gamepadJump = state != null && state.Buttons[2]; // geralmente [1] ou [2]
+            bool gamepadJump = state != null && state.Buttons[2]; // ajuste índice conforme seu controle
             bool gamepadJumpPrevious = previousJumpButton;
-
-            // Atualiza memória do botão
             previousJumpButton = gamepadJump;
 
-            // Agora a lógica é idêntica ao Space: só pula se foi pressionado agora
             if (((jumpPressed && !jumpPressedPrevious) || (gamepadJump && !gamepadJumpPrevious)) && isGrounded)
             {
                 velocity.Y = jumpStrength;
@@ -404,25 +127,20 @@ namespace GameDuMouse
 
             if (state != null)
             {
-                if(state.Buttons[8]) game.Exit();
-                // Joystick esquerdo eixo X
                 if (state.X > 50000) moveRight = true;
-                if (state.X < 10000) moveLeft  = true;
+                if (state.X < 10000) moveLeft = true;
 
-                //D-PAD
                 if (state.PointOfViewControllers.Length > 0)
                 {
                     int pov = state.PointOfViewControllers[0];
                     if (pov == 9000) moveRight = true;
                     if (pov == 27000) moveLeft = true;
                 }
-
             }
 
             if (moveRight)
             {
                 animationController.Effects = SpriteEffects.None;
-
                 if (animationController.CurrentState != PlayerState.Running &&
                     animationController.CurrentState != PlayerState.TransitionToRun)
                 {
@@ -431,18 +149,17 @@ namespace GameDuMouse
                 if (animationController.CurrentState == PlayerState.Running)
                 {
                     Collider = new Rectangle((int)animationController.Position.X + 50,
-                                            (int)animationController.Position.Y + heightPlayerRun,
-                                            widthColliderPlayer, heightPlayerRun);
+                                             (int)animationController.Position.Y + heightPlayerRun,
+                                             widthColliderPlayer, heightPlayerRun);
                     FootPlayer = new Rectangle((int)animationController.Position.X + 65,
-                                            (int)animationController.Position.Y + heightColliderPlayer,
-                                            widthColliderPlayer - 30, 5);
+                                               (int)animationController.Position.Y + heightColliderPlayer,
+                                               widthColliderPlayer - 30, 5);
                     MoveRight();
                 }
             }
             else if (moveLeft)
             {
                 animationController.Effects = SpriteEffects.FlipHorizontally;
-
                 if (animationController.CurrentState != PlayerState.Running &&
                     animationController.CurrentState != PlayerState.TransitionToRun)
                 {
@@ -451,11 +168,11 @@ namespace GameDuMouse
                 if (animationController.CurrentState == PlayerState.Running)
                 {
                     Collider = new Rectangle((int)animationController.Position.X,
-                                            (int)animationController.Position.Y + heightPlayerRun,
-                                            widthColliderPlayer, heightPlayerRun);
+                                             (int)animationController.Position.Y + heightPlayerRun,
+                                             widthColliderPlayer, heightPlayerRun);
                     FootPlayer = new Rectangle((int)animationController.Position.X + 15,
-                                            (int)animationController.Position.Y + heightColliderPlayer,
-                                            widthColliderPlayer - 30, 5);
+                                               (int)animationController.Position.Y + heightColliderPlayer,
+                                               widthColliderPlayer - 30, 5);
                     MoveLeft();
                 }
             }
@@ -470,62 +187,145 @@ namespace GameDuMouse
                 }
             }
         }
-        public void Update(GameTime gameTime)
+
+        private void MoveRight()
+        {
+            var position = animationController.Position;
+            var nextPosition = position + new Vector2(10, 0);
+            var futureCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
+
+            if (futureCollider.Intersects(rightBarrerCollider)) return;
+            animationController.Position = nextPosition;
+        }
+
+        private void MoveLeft()
+        {
+            var position = animationController.Position;
+            var nextPosition = position + new Vector2(-10, 0);
+            var futureCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
+
+            if (futureCollider.Intersects(leftBarrerCollider)) return;
+            animationController.Position = nextPosition;
+        }
+
+        private void ApplyPhysics(Fase01 fase)
+        {
+            var position = animationController.Position;
+            var prevPosition = position;
+
+            velocity.Y += gravity;
+            var nextPosition = position + velocity;
+
+            // Se houver um Collider manual, mantém offset/size
+            Rectangle nextBodyCollider;
+            if (manualCollider.HasValue)
+            {
+                var offsetX = manualCollider.Value.X - (int)position.X;
+                var offsetY = manualCollider.Value.Y - (int)position.Y;
+                nextBodyCollider = new Rectangle((int)nextPosition.X + offsetX, (int)nextPosition.Y + offsetY,
+                                                manualCollider.Value.Width, manualCollider.Value.Height);
+            }
+            else
+            {
+                nextBodyCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y,
+                                                widthColliderPlayer, heightColliderPlayer);
+            }
+
+            // Função local para construir colisor dos pés
+            Rectangle FootColliderAt(Vector2 p)
+            {
+                if (footManualCollider.HasValue)
+                {
+                    var offsetX = footManualCollider.Value.X - (int)position.X;
+                    var offsetY = footManualCollider.Value.Y - (int)position.Y;
+                    return new Rectangle((int)p.X + offsetX, (int)p.Y + offsetY,
+                                        footManualCollider.Value.Width, footManualCollider.Value.Height);
+                }
+                return new Rectangle((int)p.X + 15, (int)p.Y + heightColliderPlayer, widthColliderPlayer - 30, 5);
+            }
+
+            var nextFootCollider = FootColliderAt(nextPosition);
+            var prevFootCollider = FootColliderAt(prevPosition);
+            var nextFootY = nextFootCollider.Top;
+            var prevFootY = prevFootCollider.Top;
+
+            bool collided = false;
+
+            // --- Chão ---
+            foreach (var ground in fase.GroundColliders)
+            {
+                if (nextBodyCollider.Intersects(ground))
+                {
+                    position.Y = ground.Top - heightColliderPlayer;
+                    velocity.Y = 0;
+                    isGrounded = true;
+                    collided = true;
+                    break;
+                }
+            }
+
+            // --- Plataformas ---
+            if (!collided)
+            {
+                foreach (var platform in fase.Platforms)
+                {
+                    if (prevFootY <= platform.Top && nextFootY >= platform.Top &&
+                        nextFootCollider.Intersects(platform) && velocity.Y >= 0f)
+                    {
+                        position.Y = platform.Top - heightColliderPlayer;
+                        velocity.Y = 0;
+                        isGrounded = true;
+                        collided = true;
+                        break;
+                    }
+                }
+            }
+
+            // --- Se não colidiu, continua caindo ---
+            if (!collided)
+            {
+                position = nextPosition;
+                isGrounded = false;
+            }
+
+            animationController.Position = position;
+        }
+        public void ResetPlayer()
+        {
+            animationController.Position = new Vector2(210, 300);
+            velocity = Vector2.Zero;
+            isGrounded = true;
+        }
+
+        public void Update(GameTime gameTime, Fase01 fase)
         {
             keyboardState = Keyboard.GetState();
-            ApplyPhysics();
-            HandleInput();
-            animationController.Update(gameTime);
-            previousKeyboardState = keyboardState;
-            
 
-            if (animationController.Position.Y > 1500 
-                //||
-                // hotPan.CollidesWith(Collider) || 
-                // venom1.CollidesWith(Collider) ||
-                // venom2.CollidesWith(Collider) ||
-                // venom3.CollidesWith(Collider) ||
-                // venom4.CollidesWith(Collider) ||
-                // venom5.CollidesWith(Collider) ||
-                // venom6.CollidesWith(Collider)
-                )
-            {
+            // Física depende dos colliders da fase
+            ApplyPhysics(fase);
+
+            // Entrada de teclado/controle
+            HandleInput();
+
+            // Atualiza animação
+            animationController.Update(gameTime);
+
+            previousKeyboardState = keyboardState;
+
+            // Se cair fora da tela, reseta
+            if (animationController.Position.Y > 1500)
                 ResetPlayer();
-            }
-            
         }
+
         public void Draw(GameTime gameTime)
         {
             animationController.Draw(gameTime);
 
-             var spriteBatch = (SpriteBatch)game.Services.GetService(typeof(SpriteBatch));
+            var spriteBatch = (SpriteBatch)game.Services.GetService(typeof(SpriteBatch));
 
-            spriteBatch.Draw(debugTexture, saltLid, Color.Blue * 0.4f);
-            spriteBatch.Draw(debugTexture, upStove, Color.Blue * 0.4f);
-            spriteBatch.Draw(debugTexture, platform1, Color.Blue * 0.4f);
-            spriteBatch.Draw(debugTexture, platform2, Color.Blue * 0.4f);
-            //Chão - vermelho translúcido
-            spriteBatch.Draw(debugTexture, groundCollider, Color.Red * 0.4f);
-            spriteBatch.Draw(debugTexture, groundCollider2, Color.Red * 0.4f);
-
-            // Barreira direita - azul translúcido
-            spriteBatch.Draw(debugTexture, rightBarrerCollider, Color.Blue * 0.4f);
-
-            // Barreira esquerda - verde translúcido
-            spriteBatch.Draw(debugTexture, leftBarrerCollider, Color.Green * 0.4f);
-
-            // Collider do próprio player - amarelo
-             spriteBatch.Draw(debugTexture, Collider, Color.Yellow * 0.5f);
-             spriteBatch.Draw(debugTexture, FootPlayer, Color.Blue*0.5f);
-
-            hotPan.Draw(spriteBatch);
-            venom1.Draw(spriteBatch);
-            venom2.Draw(spriteBatch);
-            venom3.Draw(spriteBatch);
-            venom4.Draw(spriteBatch);
-            venom5.Draw(spriteBatch);
-             venom6.Draw(spriteBatch);
+            // Debug: desenha colisor do player
+            spriteBatch.Draw(debugTexture, Collider, Color.Yellow * 0.5f);
+            spriteBatch.Draw(debugTexture, FootPlayer, Color.Blue * 0.5f);
         }
-
     }
 }

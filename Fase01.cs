@@ -23,6 +23,7 @@ namespace GameDuMouse
         //Propriedades públicas para o Player acessar
         public List<Rectangle> GroundColliders { get; private set; }
         public List<Rectangle> Platforms { get; private set; }
+        public List<Obstacle> Obstacles { get; private set; }
 
         public Fase01(Game game)
         {
@@ -57,6 +58,8 @@ namespace GameDuMouse
             // Inicializa listas para o Player
             GroundColliders = new List<Rectangle> { groundCollider, groundCollider2 };
             Platforms = new List<Rectangle> { saltLid, upStove, platform1, platform2 };
+            Obstacles = new List<Obstacle> { hotPan, venom1, venom2, venom3, venom4, venom5, venom6 };
+
         }
 
         public void Update(Player player)

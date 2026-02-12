@@ -300,20 +300,23 @@ namespace GameDuMouse
         public void Update(GameTime gameTime, Fase01 fase)
         {
             keyboardState = Keyboard.GetState();
-
-            // Física depende dos colliders da fase
             ApplyPhysics(fase);
-
-            // Entrada de teclado/controle
             HandleInput();
-
-            // Atualiza animação
             animationController.Update(gameTime);
-
             previousKeyboardState = keyboardState;
 
-            // Se cair fora da tela, reseta
-            if (animationController.Position.Y > 1500)
+            bool collideWithObstacle = false;
+            foreach (var obstacle in fase.Obstacles)
+            {
+                if(obstacle.CollidesWith(Collider))
+                {
+                    collideWithObstacle = true;
+                    break;
+                }
+            }
+
+            if (animationController.Position.Y > 1500 
+              ||collideWithObstacle )
                 ResetPlayer();
         }
 
@@ -323,7 +326,6 @@ namespace GameDuMouse
 
             var spriteBatch = (SpriteBatch)game.Services.GetService(typeof(SpriteBatch));
 
-            // Debug: desenha colisor do player
             spriteBatch.Draw(debugTexture, Collider, Color.Yellow * 0.5f);
             spriteBatch.Draw(debugTexture, FootPlayer, Color.Blue * 0.5f);
         }

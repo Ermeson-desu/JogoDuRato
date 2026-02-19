@@ -216,7 +216,6 @@ namespace GameDuMouse
             velocity.Y += gravity;
             var nextPosition = position + velocity;
 
-            // Se houver um Collider manual, mantém offset/size
             Rectangle nextBodyCollider;
             if (manualCollider.HasValue)
             {
@@ -231,7 +230,6 @@ namespace GameDuMouse
                                                 widthColliderPlayer, heightColliderPlayer);
             }
 
-            // Função local para construir colisor dos pés
             Rectangle FootColliderAt(Vector2 p)
             {
                 if (footManualCollider.HasValue)
@@ -299,6 +297,10 @@ namespace GameDuMouse
 
         public void Update(GameTime gameTime, Fase01 fase)
         {
+            if (fase.hasWon)
+            {
+                return;   
+            }
             keyboardState = Keyboard.GetState();
             ApplyPhysics(fase);
             HandleInput();
@@ -331,7 +333,8 @@ namespace GameDuMouse
             }
 
             if (animationController.Position.Y > 1500 
-              ||collideWithObstacle )
+            //   ||collideWithObstacle 
+            )
                 ResetPlayer();
         }
 

@@ -39,6 +39,7 @@ namespace GameDuMouse
             player1.LoadContent(Content);
 
             fase01 = new Fase01(this);
+            fase01.LoadContent(Content);
         }
 
         protected override void Update(GameTime gameTime)

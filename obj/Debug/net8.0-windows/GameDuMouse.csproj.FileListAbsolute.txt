@@ -82,7 +82,6 @@ C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\sce
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\bin\Debug\net8.0-windows\Content\scenario\background_image(02).xnb
 C:\Users\ermes\Documentos\GitHub\JogoDuRato\obj\Debug\net8.0-windows\mgcb.tool.restore
 C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\bin\Debug\net8.0-windows\Content\scenario\JogoDuRatoOficial.xnb
-C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\bin\Debug\net8.0-windows\Content\DefautFont.xnb
 C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\bin\Debug\net8.0-windows\Content\Idle\idle01.xnb
 C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\bin\Debug\net8.0-windows\Content\Idle\idle02.xnb
 C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\bin\Debug\net8.0-windows\Content\Idle\idle03.xnb
@@ -133,3 +132,4 @@ C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\obj\Debug\net8.0-windows\
 C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\obj\Debug\net8.0-windows\GameDuMouse.genruntimeconfig.cache
 C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\obj\Debug\net8.0-windows\ref\GameDuMouse.dll
 C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\bin\Debug\net8.0-windows\SharpDX.DirectInput.dll
+C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\bin\Debug\net8.0-windows\Content\vitoriaImage.xnb

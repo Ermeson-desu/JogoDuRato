@@ -17,10 +17,13 @@ namespace GameDuMouse
 
         // Segunda parte da fase
         private ReturnStage returnStage;
+        private RatsBurrow burrow;
+        private VictoryScreen victoryScreen;
 
         public bool IsReturning { get; private set; } = false;
+        public bool hasWon = false;
 
-        //Propriedades públicas para o Player acessar
+        // Propriedades públicas para o Player acessar
         public List<Rectangle> GroundColliders { get; private set; }
         public List<Rectangle> Platforms { get; private set; }
         public List<Obstacle> Obstacles1 { get; private set; }
@@ -53,6 +56,10 @@ namespace GameDuMouse
 
             returnStage = new ReturnStage(game);
 
+            // Toca do rato (aparece só no retorno)
+            burrow = new RatsBurrow(game, 100, 330, 80, 70);
+            victoryScreen = new VictoryScreen(game);
+
             debugTexture = new Texture2D(game.GraphicsDevice, 1, 1);
             debugTexture.SetData(new[] { Color.White });
 
@@ -60,8 +67,12 @@ namespace GameDuMouse
             GroundColliders = new List<Rectangle> { groundCollider, groundCollider2 };
             Platforms = new List<Rectangle> { saltLid, upStove, platform1, platform2 };
             Obstacles1 = new List<Obstacle> { hotPan, venom1, venom2, venom3, venom4, venom5, venom6 };
-            Obstacles2 = new List<Obstacle> { };
+            Obstacles2 = new List<Obstacle> { /* knifeTrap, panTrap se expostos pelo ReturnStage */ };
+        }
 
+        public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
+        {
+            victoryScreen.LoadContent(content);
         }
 
         public void Update(Player player)
@@ -74,9 +85,15 @@ namespace GameDuMouse
                     IsReturning = true;
                 }
             }
-            else
+            else if (!hasWon)
             {
                 returnStage.Update(player);
+
+                // Verifica se o player encostou na toca
+                if (burrow.CollidesWith(player.Collider))
+                {
+                    hasWon = true;
+                }
             }
         }
 
@@ -102,10 +119,16 @@ namespace GameDuMouse
                 cheese.Draw(spriteBatch);
                 player.Draw(game.Services.GetService<GameTime>());
             }
-            else
+            else if (!hasWon)
             {
                 returnStage.Draw(spriteBatch);
+                burrow.Draw(spriteBatch);
                 player.Draw(game.Services.GetService<GameTime>());
+            }
+            else
+            {
+                // Tela de vitória
+                victoryScreen.Draw(spriteBatch);
             }
         }
     }

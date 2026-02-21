@@ -12,7 +12,7 @@ namespace GameDuMouse
         private Camera camera;
         private Player player1;
         private Background background1;
-        private Fase01 fase01;
+        private LevelManager levelManager;
 
         public Game1()
         {
@@ -38,8 +38,13 @@ namespace GameDuMouse
             player1 = new Player(this);
             player1.LoadContent(Content);
 
-            fase01 = new Fase01(this);
-            fase01.LoadContent(Content);
+            // 🔑 Gerenciador de fases
+            levelManager = new LevelManager(this);
+            levelManager.AddFase(new Fase01(this));
+           // levelManager.AddFase(new Fase02(this)); // basta adicionar aqui
+            // Se quiser mais fases, só adicionar: levelManager.AddFase(new Fase03(this));
+
+            levelManager.LoadContent(Content);
         }
 
         protected override void Update(GameTime gameTime)
@@ -47,8 +52,10 @@ namespace GameDuMouse
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            player1.Update(gameTime, fase01);
-            fase01.Update(player1);
+            // Atualiza player e fase atual
+            player1.Update(gameTime, levelManager.CurrentFase);
+            levelManager.Update(player1);
+
             camera.Follow(player1.GetPosition());
 
             base.Update(gameTime);
@@ -60,7 +67,7 @@ namespace GameDuMouse
             spriteBatch.Begin(transformMatrix: camera.Transform);
 
             background1.Draw(spriteBatch);
-            fase01.Draw(spriteBatch, player1);
+            levelManager.Draw(spriteBatch, player1);
 
             spriteBatch.End();
             base.Draw(gameTime);

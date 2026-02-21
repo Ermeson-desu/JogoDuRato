@@ -208,7 +208,7 @@ namespace GameDuMouse
             animationController.Position = nextPosition;
         }
 
-        private void ApplyPhysics(Fase01 fase)
+        private void ApplyPhysics(IFase fase)
         {
             var position = animationController.Position;
             var prevPosition = position;
@@ -295,9 +295,9 @@ namespace GameDuMouse
             isGrounded = true;
         }
 
-        public void Update(GameTime gameTime, Fase01 fase)
+        public void Update(GameTime gameTime, IFase fase)
         {
-            if (fase.hasWon)
+            if (fase.HasWon)
             {
                 return;   
             }
@@ -333,7 +333,7 @@ namespace GameDuMouse
             }
 
             if (animationController.Position.Y > 1500 
-            //   ||collideWithObstacle 
+               ||collideWithObstacle 
             )
                 ResetPlayer();
         }

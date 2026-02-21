@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace GameDuMouse
 {
-    public class Fase01
+    public class Fase01 : IFase
     {
         private Game game;
         private Texture2D debugTexture;
@@ -131,5 +131,7 @@ namespace GameDuMouse
                 victoryScreen.Draw(spriteBatch);
             }
         }
+        
+        public bool HasWon => hasWon;
     }
 }

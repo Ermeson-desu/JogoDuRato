@@ -1,9 +1,12 @@
-﻿using System;
+﻿
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using GameDuMouse.GameMain.Entities;
+using GameDuMouse.GameMain.Fases;
 
-namespace GameDuMouse
+
+namespace GameDuMouse.GameMain.Core
 {
     public class Game1 : Game
     {

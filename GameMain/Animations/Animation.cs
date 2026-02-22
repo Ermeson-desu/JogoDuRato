@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System;
 
-namespace Mono.Helper
+namespace GameDuMouse.GameMain.Animations
 {
     public class Animation : IDisposable
     {        

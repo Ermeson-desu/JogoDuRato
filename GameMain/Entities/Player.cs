@@ -1,11 +1,12 @@
-using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Mono.Helper;
+using GameDuMouse.GameMain.Animations;
+using GameDuMouse.GameMain.Utils;
+using GameDuMouse.GameMain.Fases;
 
-namespace GameDuMouse
+namespace GameDuMouse.GameMain.Entities
 {
     public class Player
     {

@@ -1,9 +1,13 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
+using GameDuMouse.GameMain.Entities;
+using GameDuMouse.GameMain.UI;
 
-namespace GameDuMouse
+
+namespace GameDuMouse.GameMain.Fases
 {
+
     public class Fase01 : IFase
     {
         private Game game;
@@ -101,20 +105,20 @@ namespace GameDuMouse
         {
             if (!IsReturning)
             {
-                spriteBatch.Draw(debugTexture, groundCollider, Color.Red * 0.4f);
-                spriteBatch.Draw(debugTexture, groundCollider2, Color.Red * 0.4f);
-                spriteBatch.Draw(debugTexture, saltLid, Color.Blue * 0.4f);
-                spriteBatch.Draw(debugTexture, upStove, Color.Blue * 0.4f);
-                spriteBatch.Draw(debugTexture, platform1, Color.Blue * 0.4f);
-                spriteBatch.Draw(debugTexture, platform2, Color.Blue * 0.4f);
+                // spriteBatch.Draw(debugTexture, groundCollider, Color.Red * 0.4f);
+                // spriteBatch.Draw(debugTexture, groundCollider2, Color.Red * 0.4f);
+                // spriteBatch.Draw(debugTexture, saltLid, Color.Blue * 0.4f);
+                // spriteBatch.Draw(debugTexture, upStove, Color.Blue * 0.4f);
+                // spriteBatch.Draw(debugTexture, platform1, Color.Blue * 0.4f);
+                // spriteBatch.Draw(debugTexture, platform2, Color.Blue * 0.4f);
 
-                hotPan.Draw(spriteBatch);
-                venom1.Draw(spriteBatch);
-                venom2.Draw(spriteBatch);
-                venom3.Draw(spriteBatch);
-                venom4.Draw(spriteBatch);
-                venom5.Draw(spriteBatch);
-                venom6.Draw(spriteBatch);
+                // hotPan.Draw(spriteBatch);
+                // venom1.Draw(spriteBatch);
+                // venom2.Draw(spriteBatch);
+                // venom3.Draw(spriteBatch);
+                // venom4.Draw(spriteBatch);
+                // venom5.Draw(spriteBatch);
+                // venom6.Draw(spriteBatch);
 
                 cheese.Draw(spriteBatch);
                 player.Draw(game.Services.GetService<GameTime>());

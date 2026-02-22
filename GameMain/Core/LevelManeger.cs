@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using GameDuMouse.GameMain.Fases;
+using GameDuMouse.GameMain.Entities;
 
-namespace GameDuMouse
+namespace GameDuMouse.GameMain.Core
 {
     public class LevelManager
     {

@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace GameDuMouse
+namespace GameDuMouse.GameMain.UI
 {
     public class VictoryScreen
     {

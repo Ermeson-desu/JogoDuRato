@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Media;
 using System;
 using System.IO;
 
-namespace Mono.Helper
+namespace GameDuMouse.GameMain.Animations
 {
     /// <summary>Provides methods to load files in Content folder.</summary>
     public class Loader

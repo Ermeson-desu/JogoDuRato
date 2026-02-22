@@ -1,7 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using GameDuMouse.GameMain.Entities;
 
-namespace GameDuMouse
+namespace GameDuMouse.GameMain.Fases
 {
     public class ReturnStage
     {

@@ -1,7 +1,7 @@
 using SharpDX.DirectInput;
 using System;
 
-namespace GameDuMouse
+namespace GameDuMouse.GameMain.Utils
 {
     public class DirectInputController
     {

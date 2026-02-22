@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 
-namespace Mono.Helper
+namespace GameDuMouse.GameMain.Animations
 {
     public class Sprite
     {

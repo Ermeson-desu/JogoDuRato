@@ -2,7 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 
 
-namespace GameDuMouse
+namespace GameDuMouse.GameMain.Core
 {
     public class Camera
     {

@@ -6,6 +6,7 @@ namespace GameDuMouse.GameMain.Core
         Playing,
         Settings,
         Mapping,
+        Victory, 
         Exit
     }
 }

@@ -47,5 +47,23 @@ namespace GameDuMouse.GameMain.Core
         {
             CurrentFase.Draw(spriteBatch, player);
         }
+
+        // 🔑 Novo: reinicia a fase atual usando a fábrica
+        public void ReplayCurrentFase()
+        {
+            fases[currentIndex] = PhaseFactory.CreateFase(game, currentIndex);
+            fases[currentIndex].LoadContent(game.Content);
+        }
+
+        // 🔑 Novo: avança para a próxima fase usando a fábrica
+        public void NextFase()
+        {
+            if (currentIndex < fases.Count - 1)
+            {
+                currentIndex++;
+                fases[currentIndex] = PhaseFactory.CreateFase(game, currentIndex);
+                fases[currentIndex].LoadContent(game.Content);
+            }
+        }
     }
 }

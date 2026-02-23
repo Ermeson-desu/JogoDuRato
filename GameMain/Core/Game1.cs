@@ -19,6 +19,7 @@ namespace GameDuMouse.GameMain.Core
 
         private StateManager stateManager;
         private MenuScreen menuScreen;
+        private VictoryScreen victoryScreen;
 
         public Game1()
         {
@@ -53,9 +54,13 @@ namespace GameDuMouse.GameMain.Core
 
             // Fases
             levelManager = new LevelManager(this);
-            levelManager.AddFase(new Fase01(this));
-            // levelManager.AddFase(new Fase02(this)); // basta adicionar aqui
+            levelManager.AddFase(PhaseFactory.CreateFase(this, 0)); // adiciona Fase01
+            // levelManager.AddFase(PhaseFactory.CreateFase(this, 1)); // adiciona Fase02 se existir
             levelManager.LoadContent(Content);
+
+            // Victory Screen
+            victoryScreen = new VictoryScreen(this);
+            victoryScreen.LoadContent(Content);
         }
 
         protected override void Update(GameTime gameTime)
@@ -73,14 +78,22 @@ namespace GameDuMouse.GameMain.Core
                     player1.Update(gameTime, levelManager.CurrentFase);
                     levelManager.Update(player1);
                     camera.Follow(player1.GetPosition());
+
+                    // Se a fase terminou, muda para Victory
+                    if (levelManager.CurrentFase.HasWon)
+                        stateManager.ChangeState(GameState.Victory);
+                    break;
+
+                case GameState.Victory:
+                    victoryScreen.Update(stateManager, levelManager);
                     break;
 
                 case GameState.Settings:
-                    // lógica de settings futura
+                    // lógica futura
                     break;
 
                 case GameState.Mapping:
-                    // lógica de criação de mapas futura
+                    // lógica futura
                     break;
 
                 case GameState.Exit:
@@ -108,11 +121,15 @@ namespace GameDuMouse.GameMain.Core
                     break;
 
                 case GameState.Settings:
-                    spriteBatch.DrawString(Content.Load<SpriteFont>("Arial"), "Settings Screen", new Vector2(300, 200), Color.White);
+                    spriteBatch.DrawString(Content.Load<SpriteFont>("Font/Arial"), "Settings Screen", new Vector2(300, 200), Color.White);
                     break;
 
                 case GameState.Mapping:
-                    spriteBatch.DrawString(Content.Load<SpriteFont>("Arial"), "Map Editor", new Vector2(300, 200), Color.White);
+                    spriteBatch.DrawString(Content.Load<SpriteFont>("Font/Arial"), "Map Editor", new Vector2(300, 200), Color.White);
+                    break;
+
+                case GameState.Victory:
+                    victoryScreen.Draw(spriteBatch);
                     break;
             }
 

@@ -1,0 +1,18 @@
+using Microsoft.Xna.Framework;
+
+namespace GameDuMouse.GameMain.Fases
+{
+    public static class PhaseFactory
+    {
+        public static IFase CreateFase(Game game, int index)
+        {
+            return index switch
+            {
+                0 => new Fase01(game),
+                // 1 => new Fase02(game), // adicione conforme novas fases
+                // 2 => new Fase03(game),
+                _ => new Fase01(game) // fallback
+            };
+        }
+    }
+}

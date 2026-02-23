@@ -133,3 +133,4 @@ C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\obj\Debug\net8.0-windows\
 C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\obj\Debug\net8.0-windows\ref\GameDuMouse.dll
 C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\bin\Debug\net8.0-windows\SharpDX.DirectInput.dll
 C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\bin\Debug\net8.0-windows\Content\vitoriaImage.xnb
+C:\Users\ermes\Documentos\JogoDuRato_Backup\JogoDuRato\bin\Debug\net8.0-windows\Content\Font\Arial.xnb

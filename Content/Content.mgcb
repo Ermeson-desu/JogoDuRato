@@ -121,6 +121,13 @@
 /processorParam:TextureFormat=Color
 /build:../../../../Imagens/JogoDuRato/background_image(02).jpg;scenario/background_image(02).jpg
 
+#begin Font/Arial.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Font/Arial.spritefont
+
 #begin Idle/Idle01.png
 /importer:TextureImporter
 /processor:TextureProcessor

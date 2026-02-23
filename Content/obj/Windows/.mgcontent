@@ -13,6 +13,7 @@
     <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/../../../../Imagens/JogoDuRato/animacoes_JdRato/run/run07.png</File>
     <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/../../../../Imagens/JogoDuRato/background_image(01).jpg</File>
     <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/../../../../Imagens/JogoDuRato/background_image(02).jpg</File>
+    <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Font/Arial.spritefont</File>
     <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Idle/Idle01.png</File>
     <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Idle/Idle02.png</File>
     <File>C:/Users/ermes/Documentos/JogoDuRato_Backup/JogoDuRato/Content/Idle/Idle03.png</File>
@@ -44,6 +45,7 @@
     <File>run/run07.png</File>
     <File>scenario/background_image(01).jpg</File>
     <File>scenario/background_image(02).jpg</File>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

@@ -25,7 +25,7 @@ namespace GameDuMouse.GameMain.UI
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
         {
-            font = content.Load<SpriteFont>("Font/Arial"); // 🔑 ajuste para pasta Font
+            font = content.Load<SpriteFont>("Font/Arial"); 
         }
 
         public void Update(StateManager stateManager)
@@ -85,7 +85,7 @@ namespace GameDuMouse.GameMain.UI
             switch (options[selectedIndex])
             {
                 case "New Game":
-                    stateManager.ChangeState(GameState.Playing);
+                    stateManager.ChangeState(GameState.PreGame);
                     break;
                 case "Load":
                     // lógica de carregamento

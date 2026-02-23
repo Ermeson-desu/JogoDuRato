@@ -11,6 +11,7 @@ namespace GameDuMouse.GameMain.Core
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch spriteBatch;
+        private PreGameScreen preGameScreen;
 
         private Camera camera;
         private Player player1;
@@ -52,6 +53,10 @@ namespace GameDuMouse.GameMain.Core
             player1 = new Player(this);
             player1.LoadContent(Content);
 
+            // Pre-Game
+            preGameScreen = new PreGameScreen(this);
+            preGameScreen.LoadContent(Content);
+
             // Fases
             levelManager = new LevelManager(this);
             levelManager.AddFase(PhaseFactory.CreateFase(this, 0)); // adiciona Fase01
@@ -61,6 +66,7 @@ namespace GameDuMouse.GameMain.Core
             // Victory Screen
             victoryScreen = new VictoryScreen(this);
             victoryScreen.LoadContent(Content);
+
         }
 
         protected override void Update(GameTime gameTime)
@@ -96,6 +102,10 @@ namespace GameDuMouse.GameMain.Core
                     // lógica futura
                     break;
 
+                case GameState.PreGame: 
+                preGameScreen.Update(stateManager);
+                break;
+
                 case GameState.Exit:
                     Exit();
                     break;
@@ -127,6 +137,10 @@ namespace GameDuMouse.GameMain.Core
                 case GameState.Mapping:
                     spriteBatch.DrawString(Content.Load<SpriteFont>("Font/Arial"), "Map Editor", new Vector2(300, 200), Color.White);
                     break;
+                
+                case GameState.PreGame:
+                preGameScreen.Draw(spriteBatch);
+                break;
 
                 case GameState.Victory:
                     victoryScreen.Draw(spriteBatch);

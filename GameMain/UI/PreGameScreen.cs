@@ -1,0 +1,151 @@
+using System;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using GameDuMouse.GameMain.Core;
+using GameDuMouse.GameMain.Utils;
+using System.Text;
+
+namespace GameDuMouse.GameMain.UI
+{
+    public class PreGameScreen
+    {
+        private SpriteFont font;
+        private StringBuilder playerName;
+        private KeyboardState previousKeyboardState;
+        private MouseState previousMouseState;
+        private DirectInputController directController;
+        private Game game;
+
+        // Teclado virtual QWERTY
+        private string[] qwertyRows = {
+            "QWERTYUIOP",
+            "ASDFGHJKL",
+            "ZXCVBNM"
+        };
+        private int selectedRow = 0;
+        private int selectedCol = 0;
+
+        public PreGameScreen(Game game)
+        {
+            this.game = game;
+            playerName = new StringBuilder();
+            directController = new DirectInputController();
+        }
+
+        public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
+        {
+            font = content.Load<SpriteFont>("Font/Arial");
+        }
+
+        public void Update(StateManager stateManager)
+        {
+            var keyboard = Keyboard.GetState();
+            var mouse = Mouse.GetState();
+            var state = directController.GetState();
+
+            // --- Input via teclado físico ---
+            foreach (Keys key in keyboard.GetPressedKeys())
+            {
+                if (!previousKeyboardState.IsKeyDown(key))
+                {
+                    if (key == Keys.Back && playerName.Length > 0)
+                        playerName.Remove(playerName.Length - 1, 1);
+                    else if (key == Keys.Space)
+                        playerName.Append(" ");
+                    else if (key == Keys.Enter)
+                        stateManager.ChangeState(GameState.Playing);
+                    else
+                    {
+                        string k = key.ToString();
+                        if (k.Length == 1) playerName.Append(k);
+                    }
+                }
+            }
+
+            // --- Input via mouse (clicando no teclado virtual) ---
+            if (mouse.LeftButton == ButtonState.Pressed && previousMouseState.LeftButton == ButtonState.Released)
+            {
+                for (int r = 0; r < qwertyRows.Length; r++)
+                {
+                    for (int c = 0; c < qwertyRows[r].Length; c++)
+                    {
+                        Rectangle keyBounds = new Rectangle(100 + c * 40, 300 + r * 50, 35, 35);
+                        if (keyBounds.Contains(mouse.Position))
+                        {
+                            playerName.Append(qwertyRows[r][c]);
+                        }
+                    }
+                }
+
+                // Botões extras
+                Rectangle spaceBtn = new Rectangle(100, 500, 80, 40);
+                Rectangle backBtn = new Rectangle(200, 500, 80, 40);
+                Rectangle okBtn = new Rectangle(300, 500, 80, 40);
+                Rectangle cancelBtn = new Rectangle(400, 500, 80, 40);
+
+                if (spaceBtn.Contains(mouse.Position)) playerName.Append(" ");
+                if (backBtn.Contains(mouse.Position) && playerName.Length > 0) playerName.Remove(playerName.Length - 1, 1);
+                if (okBtn.Contains(mouse.Position)) stateManager.ChangeState(GameState.Playing);
+                if (cancelBtn.Contains(mouse.Position)) stateManager.ChangeState(GameState.Menu);
+            }
+
+            // --- Input via controle genérico ---
+            if (state != null)
+            {
+                if (state.PointOfViewControllers.Length > 0)
+                {
+                    int pov = state.PointOfViewControllers[0];
+                    if (pov == 0) selectedRow = Math.Max(0, selectedRow - 1); // cima
+                    if (pov == 18000) selectedRow = Math.Min(qwertyRows.Length - 1, selectedRow + 1); // baixo
+                    if (pov == 27000) selectedCol = Math.Max(0, selectedCol - 1); // esquerda
+                    if (pov == 9000) selectedCol = Math.Min(qwertyRows[selectedRow].Length - 1, selectedCol + 1); // direita
+                }
+
+                // Botão X → confirma letra
+                if (state.Buttons[2])
+                    playerName.Append(qwertyRows[selectedRow][selectedCol]);
+
+                // Botão O → espaço
+                if (state.Buttons[1])
+                    playerName.Append(" ");
+
+                // Botão quadrado → apagar
+                if (state.Buttons[0] && playerName.Length > 0)
+                    playerName.Remove(playerName.Length - 1, 1);
+
+                // Botão triângulo → voltar ao menu
+                if (state.Buttons[3])
+                    stateManager.ChangeState(GameState.Menu);
+            }
+
+            previousKeyboardState = keyboard;
+            previousMouseState = mouse;
+        }
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            spriteBatch.DrawString(font, "Digite seu nome:", new Vector2(100, 100), Color.White);
+            spriteBatch.DrawString(font, playerName.ToString(), new Vector2(100, 150), Color.Yellow);
+
+            // Teclado virtual
+            for (int r = 0; r < qwertyRows.Length; r++)
+            {
+                for (int c = 0; c < qwertyRows[r].Length; c++)
+                {
+                    string letter = qwertyRows[r][c].ToString();
+                    Color color = (r == selectedRow && c == selectedCol) ? Color.Yellow : Color.White;
+                    spriteBatch.DrawString(font, letter, new Vector2(100 + c * 40, 300 + r * 50), color);
+                }
+            }
+
+            
+
+            // Botões extras
+            spriteBatch.DrawString(font, "[SPACE]", new Vector2(100, 500), Color.White);
+            spriteBatch.DrawString(font, "[BACK]", new Vector2(200, 500), Color.White);
+            spriteBatch.DrawString(font, "[OK]", new Vector2(300, 500), Color.White);
+            spriteBatch.DrawString(font, "[CANCEL]", new Vector2(400, 500), Color.White);
+        }
+    }
+}

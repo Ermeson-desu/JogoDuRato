@@ -57,12 +57,6 @@ namespace GameDuMouse.GameMain.Core
             preGameScreen = new PreGameScreen(this);
             preGameScreen.LoadContent(Content);
 
-            // Fases
-            levelManager = new LevelManager(this);
-            levelManager.AddFase(PhaseFactory.CreateFase(this, 0)); // adiciona Fase01
-            // levelManager.AddFase(PhaseFactory.CreateFase(this, 1)); // adiciona Fase02 se existir
-            levelManager.LoadContent(Content);
-
             // Victory Screen
             victoryScreen = new VictoryScreen(this);
             victoryScreen.LoadContent(Content);
@@ -112,6 +106,24 @@ namespace GameDuMouse.GameMain.Core
             }
 
             base.Update(gameTime);
+        }
+
+        public void StartNewGame(string playerName)
+        {
+            if (!string.IsNullOrEmpty(playerName) && playerName.Length > 3)
+            {
+                levelManager = new LevelManager(this);
+                levelManager.AddFase(PhaseFactory.CreateFase(this, 0));
+                levelManager.LoadContent(Content);
+
+                stateManager.ChangeState(GameState.Playing);
+            }
+            else
+            {
+                // Se o nome for inválido, permanece na tela PreGame
+                stateManager.ChangeState(GameState.PreGame);
+            }
+
         }
 
         protected override void Draw(GameTime gameTime)

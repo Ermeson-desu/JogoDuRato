@@ -54,7 +54,9 @@ namespace GameDuMouse.GameMain.UI
                     else if (key == Keys.Space)
                         playerName.Append(" ");
                     else if (key == Keys.Enter)
-                        stateManager.ChangeState(GameState.Playing);
+                    {
+                        ((Game1)game).StartNewGame(playerName.ToString());
+                    }
                     else
                     {
                         string k = key.ToString();
@@ -86,7 +88,10 @@ namespace GameDuMouse.GameMain.UI
 
                 if (spaceBtn.Contains(mouse.Position)) playerName.Append(" ");
                 if (backBtn.Contains(mouse.Position) && playerName.Length > 0) playerName.Remove(playerName.Length - 1, 1);
-                if (okBtn.Contains(mouse.Position)) stateManager.ChangeState(GameState.Playing);
+                if (okBtn.Contains(mouse.Position))
+                {
+                    ((Game1)game).StartNewGame(playerName.ToString());
+                }
                 if (cancelBtn.Contains(mouse.Position)) stateManager.ChangeState(GameState.Menu);
             }
 
@@ -139,7 +144,10 @@ namespace GameDuMouse.GameMain.UI
                 }
             }
 
-            
+            if (string.IsNullOrEmpty(playerName.ToString()) || playerName.Length <= 3)
+            {
+                spriteBatch.DrawString(font, "Nome deve ter mais de 3 caracteres!", new Vector2(100, 200), Color.Red);
+            }
 
             // Botões extras
             spriteBatch.DrawString(font, "[SPACE]", new Vector2(100, 500), Color.White);

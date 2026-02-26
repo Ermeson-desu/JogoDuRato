@@ -88,7 +88,7 @@ namespace GameDuMouse.GameMain.UI
                     stateManager.ChangeState(GameState.PreGame);
                     break;
                 case "Load":
-                    // lógica de carregamento
+                    stateManager.ChangeState(GameState.Load);
                     break;
                 case "Settings":
                     stateManager.ChangeState(GameState.Settings);

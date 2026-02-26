@@ -21,6 +21,7 @@ namespace GameDuMouse.GameMain.Core
         private StateManager stateManager;
         private MenuScreen menuScreen;
         private VictoryScreen victoryScreen;
+        private LoadScreen loadScreen;
 
         public Game1()
         {
@@ -61,6 +62,10 @@ namespace GameDuMouse.GameMain.Core
             victoryScreen = new VictoryScreen(this);
             victoryScreen.LoadContent(Content);
 
+            // Load Screen
+            loadScreen = new LoadScreen(this);
+            loadScreen.LoadContent(Content);
+
         }
 
         protected override void Update(GameTime gameTime)
@@ -86,6 +91,10 @@ namespace GameDuMouse.GameMain.Core
 
                 case GameState.Victory:
                     victoryScreen.Update(stateManager, levelManager);
+                    break;
+                
+                case GameState.Load:
+                    loadScreen.Update(stateManager);
                     break;
 
                 case GameState.Settings:
@@ -126,6 +135,18 @@ namespace GameDuMouse.GameMain.Core
 
         }
 
+        public void LoadSave(SaveData save)
+        {
+            levelManager = new LevelManager(this);
+            levelManager.AddFase(PhaseFactory.CreateFase(this, save.CurrentFaseIndex));
+            levelManager.LoadContent(Content);
+
+            // Aqui você pode restaurar o estado "IsReturning" dentro da fase
+            // Exemplo: levelManager.CurrentFase.SetReturning(save.IsReturning);
+
+            stateManager.ChangeState(GameState.Playing);
+        }
+
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -151,8 +172,13 @@ namespace GameDuMouse.GameMain.Core
                     break;
                 
                 case GameState.PreGame:
-                preGameScreen.Draw(spriteBatch);
-                break;
+                    preGameScreen.Draw(spriteBatch);
+                    break;
+
+                case GameState.Load:
+                    loadScreen.Draw(spriteBatch);
+                    break;
+
 
                 case GameState.Victory:
                     victoryScreen.Draw(spriteBatch);

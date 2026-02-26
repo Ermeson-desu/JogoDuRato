@@ -8,6 +8,7 @@ namespace GameDuMouse.GameMain.Core
         Settings,
         Mapping,
         Victory, 
+        Load,
         Exit
     }
 }

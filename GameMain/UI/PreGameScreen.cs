@@ -45,26 +45,41 @@ namespace GameDuMouse.GameMain.UI
             var state = directController.GetState();
 
             // --- Input via teclado físico ---
-            foreach (Keys key in keyboard.GetPressedKeys())
+            if (IsKeyPressed(Keys.Enter, keyboard))
             {
-                if (!previousKeyboardState.IsKeyDown(key))
+                var save = new SaveData
                 {
-                    if (key == Keys.Back && playerName.Length > 0)
-                        playerName.Remove(playerName.Length - 1, 1);
-                    else if (key == Keys.Space)
-                        playerName.Append(" ");
-                    else if (key == Keys.Enter)
-                    {
-                        ((Game1)game).StartNewGame(playerName.ToString());
-                    }
-                    else
+                    PlayerName = playerName.ToString(),
+                    CurrentFaseIndex = 0,
+                    IsReturning = false
+                };
+
+                SaveManager.SaveGame(save); // 🔑 grava o save inicial
+                ((Game1)game).StartNewGame(playerName.ToString());
+            }
+
+            else if (IsKeyPressed(Keys.Back, keyboard) && playerName.Length > 0)
+            {
+                playerName.Remove(playerName.Length - 1, 1);
+            }
+            else if (IsKeyPressed(Keys.Space, keyboard))
+            {
+                playerName.Append(" ");
+            }
+            else
+            {
+                foreach (Keys key in keyboard.GetPressedKeys())
+                {
+                    if (!previousKeyboardState.IsKeyDown(key))
                     {
                         string k = key.ToString();
-                        if (k.Length == 1) playerName.Append(k);
+                        if (k.Length == 1)
+                            playerName.Append(k);
                     }
                 }
             }
 
+            previousKeyboardState = keyboard;
             // --- Input via mouse (clicando no teclado virtual) ---
             if (mouse.LeftButton == ButtonState.Pressed && previousMouseState.LeftButton == ButtonState.Released)
             {
@@ -90,6 +105,14 @@ namespace GameDuMouse.GameMain.UI
                 if (backBtn.Contains(mouse.Position) && playerName.Length > 0) playerName.Remove(playerName.Length - 1, 1);
                 if (okBtn.Contains(mouse.Position))
                 {
+                    var save = new SaveData
+                    {
+                        PlayerName = playerName.ToString(),
+                        CurrentFaseIndex = 0,
+                        IsReturning = false
+                    };
+
+                    SaveManager.SaveGame(save);
                     ((Game1)game).StartNewGame(playerName.ToString());
                 }
                 if (cancelBtn.Contains(mouse.Position)) stateManager.ChangeState(GameState.Menu);
@@ -128,6 +151,10 @@ namespace GameDuMouse.GameMain.UI
             previousMouseState = mouse;
         }
 
+        private bool IsKeyPressed(Keys key, KeyboardState current)
+        {
+            return current.IsKeyDown(key) && !previousKeyboardState.IsKeyDown(key);
+        }
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.DrawString(font, "Digite seu nome:", new Vector2(100, 100), Color.White);

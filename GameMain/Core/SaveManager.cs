@@ -16,18 +16,29 @@ namespace GameDuMouse.GameMain.Core
             string json = File.ReadAllText(savePath);
 
             if (string.IsNullOrWhiteSpace(json))
-                return new List<SaveData>(); 
+                return new List<SaveData>();
 
-            return JsonSerializer.Deserialize<List<SaveData>>(json) ?? new List<SaveData>();
+            var saves = JsonSerializer.Deserialize<List<SaveData>>(json) ?? new List<SaveData>();
+
+            // remove entries inválidas que eventualmente tenham sido gravadas em versões anteriores
+            saves.RemoveAll(s => string.IsNullOrWhiteSpace(s?.PlayerName) || s.PlayerName.Length <= 3);
+            return saves;
         }
 
         public static void SaveGame(SaveData save)
         {
-            // nenhum save sem nome válido
-            if (string.IsNullOrWhiteSpace(save?.PlayerName) || save.PlayerName.Length <= 3)
+            if (save == null)
+                return;
+
+            // normaliza o nome e rejeita casos inválidos
+            save.PlayerName = save.PlayerName?.Trim();
+            if (string.IsNullOrWhiteSpace(save.PlayerName) || save.PlayerName.Length <= 3)
                 return;
 
             var saves = LoadAllSaves();
+
+            // remove entradas antigas que não obedecem às regras (por precaução)
+            saves.RemoveAll(s => string.IsNullOrWhiteSpace(s.PlayerName) || s.PlayerName.Length <= 3);
 
             var existing = saves.Find(s => s.PlayerName == save.PlayerName);
             if (existing != null)

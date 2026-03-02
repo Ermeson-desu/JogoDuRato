@@ -17,10 +17,23 @@ namespace GameDuMouse.GameMain.UI
         private DirectInputController directController;
         private Game game;
 
+        private bool ignoreNextInput; // usado para não processar clique residual
+
         public MenuScreen(Game game)
         {
             this.game = game;
             directController = new DirectInputController();
+
+            previousKeyboardState = Keyboard.GetState();
+            previousMouseState = Mouse.GetState();
+            ignoreNextInput = true;
+        }
+
+        public void ResetInput()
+        {
+            previousKeyboardState = Keyboard.GetState();
+            previousMouseState = Mouse.GetState();
+            ignoreNextInput = true;
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
@@ -33,6 +46,15 @@ namespace GameDuMouse.GameMain.UI
             var keyboard = Keyboard.GetState();
             var mouse = Mouse.GetState();
             var state = directController.GetState();
+
+            if (ignoreNextInput)
+            {
+                previousKeyboardState = keyboard;
+                previousMouseState = mouse;
+                if (mouse.LeftButton == ButtonState.Released && !keyboard.IsKeyDown(Keys.Enter))
+                    ignoreNextInput = false;
+                return;
+            }
 
             // --- Navegação teclado (edge detection) ---
             if (IsKeyPressed(Keys.Down, keyboard) || IsKeyPressed(Keys.S, keyboard))

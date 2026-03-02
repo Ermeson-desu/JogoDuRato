@@ -5,6 +5,8 @@ using GameDuMouse.GameMain.Entities;
 
 namespace GameDuMouse.GameMain.Fases
 {
+    using Microsoft.Xna.Framework;
+
     public interface IFase
     {
         void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content);
@@ -13,6 +15,9 @@ namespace GameDuMouse.GameMain.Fases
         bool HasWon { get; }
 
         bool IsReturning { get; }  
+        void SetReturning(bool returning);
+        Vector2 GetSpawnPosition(bool returning);
+
         List<Rectangle> GroundColliders { get; }
         List<Rectangle> Platforms { get; }
         List<Obstacle> Obstacles1 { get; }

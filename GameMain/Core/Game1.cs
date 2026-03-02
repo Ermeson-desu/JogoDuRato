@@ -19,12 +19,14 @@ namespace GameDuMouse.GameMain.Core
         private LevelManager levelManager;
 
         private StateManager stateManager;
+        private GameState previousGameState; // usado para detectar mudança de estado
         private MenuScreen menuScreen;
         private VictoryScreen victoryScreen;
         private LoadScreen loadScreen;
 
-        // keep track of the last state so we can detect transitions
-        private GameState lastState = GameState.Menu;
+        // player/name state used for saving mid–game
+        public string CurrentPlayerName { get; private set; }
+        public int CurrentFaseIndex { get; private set; } = -1;
 
         public Game1()
         {
@@ -37,6 +39,7 @@ namespace GameDuMouse.GameMain.Core
         {
             camera = new Camera();
             stateManager = new StateManager();
+            previousGameState = stateManager.CurrentState;
             base.Initialize();
         }
 
@@ -76,15 +79,17 @@ namespace GameDuMouse.GameMain.Core
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // detect state changes so we can notify individual screens
-            if (stateManager.CurrentState != lastState)
+            // Detecta transição entre estados e dispara callbacks auxiliares
+            if (stateManager.CurrentState != previousGameState)
             {
                 if (stateManager.CurrentState == GameState.Load)
-                {
                     loadScreen.ResetInput();
-                }
-                // other states could also reset input if needed
-                lastState = stateManager.CurrentState;
+                if (stateManager.CurrentState == GameState.Menu)
+                    menuScreen.ResetInput();
+                if (stateManager.CurrentState == GameState.PreGame)
+                    preGameScreen.ResetInput();
+
+                previousGameState = stateManager.CurrentState;
             }
 
             switch (stateManager.CurrentState)
@@ -135,6 +140,9 @@ namespace GameDuMouse.GameMain.Core
         {
             if (!string.IsNullOrEmpty(playerName) && playerName.Length > 3)
             {
+                CurrentPlayerName = playerName.Trim();
+                CurrentFaseIndex = 0;
+
                 levelManager = new LevelManager(this);
                 levelManager.AddFase(PhaseFactory.CreateFase(this, 0));
                 levelManager.LoadContent(Content);
@@ -146,19 +154,50 @@ namespace GameDuMouse.GameMain.Core
                 // Se o nome for inválido, permanece na tela PreGame
                 stateManager.ChangeState(GameState.PreGame);
             }
-
         }
 
         public void LoadSave(SaveData save)
         {
+            // mantém jogador e fase atuais para futuros saves
+            CurrentPlayerName = save.PlayerName?.Trim();
+            CurrentFaseIndex = save.CurrentFaseIndex;
+
+            // recria a fase que estava em andamento
             levelManager = new LevelManager(this);
             levelManager.AddFase(PhaseFactory.CreateFase(this, save.CurrentFaseIndex));
             levelManager.LoadContent(Content);
 
-            // Aqui você pode restaurar o estado "IsReturning" dentro da fase
-            // Exemplo: levelManager.CurrentFase.SetReturning(save.IsReturning);
+            // aplica situação de retorno e posiciona o player
+            if (levelManager.CurrentFase != null)
+            {
+                levelManager.CurrentFase.SetReturning(save.IsReturning);
+                player1.ResetPlayer();
+                Vector2 spawn = levelManager.CurrentFase.GetSpawnPosition(save.IsReturning);
+                player1.SetPosition(spawn);
+            }
 
             stateManager.ChangeState(GameState.Playing);
+        }
+
+        /// <summary>
+        /// Cria/atualiza o save atual usando o nome previamente configurado através de
+        /// StartNewGame/LoadSave. A flag <paramref name="isReturning"/> é mantida
+        /// para que, ao recarregar, o ratinho saiba se deve aparecer na posição do
+        /// queijo ou na inicial.
+        /// </summary>
+        public void SaveProgress(bool isReturning)
+        {
+            if (string.IsNullOrWhiteSpace(CurrentPlayerName) || CurrentFaseIndex < 0)
+                return;
+
+            var save = new SaveData
+            {
+                PlayerName = CurrentPlayerName,
+                CurrentFaseIndex = CurrentFaseIndex,
+                IsReturning = isReturning
+            };
+
+            SaveManager.SaveGame(save);
         }
 
         protected override void Draw(GameTime gameTime)

@@ -296,6 +296,14 @@ namespace GameDuMouse.GameMain.Entities
             isGrounded = true;
         }
 
+        /// <summary>
+        /// Posiciona o jogador em coordenadas arbitrárias, usado ao carregar saves.
+        /// </summary>
+        public void SetPosition(Vector2 position)
+        {
+            animationController.Position = position;
+        }
+
         public void Update(GameTime gameTime, IFase fase)
         {
             if (fase.HasWon)

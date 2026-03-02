@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using GameDuMouse.GameMain.Entities;
 using GameDuMouse.GameMain.UI;
-
+using GameDuMouse.GameMain.Core;
 
 namespace GameDuMouse.GameMain.Fases
 {
@@ -27,6 +27,22 @@ namespace GameDuMouse.GameMain.Fases
         public bool IsReturning { get; private set; } = false;
         public bool hasWon = false;
 
+        // expose a couple of helpers so the game can restore state when loading
+        public void SetReturning(bool returning)
+        {
+            IsReturning = returning;
+        }
+
+        public Vector2 GetSpawnPosition(bool returning)
+        {
+            // se estiver voltando, aparece exatamente onde estava o queijo
+            if (returning)
+                return new Vector2(cheese.Bounds.X, cheese.Bounds.Y);
+
+            // posição inicial padrão (igual ao ResetPlayer)
+            return new Vector2(210, 300);
+        }
+
         // Propriedades públicas para o Player acessar
         public List<Rectangle> GroundColliders { get; private set; }
         public List<Rectangle> Platforms { get; private set; }
@@ -37,6 +53,9 @@ namespace GameDuMouse.GameMain.Fases
         {
             this.game = game;
             Initialize();
+
+            // nota: o jogo irá manter o índice da fase ao iniciar/recuperar saves
+            // este trecho foi removido porque a propriedade possui setter privado.
         }
 
         private void Initialize()
@@ -87,6 +106,11 @@ namespace GameDuMouse.GameMain.Fases
                 {
                     System.Console.WriteLine("O ratinho pegou o queijo! Agora começa o retorno.");
                     IsReturning = true;
+
+                    // gravar progresso automaticamente assim que o queijo for pego
+                    
+                    if (game is Game1 g1)
+                        g1.SaveProgress(true);
                 }
             }
             else if (!hasWon)

@@ -31,6 +31,17 @@ namespace GameDuMouse.GameMain.UI
             this.game = game;
             playerName = new StringBuilder();
             directController = new DirectInputController();
+
+            previousKeyboardState = Keyboard.GetState();
+            previousMouseState = Mouse.GetState();
+        }
+
+        public void ResetInput()
+        {
+            previousKeyboardState = Keyboard.GetState();
+            previousMouseState = Mouse.GetState();
+            // not using ignore flag here because PreGame has more complex mouse interactions,
+            // but we at least reset states so earlier clicks don't trigger buttons accidentally.
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)

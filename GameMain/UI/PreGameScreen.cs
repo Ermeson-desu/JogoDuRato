@@ -47,15 +47,20 @@ namespace GameDuMouse.GameMain.UI
             // --- Input via teclado físico ---
             if (IsKeyPressed(Keys.Enter, keyboard))
             {
-                var save = new SaveData
+                // só salva/começa se tiver nome válido
+                string name = playerName.ToString();
+                if (!string.IsNullOrWhiteSpace(name) && name.Length > 3)
                 {
-                    PlayerName = playerName.ToString(),
-                    CurrentFaseIndex = 0,
-                    IsReturning = false
-                };
+                    var save = new SaveData
+                    {
+                        PlayerName = name,
+                        CurrentFaseIndex = 0,
+                        IsReturning = false
+                    };
 
-                SaveManager.SaveGame(save); // 🔑 grava o save inicial
-                ((Game1)game).StartNewGame(playerName.ToString());
+                    SaveManager.SaveGame(save); // 🔑 grava o save inicial
+                    ((Game1)game).StartNewGame(name);
+                }
             }
 
             else if (IsKeyPressed(Keys.Back, keyboard) && playerName.Length > 0)
@@ -105,15 +110,19 @@ namespace GameDuMouse.GameMain.UI
                 if (backBtn.Contains(mouse.Position) && playerName.Length > 0) playerName.Remove(playerName.Length - 1, 1);
                 if (okBtn.Contains(mouse.Position))
                 {
-                    var save = new SaveData
+                    string name = playerName.ToString();
+                    if (!string.IsNullOrWhiteSpace(name) && name.Length > 3)
                     {
-                        PlayerName = playerName.ToString(),
-                        CurrentFaseIndex = 0,
-                        IsReturning = false
-                    };
+                        var save = new SaveData
+                        {
+                            PlayerName = name,
+                            CurrentFaseIndex = 0,
+                            IsReturning = false
+                        };
 
-                    SaveManager.SaveGame(save);
-                    ((Game1)game).StartNewGame(playerName.ToString());
+                        SaveManager.SaveGame(save);
+                        ((Game1)game).StartNewGame(name);
+                    }
                 }
                 if (cancelBtn.Contains(mouse.Position)) stateManager.ChangeState(GameState.Menu);
             }

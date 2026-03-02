@@ -23,6 +23,10 @@ namespace GameDuMouse.GameMain.Core
 
         public static void SaveGame(SaveData save)
         {
+            // nenhum save sem nome válido
+            if (string.IsNullOrWhiteSpace(save?.PlayerName) || save.PlayerName.Length <= 3)
+                return;
+
             var saves = LoadAllSaves();
 
             var existing = saves.Find(s => s.PlayerName == save.PlayerName);

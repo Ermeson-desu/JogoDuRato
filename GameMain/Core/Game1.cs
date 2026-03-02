@@ -23,6 +23,9 @@ namespace GameDuMouse.GameMain.Core
         private VictoryScreen victoryScreen;
         private LoadScreen loadScreen;
 
+        // keep track of the last state so we can detect transitions
+        private GameState lastState = GameState.Menu;
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -72,6 +75,17 @@ namespace GameDuMouse.GameMain.Core
         {
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+
+            // detect state changes so we can notify individual screens
+            if (stateManager.CurrentState != lastState)
+            {
+                if (stateManager.CurrentState == GameState.Load)
+                {
+                    loadScreen.ResetInput();
+                }
+                // other states could also reset input if needed
+                lastState = stateManager.CurrentState;
+            }
 
             switch (stateManager.CurrentState)
             {

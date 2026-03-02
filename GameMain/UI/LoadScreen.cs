@@ -16,13 +16,24 @@ namespace GameDuMouse.GameMain.UI
         private KeyboardState previousKeyboardState;
         private MouseState previousMouseState;
         private DirectInputController directController;
+        
         private Game game;
+        // flag used when we just entered the screen to avoid carrying over a mouse
+        // or keyboard press from the previous screen (e.g. clicking "Load" on
+        // the main menu).  We reset this whenever the state changes in Game1.
+        private bool ignoreNextInput;
 
         public LoadScreen(Game game)
         {
             this.game = game;
             directController = new DirectInputController();
             saves = SaveManager.LoadAllSaves();
+
+            // make sure the first update won't treat whatever input happened during
+            // initialization as a selection
+            previousMouseState = Mouse.GetState();
+            previousKeyboardState = Keyboard.GetState();
+            ignoreNextInput = true;
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
@@ -37,18 +48,31 @@ namespace GameDuMouse.GameMain.UI
             if (saves.Count == 0)
                 return;
 
+            // if we just arrived to the screen clear any lingering input
+            if (ignoreNextInput)
+            {
+                var k = Keyboard.GetState();
+                var m = Mouse.GetState();
+                previousKeyboardState = k;
+                previousMouseState = m;
+                // wait until user releases the button/keys before accepting input
+                if (m.LeftButton == ButtonState.Released && !k.IsKeyDown(Keys.Enter))
+                    ignoreNextInput = false;
+                return;
+            }
+
             var keyboard = Keyboard.GetState();
             var mouse = Mouse.GetState();
             var state = directController.GetState();
+
+            if (IsKeyPressed(Keys.Enter, keyboard))
+                ConfirmSelection(stateManager);
 
             if (IsKeyPressed(Keys.Down, keyboard))
                 selectedIndex = (selectedIndex + 1) % saves.Count;
 
             if (IsKeyPressed(Keys.Up, keyboard))
                 selectedIndex = (selectedIndex - 1 + saves.Count) % saves.Count;
-
-            if (IsKeyPressed(Keys.Enter, keyboard))
-                LoadSelectedSave(stateManager);
 
             // Mouse
             if (mouse.LeftButton == ButtonState.Pressed && previousMouseState.LeftButton == ButtonState.Released)
@@ -82,6 +106,29 @@ namespace GameDuMouse.GameMain.UI
 
             game1.LoadSave(save);
             stateManager.ChangeState(GameState.Playing);
+        }
+
+        private void ConfirmSelection(StateManager stateManager)
+        {
+            if (saves.Count == 0) return;
+
+            var save = saves[selectedIndex];
+            var game1 = (Game1)game;
+
+            game1.LoadSave(save);
+            stateManager.ChangeState(GameState.Playing);
+        }
+
+        /// <summary>
+        /// Called by <see cref="Game1"/> when the state machine transitions to
+        /// <see cref="GameState.Load"/>.  Resets the internal mouse/keyboard
+        /// state to avoid processing the click that caused the transition.
+        /// </summary>
+        public void ResetInput()
+        {
+            previousKeyboardState = Keyboard.GetState();
+            previousMouseState = Mouse.GetState();
+            ignoreNextInput = true;
         }
 
         public void Draw(SpriteBatch spriteBatch)

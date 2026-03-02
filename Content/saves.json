@@ -1,6 +1,11 @@
 [
   {
-    "PlayerName": "CAMILLE TE AMO FELIZ 7 ANOS DE CASAMENTO",
+    "PlayerName": "",
+    "CurrentFaseIndex": 0,
+    "IsReturning": false
+  },
+  {
+    "PlayerName": "ERMESON",
     "CurrentFaseIndex": 0,
     "IsReturning": false
   }

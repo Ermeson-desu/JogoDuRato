@@ -304,6 +304,19 @@ namespace GameDuMouse.GameMain.Entities
             animationController.Position = position;
         }
 
+        /// <summary>
+        /// Ajusta a direção em que o sprite está virado.
+        /// </summary>
+        public void SetFacing(bool faceRight)
+        {
+            animationController.Effects = faceRight ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+        }
+
+        /// <summary>
+        /// Indica se o jogador está olhando para a direita.
+        /// </summary>
+        public bool FacingRight => animationController.Effects == SpriteEffects.None;
+
         public void Update(GameTime gameTime, IFase fase)
         {
             if (fase.HasWon)

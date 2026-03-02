@@ -174,6 +174,8 @@ namespace GameDuMouse.GameMain.Core
                 player1.ResetPlayer();
                 Vector2 spawn = levelManager.CurrentFase.GetSpawnPosition(save.IsReturning);
                 player1.SetPosition(spawn);
+                // se for retorno, o sprite deve olhar para esquerda (oposto do início)
+                player1.SetFacing(!save.IsReturning);
             }
 
             stateManager.ChangeState(GameState.Playing);

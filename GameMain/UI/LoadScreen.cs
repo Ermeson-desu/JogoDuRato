@@ -16,8 +16,9 @@ namespace GameDuMouse.GameMain.UI
         private KeyboardState previousKeyboardState;
         private MouseState previousMouseState;
         private DirectInputController directController;
-        
+
         private Game game;
+        private BackButton backButton;
         // flag used when we just entered the screen to avoid carrying over a mouse
         // or keyboard press from the previous screen (e.g. clicking "Load" on
         // the main menu).  We reset this whenever the state changes in Game1.
@@ -39,9 +40,16 @@ namespace GameDuMouse.GameMain.UI
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
         {
             font = content.Load<SpriteFont>("Font/Arial");
+            backButton = new BackButton(font);
         }
         public void Update(StateManager stateManager)
         {
+            // first let the back button do its thing; if it changes state we'll
+            // return early to avoid processing other input on the old screen.
+            backButton?.Update(stateManager);
+            if (stateManager.CurrentState != GameState.Load)
+                return;
+
             // 🔑 sempre recarrega a lista
             saves = SaveManager.LoadAllSaves();
 
@@ -129,11 +137,13 @@ namespace GameDuMouse.GameMain.UI
             previousKeyboardState = Keyboard.GetState();
             previousMouseState = Mouse.GetState();
             ignoreNextInput = true;
+            backButton?.ResetInput();
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.DrawString(font, "Selecione seu save:", new Vector2(100, 100), Color.White);
+            backButton?.Draw(spriteBatch);
 
             if (saves.Count == 0)
             {

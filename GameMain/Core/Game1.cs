@@ -147,6 +147,9 @@ namespace GameDuMouse.GameMain.Core
                 levelManager.AddFase(PhaseFactory.CreateFase(this, 0));
                 levelManager.LoadContent(Content);
 
+                // once we're actually in play, clear any history so that "back"
+                // doesn't accidentally drop the player back into PreGame/Load etc.
+                stateManager.ResetHistory();
                 stateManager.ChangeState(GameState.Playing);
             }
             else
@@ -178,6 +181,7 @@ namespace GameDuMouse.GameMain.Core
                 player1.SetFacing(!save.IsReturning);
             }
 
+            stateManager.ResetHistory();
             stateManager.ChangeState(GameState.Playing);
         }
 

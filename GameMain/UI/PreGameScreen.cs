@@ -16,6 +16,7 @@ namespace GameDuMouse.GameMain.UI
         private MouseState previousMouseState;
         private DirectInputController directController;
         private Game game;
+        private BackButton backButton;
 
         // Teclado virtual QWERTY
         private string[] qwertyRows = {
@@ -42,15 +43,20 @@ namespace GameDuMouse.GameMain.UI
             previousMouseState = Mouse.GetState();
             // not using ignore flag here because PreGame has more complex mouse interactions,
             // but we at least reset states so earlier clicks don't trigger buttons accidentally.
+            backButton?.ResetInput();
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
         {
             font = content.Load<SpriteFont>("Font/Arial");
+            backButton = new BackButton(font);
         }
 
         public void Update(StateManager stateManager)
         {
+            // handle shared back-navigation (click or backspace when name empty)
+            backButton?.Update(stateManager, ignoreBackKey: playerName.Length > 0);
+
             var keyboard = Keyboard.GetState();
             var mouse = Mouse.GetState();
             var state = directController.GetState();
@@ -135,7 +141,7 @@ namespace GameDuMouse.GameMain.UI
                         ((Game1)game).StartNewGame(name);
                     }
                 }
-                if (cancelBtn.Contains(mouse.Position)) stateManager.ChangeState(GameState.Menu);
+                if (cancelBtn.Contains(mouse.Position)) stateManager.GoBack();
             }
 
             // --- Input via controle genérico ---
@@ -162,9 +168,9 @@ namespace GameDuMouse.GameMain.UI
                 if (state.Buttons[0] && playerName.Length > 0)
                     playerName.Remove(playerName.Length - 1, 1);
 
-                // Botão triângulo → voltar ao menu
+                // Botão triângulo → voltar à tela anterior (menu neste caso)
                 if (state.Buttons[3])
-                    stateManager.ChangeState(GameState.Menu);
+                    stateManager.GoBack();
             }
 
             previousKeyboardState = keyboard;
@@ -178,6 +184,7 @@ namespace GameDuMouse.GameMain.UI
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.DrawString(font, "Digite seu nome:", new Vector2(100, 100), Color.White);
+            backButton?.Draw(spriteBatch);
             spriteBatch.DrawString(font, playerName.ToString(), new Vector2(100, 150), Color.Yellow);
 
             // Teclado virtual

@@ -9,7 +9,9 @@ namespace GameDuMouse.GameMain.UI
     public class MenuScreen
     {
         private SpriteFont font;
-        private string[] options = { "New Game", "Load", "Settings", "Create Mapping", "Exit" };
+        // keep string consistent with GameState.Mapping so typo is less likely
+        private const string MapOption = "Create Mapping";
+        private string[] options = { "New Game", "Load", "Settings", MapOption, "Exit" };
         private int selectedIndex = 0;
 
         private KeyboardState previousKeyboardState;
@@ -115,7 +117,7 @@ namespace GameDuMouse.GameMain.UI
                 case "Settings":
                     stateManager.ChangeState(GameState.Settings);
                     break;
-                case "Create Mapping":
+                case MapOption:
                     stateManager.ChangeState(GameState.Mapping);
                     break;
                 case "Exit":

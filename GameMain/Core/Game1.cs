@@ -23,6 +23,7 @@ namespace GameDuMouse.GameMain.Core
         private MenuScreen menuScreen;
         private VictoryScreen victoryScreen;
         private LoadScreen loadScreen;
+        private CreateMappingScreen mappingScreen;
 
         // player/name state used for saving mid–game
         public string CurrentPlayerName { get; private set; }
@@ -33,6 +34,10 @@ namespace GameDuMouse.GameMain.Core
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+
+            // create mapping screen early so it's never null; content will be
+            // loaded later in LoadContent.
+            mappingScreen = new CreateMappingScreen(this);
         }
 
         protected override void Initialize()
@@ -71,6 +76,9 @@ namespace GameDuMouse.GameMain.Core
             // Load Screen
             loadScreen = new LoadScreen(this);
             loadScreen.LoadContent(Content);
+            // Mapping / Map Editor
+            mappingScreen = new CreateMappingScreen(this);
+            mappingScreen.LoadContent(Content);
 
         }
 
@@ -86,6 +94,8 @@ namespace GameDuMouse.GameMain.Core
                     loadScreen.ResetInput();
                 if (stateManager.CurrentState == GameState.Menu)
                     menuScreen.ResetInput();
+                if (stateManager.CurrentState == GameState.Mapping)
+                    mappingScreen?.ResetInput();
                 if (stateManager.CurrentState == GameState.PreGame)
                     preGameScreen.ResetInput();
 
@@ -116,17 +126,18 @@ namespace GameDuMouse.GameMain.Core
                     loadScreen.Update(stateManager);
                     break;
 
+                case GameState.Mapping:
+                    if (mappingScreen != null)
+                        mappingScreen.Update(stateManager);
+                    break;
+
                 case GameState.Settings:
                     // lógica futura
                     break;
 
-                case GameState.Mapping:
-                    // lógica futura
-                    break;
-
                 case GameState.PreGame: 
-                preGameScreen.Update(stateManager);
-                break;
+                    preGameScreen.Update(stateManager);
+                    break;
 
                 case GameState.Exit:
                     Exit();
@@ -227,7 +238,8 @@ namespace GameDuMouse.GameMain.Core
                     break;
 
                 case GameState.Mapping:
-                    spriteBatch.DrawString(Content.Load<SpriteFont>("Font/Arial"), "Map Editor", new Vector2(300, 200), Color.White);
+                    if (mappingScreen != null)
+                        mappingScreen.Draw(spriteBatch);
                     break;
                 
                 case GameState.PreGame:

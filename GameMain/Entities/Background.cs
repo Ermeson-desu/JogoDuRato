@@ -27,11 +27,33 @@ namespace GameDuMouse.GameMain.Entities
             background = content.Load<Texture2D>("scenario/background_image(01)");
             background2 = content.Load<Texture2D>("scenario/background_image(02)");
         }
+
+        public float GetTotalWidth()
+        {
+            if (background2 != null)
+                return (initRender2 + background2.Width) - initRender1;
+            if (background != null)
+                return (initRender1 + background.Width) - initRender1;
+            return 0;
+        }
+
+        public float GetBackgroundStartX()
+        {
+            return initRender1;
+        }
         
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(background, backgroundPosition, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
             spriteBatch.Draw(background2, backgroundPosition2, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+        }
+
+        public void Draw(SpriteBatch spriteBatch, float cameraOffsetX)
+        {
+            Vector2 adjustedPos1 = new Vector2(initRender1 - cameraOffsetX, yPosition);
+            Vector2 adjustedPos2 = new Vector2(initRender2 - cameraOffsetX, yPosition);
+            spriteBatch.Draw(background, adjustedPos1, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+            spriteBatch.Draw(background2, adjustedPos2, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
         }
 
     }

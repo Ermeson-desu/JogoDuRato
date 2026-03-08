@@ -1,0 +1,2 @@
+# Put the full path to your background image here (PNG, JPG, JPEG)
+# Example: C:\Users\YourName\Pictures\mybackground.png

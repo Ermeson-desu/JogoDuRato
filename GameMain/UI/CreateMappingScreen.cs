@@ -73,6 +73,15 @@ namespace GameDuMouse.GameMain.UI
         private int phaseWidth = 590; // default
         private string pendingImagePath = null;
         private bool isDialogOpen = false;
+        private bool isCustomBackgroundLoaded = false; // Track if we've loaded a custom background
+
+        // Multiple backgrounds support
+        private struct BackgroundLayer
+        {
+            public Texture2D texture;
+            public int startX; // Position where this background starts
+        }
+        private List<BackgroundLayer> backgroundLayers = new List<BackgroundLayer>();
 
         private class PlacedObstacle
         {
@@ -185,14 +194,32 @@ namespace GameDuMouse.GameMain.UI
                 System.Console.WriteLine("Loading pending image: " + pendingImagePath);
                 try
                 {
-                    customBackground = Texture2D.FromFile(game.GraphicsDevice, pendingImagePath);
-                    phaseWidth = customBackground.Width;
-                    mapCameraOffsetX = 0; // Reset camera to start of image
+                    Texture2D newBackground = Texture2D.FromFile(game.GraphicsDevice, pendingImagePath);
                     
-                    // Update colliders to match new background width
+                    if (!isCustomBackgroundLoaded)
+                    {
+                        // First custom background: replace the default
+                        System.Console.WriteLine("Loading first custom background");
+                        customBackground = newBackground;
+                        backgroundLayers.Clear();
+                        backgroundLayers.Add(new BackgroundLayer { texture = newBackground, startX = 0 });
+                        phaseWidth = newBackground.Width;
+                        isCustomBackgroundLoaded = true;
+                        mapCameraOffsetX = 0; // Reset camera to start of image
+                    }
+                    else
+                    {
+                        // Already have a custom background: add new layer at the end
+                        System.Console.WriteLine("Adding additional background layer");
+                        int newBackgroundStartX = phaseWidth;
+                        backgroundLayers.Add(new BackgroundLayer { texture = newBackground, startX = newBackgroundStartX });
+                        phaseWidth += newBackground.Width;
+                    }
+                    
+                    // Update colliders to match new total background width
                     UpdateCollidersForBackground();
                     
-                    // Recalculate button position based on new background width
+                    // Recalculate button position based on new total background width
                     int leftWallX = 0;
                     int rightWallX_Calc = phaseWidth;
                     int colliderAreaWidth = rightWallX_Calc - leftWallX;
@@ -200,7 +227,7 @@ namespace GameDuMouse.GameMain.UI
                     int centerWorldY = screenHeight / 2 - importButtonSize / 2;
                     importButtonWorldPos = new Point(rightWallX_Calc + 20, centerWorldY);
                     
-                    System.Console.WriteLine("Background loaded successfully, width: " + phaseWidth);
+                    System.Console.WriteLine("Background loaded successfully, total width: " + phaseWidth);
                 }
                 catch (Exception ex)
                 {
@@ -405,10 +432,13 @@ namespace GameDuMouse.GameMain.UI
             spriteBatch.End();
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, new RasterizerState() { ScissorTestEnable = true });
             
-            if (customBackground != null)
+            if (isCustomBackgroundLoaded && backgroundLayers.Count > 0)
             {
-                // Draw custom background
-                spriteBatch.Draw(customBackground, new Vector2(-(mapCameraOffsetX - 200) , 0), Color.White);
+                // Draw multiple custom backgrounds in sequence
+                foreach (var layer in backgroundLayers)
+                {
+                    spriteBatch.Draw(layer.texture, new Vector2(layer.startX - mapCameraOffsetX + 200, 0), Color.White);
+                }
             }
             else
             {

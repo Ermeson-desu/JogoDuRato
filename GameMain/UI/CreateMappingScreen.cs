@@ -33,16 +33,16 @@ namespace GameDuMouse.GameMain.UI
         private const float PlacedAlpha = 0.4f;
         private const float PanelAlpha = 0.7f;
         private const int BackgroundShift = -600;
-        private const int RightWallX = 5500;
+        private const int RightWallX = 590;
         private const int TextOffsetY = 8;
-        private const int RightWallAdjust = -10;
+        private const int RightWallAdjust = 0;
         private const int WallThickness = 10;
         private const int CeilingHeight = 10;
 
         private Game game;
         private SpriteFont font;
         private BackButton backButton;
-        private Background background;
+        private Texture2D defaultBackgroundTexture;
 
         private List<Texture2D> obstacleTextures = new List<Texture2D>();
         private List<PlacedObstacle> placed = new List<PlacedObstacle>();
@@ -62,13 +62,15 @@ namespace GameDuMouse.GameMain.UI
         private PlacedObstacle dragging;
         private Point dragOffset;
 
-        // helper phase used solely to obtain collider coordinates
-        private Fase01 referencePhase;
+        // CreateMappingScreen's own ground colliders
+        private Rectangle groundCollider, groundCollider2;
+        private List<Rectangle> GroundColliders;
 
-        // Import button
-        private Rectangle importButtonRect;
+        // Import button (world coordinates)
+        private Point importButtonWorldPos;
+        private int importButtonSize = 50;
         private Texture2D customBackground;
-        private int phaseWidth = 5500; // default
+        private int phaseWidth = 590; // default
         private string pendingImagePath = null;
         private bool isDialogOpen = false;
 
@@ -84,20 +86,26 @@ namespace GameDuMouse.GameMain.UI
             directController = new DirectInputController();
             previousMouse = Mouse.GetState();
             previousKeyboard = Keyboard.GetState();
-            background = new Background(game);
+            
+            // Initialize CreateMappingScreen's own ground colliders
+            groundCollider = new Rectangle(0, 400, 600, 5);
+            //groundCollider2 = new Rectangle(3000, 400, 2700, 5);
+            GroundColliders = new List<Rectangle> { groundCollider };
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
         {
             font = content.Load<SpriteFont>("Font/Arial");
             backButton = new BackButton(font);
-            background.LoadContent(content);
-
+            
             screenWidth = game.GraphicsDevice.Viewport.Width;
             screenHeight = game.GraphicsDevice.Viewport.Height;
 
-            // Initialize camera offset to align with background start
-            mapCameraOffsetX = -background.GetBackgroundStartX();
+            // Initialize camera offset
+            mapCameraOffsetX = 0;
+
+            // Create default background texture 
+            defaultBackgroundTexture = CreateSolidTexture(Color.CornflowerBlue, 500, screenHeight);
 
             // Try to load available obstacle textures; fall back to colored placeholders
             try
@@ -113,15 +121,32 @@ namespace GameDuMouse.GameMain.UI
                 obstacleTextures.Add(CreateSolidTexture(Color.Olive));
             }
 
-            // Import button: below the palette
-            int buttonSize = 50;
-            importButtonRect = new Rectangle(Margin, (obstacleTextures.Count * PaletteItemHeight) + Margin * 2, buttonSize, buttonSize);
+            // Initialize colliders based on default phaseWidth
+            UpdateCollidersForBackground();
+
+            importButtonWorldPos = new Point(550/2, 190);
+        }
+
+        private void UpdateCollidersForBackground()
+        {
+            // Update groundCollider width to match background width
+            groundCollider = new Rectangle(0, 400, phaseWidth, 5);
+            GroundColliders = new List<Rectangle> { groundCollider };
         }
 
         private Texture2D CreateSolidTexture(Color c)
         {
             var tx = new Texture2D(game.GraphicsDevice, TextureSize, TextureSize);
             var data = new Color[TextureSize * TextureSize];
+            for (int i = 0; i < data.Length; i++) data[i] = c;
+            tx.SetData(data);
+            return tx;
+        }
+
+        private Texture2D CreateSolidTexture(Color c, int width, int height)
+        {
+            var tx = new Texture2D(game.GraphicsDevice, width, height);
+            var data = new Color[width * height];
             for (int i = 0; i < data.Length; i++) data[i] = c;
             tx.SetData(data);
             return tx;
@@ -145,7 +170,9 @@ namespace GameDuMouse.GameMain.UI
             var keyboard = Keyboard.GetState();
 
             // Check import button click
-            if (mouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && previousMouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released && importButtonRect.Contains(mouse.Position) && !isDialogOpen)
+            var buttonScreenPos = WorldToScreen(importButtonWorldPos);
+            var importButtonScreenRect = new Rectangle(buttonScreenPos.X, buttonScreenPos.Y, importButtonSize, importButtonSize);
+            if (mouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && previousMouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released && importButtonScreenRect.Contains(mouse.Position) && !isDialogOpen)
             {
                 System.Console.WriteLine("Import button clicked!");
                 // launch external dialog via PowerShell
@@ -161,6 +188,18 @@ namespace GameDuMouse.GameMain.UI
                     customBackground = Texture2D.FromFile(game.GraphicsDevice, pendingImagePath);
                     phaseWidth = customBackground.Width;
                     mapCameraOffsetX = 0; // Reset camera to start of image
+                    
+                    // Update colliders to match new background width
+                    UpdateCollidersForBackground();
+                    
+                    // Recalculate button position based on new background width
+                    int leftWallX = 0;
+                    int rightWallX_Calc = phaseWidth;
+                    int colliderAreaWidth = rightWallX_Calc - leftWallX;
+                    int centerWorldX = leftWallX + colliderAreaWidth / 2 - importButtonSize / 2;
+                    int centerWorldY = screenHeight / 2 - importButtonSize / 2;
+                    importButtonWorldPos = new Point(rightWallX_Calc + 20, centerWorldY);
+                    
                     System.Console.WriteLine("Background loaded successfully, width: " + phaseWidth);
                 }
                 catch (Exception ex)
@@ -188,9 +227,10 @@ namespace GameDuMouse.GameMain.UI
                 {
                     mapCameraOffsetX += wheelDelta * ScrollSpeed;
                     int mapDisplayWidth = screenWidth - panelWidth;
-                    float backgroundWidth = customBackground != null ? phaseWidth : background.GetTotalWidth();
-                    float minOffset = customBackground != null ? 0 : -background.GetBackgroundStartX();
-                    mapCameraOffsetX = MathHelper.Clamp(mapCameraOffsetX, minOffset, Math.Max(minOffset, backgroundWidth - mapDisplayWidth));
+                    float backgroundWidth = customBackground != null ? phaseWidth : phaseWidth;
+                    float minOffset = 0;
+                    float maxOffset = Math.Max(minOffset, backgroundWidth - mapDisplayWidth + 80);
+                    mapCameraOffsetX = MathHelper.Clamp(mapCameraOffsetX, minOffset, maxOffset);
                 }
                 else
                 {
@@ -213,18 +253,14 @@ namespace GameDuMouse.GameMain.UI
         // convert a point from screen coordinates to map/world coordinates
         private Point ScreenToWorld(Point screen)
         {
-            float bgStartX = customBackground != null ? 0 : background.GetBackgroundStartX();
-            int shift = customBackground != null ? 0 : BackgroundShift;
-            int worldX = (int)(screen.X - panelWidth - shift + mapCameraOffsetX - bgStartX);
+            int worldX = (int)(screen.X - panelWidth + mapCameraOffsetX);
             return new Point(worldX, screen.Y);
         }
 
         // convert a point in world coords back to screen for drawing/interactions
         private Point WorldToScreen(Point world)
         {
-            float bgStartX = customBackground != null ? 0 : background.GetBackgroundStartX();
-            int shift = customBackground != null ? 0 : BackgroundShift;
-            int screenX = (int)(world.X + bgStartX - mapCameraOffsetX + panelWidth + shift);
+            int screenX = (int)(world.X - mapCameraOffsetX + panelWidth);
             return new Point(screenX, world.Y);
         }
 
@@ -354,6 +390,7 @@ namespace GameDuMouse.GameMain.UI
             DrawColliders(spriteBatch);
             DrawPalette(spriteBatch);
             DrawPlacedObstacles(spriteBatch);
+            DrawImportButton(spriteBatch);
             backButton?.Draw(spriteBatch);
         }
 
@@ -371,13 +408,12 @@ namespace GameDuMouse.GameMain.UI
             if (customBackground != null)
             {
                 // Draw custom background
-                spriteBatch.Draw(customBackground, new Vector2(-mapCameraOffsetX, 0), Color.White);
+                spriteBatch.Draw(customBackground, new Vector2(-(mapCameraOffsetX - 200) , 0), Color.White);
             }
             else
             {
-                // Draw default background
-                spriteBatch.Draw(CreateSolidTexture(Color.CornflowerBlue), mapArea, Color.White);
-                background.Draw(spriteBatch, mapCameraOffsetX + BackgroundShift);
+                // Draw default background (600px wide)
+                spriteBatch.Draw(defaultBackgroundTexture, new Vector2(-mapCameraOffsetX, 0), Color.White);
             }
             
             spriteBatch.End();
@@ -396,15 +432,26 @@ namespace GameDuMouse.GameMain.UI
             Texture2D panelBg = CreateSolidTexture(Color.DarkSlateGray * PanelAlpha);
             spriteBatch.Draw(panelBg, panelRect, Color.White);
 
-            // Import button
-            spriteBatch.Draw(panelBg, importButtonRect, Color.Gray);
-            spriteBatch.DrawString(font, "+", new Vector2(importButtonRect.X + importButtonRect.Width / 2 - 5, importButtonRect.Y + importButtonRect.Height / 2 - 8), Color.White);
-
             // Show dialog status
             if (isDialogOpen)
             {
-                Vector2 statusPos = new Vector2(Margin, importButtonRect.Bottom + Margin);
+                Vector2 statusPos = new Vector2(Margin, screenHeight / 2 + Margin);
                 spriteBatch.DrawString(font, "Opening file dialog...", statusPos, Color.Yellow);
+            }
+        }
+
+        private void DrawImportButton(SpriteBatch spriteBatch)
+        {
+            // Import button centered between colliders (follows camera offset)
+            var buttonScreenPos = WorldToScreen(importButtonWorldPos);
+            var buttonScreenRect = new Rectangle(buttonScreenPos.X, buttonScreenPos.Y, importButtonSize, importButtonSize);
+            
+            // Only draw if it's visible in the editing area
+            if (buttonScreenRect.X >= panelWidth && buttonScreenRect.X < screenWidth)
+            {
+                Texture2D buttonBg = CreateSolidTexture(Color.Gray);
+                spriteBatch.Draw(buttonBg, buttonScreenRect, Color.White);
+                spriteBatch.DrawString(font, "+", new Vector2(buttonScreenRect.X + buttonScreenRect.Width / 2 - 5, buttonScreenRect.Y + buttonScreenRect.Height / 2 - 8), Color.White);
             }
         }
 
@@ -423,31 +470,28 @@ namespace GameDuMouse.GameMain.UI
 
         private void DrawColliders(SpriteBatch spriteBatch)
         {
-            // Get background offset to align colliders with background start
-            float bgStartX = customBackground != null ? 0 : background.GetBackgroundStartX() + 1310;
             int rightWallX = customBackground != null ? phaseWidth : RightWallX;
 
-            // Draw map boundary colliders (left/right walls + ceiling) shifted right
-            var leftWall = new Rectangle((int)(panelWidth + bgStartX - mapCameraOffsetX + BackgroundShift), 0, WallThickness, screenHeight);
-            var rightWall = new Rectangle((int)(panelWidth + rightWallX + bgStartX - mapCameraOffsetX + RightWallAdjust + BackgroundShift), 0, WallThickness, screenHeight);
-            var ceiling = new Rectangle(panelWidth, 0, screenWidth - panelWidth, CeilingHeight);
+            // Draw map boundary colliders (left/right walls + ceiling)
+            var leftWall = new Rectangle((int)(panelWidth - mapCameraOffsetX), 0, WallThickness, screenHeight - 75);
+            // Only apply RightWallAdjust when there's no custom background
+            int rightWallAdjust = customBackground != null ? 0 : RightWallAdjust;
+            var rightWall = new Rectangle((int)(panelWidth + rightWallX - mapCameraOffsetX + rightWallAdjust ), 0, WallThickness, screenHeight - 75);
+            var ceiling = new Rectangle((int)(panelWidth - mapCameraOffsetX), 0, rightWallX, CeilingHeight);
             var colliderTex = CreateSolidTexture(Color.Red * ColliderAlpha);
             spriteBatch.Draw(colliderTex, leftWall, Color.White);
             spriteBatch.Draw(colliderTex, rightWall, Color.White);
             spriteBatch.Draw(colliderTex, ceiling, Color.White);
 
-            // use the reference phase lists instead of hard‑coding values
-            if (referencePhase != null)
+            // Draw CreateMappingScreen's own ground colliders
+            foreach (var gc in GroundColliders)
             {
-                foreach (var gc in referencePhase.GroundColliders)
-                {
-                    var r = new Rectangle(
-                        (int)(panelWidth + gc.X + bgStartX - mapCameraOffsetX + BackgroundShift),
-                        gc.Y,
-                        gc.Width,
-                        gc.Height);
-                    spriteBatch.Draw(colliderTex, r, Color.White);
-                }
+                var r = new Rectangle(
+                    (int)(panelWidth + gc.X - mapCameraOffsetX),
+                    gc.Y,
+                    gc.Width,
+                    gc.Height);
+                spriteBatch.Draw(colliderTex, r, Color.White);
             }
         }
 

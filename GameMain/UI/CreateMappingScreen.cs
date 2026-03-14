@@ -5,11 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Utils;
 using GameDuMouse.GameMain.Core;
-using GameDuMouse.GameMain.Entities;
-using GameDuMouse.GameMain.Fases;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Windows.Forms;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -269,7 +265,9 @@ namespace GameDuMouse.GameMain.UI
 
         private void HandlePaletteSelection(MouseState mouse)
         {
-            if (mouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && previousMouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released && mouse.X < panelWidth)
+            if (mouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed 
+            && previousMouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released 
+            && mouse.X < panelWidth)
             {
                 int index = (int)((mouse.Y + leftScroll - Margin) / PaletteItemHeight);
                 if (index >= 0 && index < obstacleTextures.Count)
@@ -295,7 +293,7 @@ namespace GameDuMouse.GameMain.UI
         {
             if (mouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && previousMouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released)
             {
-                if (mouse.X >= panelWidth)
+                if (mouse.X >= panelWidth)      
                 {
                     // convert the click to world coords for hit testing
                     var worldMouse = ScreenToWorld(mouse.Position);
@@ -413,8 +411,8 @@ namespace GameDuMouse.GameMain.UI
         public void Draw(SpriteBatch spriteBatch)
         {
             DrawBackground(spriteBatch);
-            DrawPanel(spriteBatch);
             DrawColliders(spriteBatch);
+            DrawPanel(spriteBatch);
             DrawPalette(spriteBatch);
             DrawPlacedObstacles(spriteBatch);
             DrawImportButton(spriteBatch);
@@ -455,8 +453,7 @@ namespace GameDuMouse.GameMain.UI
 
         private void DrawPanel(SpriteBatch spriteBatch)
         {
-            // left panel
-            spriteBatch.DrawString(font, "Obstaculos", new Vector2(Margin, Margin), Color.White);
+            
             // background panel
             var panelRect = new Rectangle(0, 0, panelWidth, screenHeight);
             Texture2D panelBg = CreateSolidTexture(Color.DarkSlateGray * PanelAlpha);
@@ -468,6 +465,9 @@ namespace GameDuMouse.GameMain.UI
                 Vector2 statusPos = new Vector2(Margin, screenHeight / 2 + Margin);
                 spriteBatch.DrawString(font, "Opening file dialog...", statusPos, Color.Yellow);
             }
+
+            // left panel
+            spriteBatch.DrawString(font, "Obstaculos", new Vector2(Margin, Margin), Color.White);
         }
 
         private void DrawImportButton(SpriteBatch spriteBatch)

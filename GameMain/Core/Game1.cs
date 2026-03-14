@@ -23,6 +23,7 @@ namespace GameDuMouse.GameMain.Core
         private MenuScreen menuScreen;
         private VictoryScreen victoryScreen;
         private LoadScreen loadScreen;
+        private NewMapMenuScreen newMapMenuScreen;
         private CreateMappingScreen mappingScreen;
 
         // player/name state used for saving mid–game
@@ -76,6 +77,9 @@ namespace GameDuMouse.GameMain.Core
             // Load Screen
             loadScreen = new LoadScreen(this);
             loadScreen.LoadContent(Content);
+            // New Map Menu Screen
+            newMapMenuScreen = new NewMapMenuScreen(this);
+            newMapMenuScreen.LoadContent(Content);
             // Mapping / Map Editor
             mappingScreen = new CreateMappingScreen(this);
             mappingScreen.LoadContent(Content);
@@ -96,6 +100,8 @@ namespace GameDuMouse.GameMain.Core
                     menuScreen.ResetInput();
                 if (stateManager.CurrentState == GameState.Mapping)
                     mappingScreen?.ResetInput();
+                if (stateManager.CurrentState == GameState.NewMapMenu)
+                    newMapMenuScreen?.ResetInput();
                 if (stateManager.CurrentState == GameState.PreGame)
                     preGameScreen.ResetInput();
 
@@ -129,6 +135,10 @@ namespace GameDuMouse.GameMain.Core
                 case GameState.Mapping:
                     if (mappingScreen != null)
                         mappingScreen.Update(stateManager);
+                    break;
+
+                case GameState.NewMapMenu:
+                    newMapMenuScreen?.Update(stateManager);
                     break;
 
                 case GameState.Settings:
@@ -240,6 +250,10 @@ namespace GameDuMouse.GameMain.Core
                 case GameState.Mapping:
                     if (mappingScreen != null)
                         mappingScreen.Draw(spriteBatch);
+                    break;
+
+                case GameState.NewMapMenu:
+                    newMapMenuScreen?.Draw(spriteBatch);
                     break;
                 
                 case GameState.PreGame:

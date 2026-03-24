@@ -8,6 +8,7 @@ namespace GameDuMouse.GameMain.Core
         Playing,
         Settings,
         Mapping,
+        MappingTest,
         Victory, 
         Load,
         Exit

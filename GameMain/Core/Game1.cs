@@ -25,6 +25,7 @@ namespace GameDuMouse.GameMain.Core
         private LoadScreen loadScreen;
         private NewMapMenuScreen newMapMenuScreen;
         private CreateMappingScreen mappingScreen;
+        private MapTestScreen mapTestScreen;
 
         // player/name state used for saving mid–game
         public string CurrentPlayerName { get; private set; }
@@ -83,6 +84,9 @@ namespace GameDuMouse.GameMain.Core
             // Mapping / Map Editor
             mappingScreen = new CreateMappingScreen(this);
             mappingScreen.LoadContent(Content);
+            // Map Test Screen
+            mapTestScreen = new MapTestScreen(this);
+            mapTestScreen.LoadContent(Content);
 
         }
 
@@ -100,6 +104,11 @@ namespace GameDuMouse.GameMain.Core
                     menuScreen.ResetInput();
                 if (stateManager.CurrentState == GameState.Mapping)
                     mappingScreen?.ResetInput();
+                if (stateManager.CurrentState == GameState.MappingTest)
+                {
+                    mapTestScreen?.ResetInput();
+                    mapTestScreen?.StartTest(GameDuMouse.GameMain.Core.MapListManager.CurrentMapName);
+                }
                 if (stateManager.CurrentState == GameState.NewMapMenu)
                     newMapMenuScreen?.ResetInput();
                 if (stateManager.CurrentState == GameState.PreGame)
@@ -135,6 +144,10 @@ namespace GameDuMouse.GameMain.Core
                 case GameState.Mapping:
                     if (mappingScreen != null)
                         mappingScreen.Update(stateManager);
+                    break;
+
+                case GameState.MappingTest:
+                    mapTestScreen?.Update(stateManager, gameTime);
                     break;
 
                 case GameState.NewMapMenu:
@@ -227,10 +240,21 @@ namespace GameDuMouse.GameMain.Core
             SaveManager.SaveGame(save);
         }
 
+        public void PrepareMapEditing(string mapName)
+        {
+            mappingScreen?.LoadMapForEditing(mapName);
+        }
+
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            spriteBatch.Begin(transformMatrix: (stateManager.CurrentState == GameState.Playing ? camera.Transform : null));
+            Matrix? transform = null;
+            if (stateManager.CurrentState == GameState.Playing)
+                transform = camera.Transform;
+            else if (stateManager.CurrentState == GameState.MappingTest)
+                transform = mapTestScreen?.CameraTransform;
+
+            spriteBatch.Begin(transformMatrix: transform);
 
             switch (stateManager.CurrentState)
             {
@@ -250,6 +274,10 @@ namespace GameDuMouse.GameMain.Core
                 case GameState.Mapping:
                     if (mappingScreen != null)
                         mappingScreen.Draw(spriteBatch);
+                    break;
+
+                case GameState.MappingTest:
+                    mapTestScreen?.Draw(spriteBatch);
                     break;
 
                 case GameState.NewMapMenu:

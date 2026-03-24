@@ -103,7 +103,13 @@ namespace GameDuMouse.GameMain.UI
             if (mapList.HandleInput(keyboard, previousKeyboard, mouse, previousMouse, out int activatedIndex))
             {
                 if (activatedIndex >= 0 && activatedIndex < maps.Count)
+                {
+                    var selectedMap = maps[activatedIndex];
+                    MapListManager.SetCurrentMap(selectedMap);
+                    if (game is GameDuMouse.GameMain.Core.Game1 g1)
+                        g1.PrepareMapEditing(selectedMap);
                     stateManager.ChangeState(GameState.Mapping);
+                }
             }
 
             previousKeyboard = keyboard;

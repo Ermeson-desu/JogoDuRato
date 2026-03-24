@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Utils;
 using GameDuMouse.GameMain.Core;
+using GameDuMouse.GameMain.UI.Components;
 using System.Runtime.InteropServices;
 
 namespace GameDuMouse.GameMain.UI
@@ -29,18 +30,24 @@ namespace GameDuMouse.GameMain.UI
         private const float PlacedAlpha = 0.4f;
         private const float PanelAlpha = 0.7f;
         private const int BackgroundShift = -600;
+        private const int BackgroundDrawOffsetX = 200;
         private const int RightWallX = 590;
         private const int TextOffsetY = 8;
         private const int RightWallAdjust = 0;
         private const int WallThickness = 10;
         private const int CeilingHeight = 10;
+        private const int BackgroundDeleteButtonSize = 28;
 
         private Game game;
         private SpriteFont font;
         private BackButton backButton;
+        private UiActionButton saveButton;
+        private UiActionButton previewButton;
         private Texture2D defaultBackgroundTexture;
+        private Texture2D pixel;
 
         private List<Texture2D> obstacleTextures = new List<Texture2D>();
+        private List<string> obstacleTextureNames = new List<string>();
         private List<PlacedObstacle> placed = new List<PlacedObstacle>();
 
         private int panelWidth => game.GraphicsDevice.Viewport.Width / PanelFraction;
@@ -59,7 +66,7 @@ namespace GameDuMouse.GameMain.UI
         private Point dragOffset;
 
         // CreateMappingScreen's own ground colliders
-        private Rectangle groundCollider, groundCollider2;
+        private Rectangle groundCollider;
         private List<Rectangle> GroundColliders;
 
         // Import button (world coordinates)
@@ -70,12 +77,20 @@ namespace GameDuMouse.GameMain.UI
         private string pendingImagePath = null;
         private bool isDialogOpen = false;
         private bool isCustomBackgroundLoaded = false; // Track if we've loaded a custom background
+        private string saveStatusMessage = "";
+        private bool requestPreview = false;
+        private bool isConfirmingBackgroundDelete = false;
+        private int pendingDeleteLayerIndex = -1;
+        private List<int> pendingDeleteObstacleIndices = new List<int>();
+        private UiButton confirmYesButton;
+        private UiButton confirmNoButton;
 
         // Multiple backgrounds support
         private struct BackgroundLayer
         {
             public Texture2D texture;
             public int startX; // Position where this background starts
+            public string sourcePath;
         }
         private List<BackgroundLayer> backgroundLayers = new List<BackgroundLayer>();
 
@@ -83,6 +98,8 @@ namespace GameDuMouse.GameMain.UI
         {
             public Texture2D Texture;
             public Rectangle Bounds;
+            public int PaletteIndex;
+            public string TextureName;
         }
 
         public CreateMappingScreen(Game game)
@@ -102,6 +119,8 @@ namespace GameDuMouse.GameMain.UI
         {
             font = content.Load<SpriteFont>("Font/Arial");
             backButton = new BackButton(font);
+            pixel = new Texture2D(game.GraphicsDevice, 1, 1);
+            pixel.SetData(new[] { Color.White });
             
             screenWidth = game.GraphicsDevice.Viewport.Width;
             screenHeight = game.GraphicsDevice.Viewport.Height;
@@ -117,6 +136,7 @@ namespace GameDuMouse.GameMain.UI
             {
                 var t1 = content.Load<Texture2D>("Content/Windows/JOGO_DO_RATO");
                 obstacleTextures.Add(t1);
+                obstacleTextureNames.Add("Content/Windows/JOGO_DO_RATO");
             }
             catch
             {
@@ -124,12 +144,132 @@ namespace GameDuMouse.GameMain.UI
                 obstacleTextures.Add(CreateSolidTexture(Color.SandyBrown));
                 obstacleTextures.Add(CreateSolidTexture(Color.DarkGray));
                 obstacleTextures.Add(CreateSolidTexture(Color.Olive));
+                obstacleTextureNames.Add("Placeholder_SandyBrown");
+                obstacleTextureNames.Add("Placeholder_DarkGray");
+                obstacleTextureNames.Add("Placeholder_Olive");
             }
 
             // Initialize colliders based on default phaseWidth
             UpdateCollidersForBackground();
 
-            importButtonWorldPos = new Point(550/2, 190);
+            UpdateImportButtonPosition();
+
+            var saveButtonBounds = new Rectangle(Margin, screenHeight - 60, panelWidth - Margin * 2, 40);
+            saveButton = new UiActionButton(saveButtonBounds, "Salvar Mapa", SaveCurrentMap);
+            var previewButtonBounds = new Rectangle(Margin, screenHeight - 110, panelWidth - Margin * 2, 40);
+            previewButton = new UiActionButton(previewButtonBounds, "Visualizar", () => requestPreview = true);
+
+            confirmYesButton = new UiButton(new Rectangle(0, 0, 120, 40), "SIM");
+            confirmNoButton = new UiButton(new Rectangle(0, 0, 120, 40), "NAO");
+        }
+
+        public void LoadMapForEditing(string mapName)
+        {
+            // reset editor state
+            dragging = null;
+            selectedPaletteIndex = -1;
+            leftScroll = 0f;
+            mapCameraOffsetX = 0f;
+            placed.Clear();
+            backgroundLayers.Clear();
+            customBackground = null;
+            isCustomBackgroundLoaded = false;
+            pendingImagePath = null;
+            saveStatusMessage = "";
+            requestPreview = false;
+
+            var data = MapDataManager.LoadByName(mapName);
+            if (data == null)
+            {
+                phaseWidth = RightWallX;
+                UpdateCollidersForBackground();
+                UpdateImportButtonPosition();
+                return;
+            }
+
+            phaseWidth = data.PhaseWidth > 0 ? data.PhaseWidth : RightWallX;
+
+            if (data.IsCustomBackgroundLoaded && data.BackgroundLayers != null && data.BackgroundLayers.Count > 0)
+            {
+                foreach (var layer in data.BackgroundLayers)
+                {
+                    Texture2D tex = null;
+                    if (!string.IsNullOrWhiteSpace(layer.ImagePath) && System.IO.File.Exists(layer.ImagePath))
+                        tex = Texture2D.FromFile(game.GraphicsDevice, layer.ImagePath);
+
+                    if (tex != null)
+                    {
+                        if (customBackground == null)
+                            customBackground = tex;
+
+                        backgroundLayers.Add(new BackgroundLayer
+                        {
+                            texture = tex,
+                            startX = layer.StartX,
+                            sourcePath = layer.ImagePath
+                        });
+                    }
+                }
+
+                if (backgroundLayers.Count > 0)
+                    isCustomBackgroundLoaded = true;
+            }
+
+            if (phaseWidth <= 0 && data.BackgroundLayers != null && data.BackgroundLayers.Count > 0)
+            {
+                int maxRight = 0;
+                foreach (var layer in data.BackgroundLayers)
+                {
+                    int right = layer.StartX + layer.Width;
+                    if (right > maxRight)
+                        maxRight = right;
+                }
+                if (maxRight > 0)
+                    phaseWidth = maxRight;
+            }
+
+            GroundColliders.Clear();
+            if (data.Colliders != null)
+            {
+                foreach (var collider in data.Colliders)
+                {
+                    if (collider?.Type == "Ground")
+                    {
+                        var b = collider.Bounds;
+                        GroundColliders.Add(new Rectangle(b.X, b.Y, b.Width, b.Height));
+                    }
+                }
+            }
+
+            if (GroundColliders.Count == 0)
+                UpdateCollidersForBackground();
+
+            if (data.Obstacles != null)
+            {
+                foreach (var obstacle in data.Obstacles)
+                {
+                    if (obstacle?.Bounds == null)
+                        continue;
+
+                    int texIndex = obstacle.TextureIndex;
+                    if (texIndex < 0 || texIndex >= obstacleTextures.Count)
+                        texIndex = obstacleTextureNames.IndexOf(obstacle.TextureName);
+                    if (texIndex < 0 || texIndex >= obstacleTextures.Count)
+                        texIndex = 0;
+
+                    placed.Add(new PlacedObstacle
+                    {
+                        Texture = obstacleTextures[texIndex],
+                        Bounds = new Rectangle(obstacle.Bounds.X, obstacle.Bounds.Y, obstacle.Bounds.Width, obstacle.Bounds.Height),
+                        PaletteIndex = texIndex,
+                        TextureName = texIndex >= 0 && texIndex < obstacleTextureNames.Count
+                            ? obstacleTextureNames[texIndex]
+                            : "Unknown"
+                    });
+                }
+            }
+
+            UpdateImportButtonPosition();
         }
 
         private void UpdateCollidersForBackground()
@@ -174,6 +314,21 @@ namespace GameDuMouse.GameMain.UI
             var mouse = Mouse.GetState();
             var keyboard = Keyboard.GetState();
 
+            if (isConfirmingBackgroundDelete)
+            {
+                HandleBackgroundDeleteConfirmation(mouse);
+                previousMouse = mouse;
+                previousKeyboard = keyboard;
+                return;
+            }
+
+            if (HandleBackgroundDeleteButtons(mouse))
+            {
+                previousMouse = mouse;
+                previousKeyboard = keyboard;
+                return;
+            }
+
             // Check import button click
             var buttonScreenPos = WorldToScreen(importButtonWorldPos);
             var importButtonScreenRect = new Rectangle(buttonScreenPos.X, buttonScreenPos.Y, importButtonSize, importButtonSize);
@@ -198,7 +353,7 @@ namespace GameDuMouse.GameMain.UI
                         System.Console.WriteLine("Loading first custom background");
                         customBackground = newBackground;
                         backgroundLayers.Clear();
-                        backgroundLayers.Add(new BackgroundLayer { texture = newBackground, startX = 0 });
+                        backgroundLayers.Add(new BackgroundLayer { texture = newBackground, startX = 0, sourcePath = pendingImagePath });
                         phaseWidth = newBackground.Width;
                         isCustomBackgroundLoaded = true;
                         mapCameraOffsetX = 0; // Reset camera to start of image
@@ -208,7 +363,7 @@ namespace GameDuMouse.GameMain.UI
                         // Already have a custom background: add new layer at the end
                         System.Console.WriteLine("Adding additional background layer");
                         int newBackgroundStartX = phaseWidth;
-                        backgroundLayers.Add(new BackgroundLayer { texture = newBackground, startX = newBackgroundStartX });
+                        backgroundLayers.Add(new BackgroundLayer { texture = newBackground, startX = newBackgroundStartX, sourcePath = pendingImagePath });
                         phaseWidth += newBackground.Width;
                     }
                     
@@ -216,12 +371,7 @@ namespace GameDuMouse.GameMain.UI
                     UpdateCollidersForBackground();
                     
                     // Recalculate button position based on new total background width
-                    int leftWallX = 0;
-                    int rightWallX_Calc = phaseWidth;
-                    int colliderAreaWidth = rightWallX_Calc - leftWallX;
-                    int centerWorldX = leftWallX + colliderAreaWidth / 2 - importButtonSize / 2;
-                    int centerWorldY = screenHeight / 2 - importButtonSize / 2;
-                    importButtonWorldPos = new Point(rightWallX_Calc + 20, centerWorldY);
+                    UpdateImportButtonPosition();
                     
                     System.Console.WriteLine("Background loaded successfully, total width: " + phaseWidth);
                 }
@@ -236,6 +386,16 @@ namespace GameDuMouse.GameMain.UI
             HandlePaletteSelection(mouse);
             HandlePlacingAndDragging(mouse);
             HandleDelete(mouse, keyboard);
+            saveButton?.Update(mouse, previousMouse);
+            previewButton?.Update(mouse, previousMouse);
+
+            if (requestPreview)
+            {
+                SaveCurrentMap();
+                stateManager.ChangeState(GameState.MappingTest);
+                requestPreview = false;
+                return;
+            }
 
             previousMouse = mouse;
             previousKeyboard = keyboard;
@@ -315,7 +475,15 @@ namespace GameDuMouse.GameMain.UI
                         // create bounds in world coords centered under the mouse
                         var topLeft = new Point(worldMouse.X - tex.Width / 2, worldMouse.Y - tex.Height / 2);
                         var rect = new Rectangle(topLeft, new Point(tex.Width, tex.Height));
-                        placed.Add(new PlacedObstacle { Texture = tex, Bounds = rect });
+                        placed.Add(new PlacedObstacle
+                        {
+                            Texture = tex,
+                            Bounds = rect,
+                            PaletteIndex = selectedPaletteIndex,
+                            TextureName = selectedPaletteIndex >= 0 && selectedPaletteIndex < obstacleTextureNames.Count
+                                ? obstacleTextureNames[selectedPaletteIndex]
+                                : "Unknown"
+                        });
                     }
                 }
             }
@@ -365,6 +533,158 @@ namespace GameDuMouse.GameMain.UI
                     }
                 }
             }
+        }
+
+        private bool HandleBackgroundDeleteButtons(MouseState mouse)
+        {
+            if (mouse.LeftButton != Microsoft.Xna.Framework.Input.ButtonState.Pressed ||
+                previousMouse.LeftButton != Microsoft.Xna.Framework.Input.ButtonState.Released)
+                return false;
+
+            if (!isCustomBackgroundLoaded || backgroundLayers.Count == 0)
+                return false;
+
+            if (mouse.X < panelWidth)
+                return false;
+
+            for (int i = backgroundLayers.Count - 1; i >= 0; i--)
+            {
+                var rect = GetBackgroundDeleteButtonScreenRect(backgroundLayers[i]);
+                if (rect.Contains(mouse.Position))
+                {
+                    StartBackgroundDelete(i);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private Rectangle GetBackgroundDeleteButtonScreenRect(BackgroundLayer layer)
+        {
+            // Top-left corner of the layer, near the ceiling
+            int worldX = layer.startX + 8;
+            int worldY = CeilingHeight + 6;
+
+            int screenX = worldX - (int)mapCameraOffsetX + BackgroundDrawOffsetX;
+            int screenY = worldY;
+
+            return new Rectangle(screenX, screenY, BackgroundDeleteButtonSize, BackgroundDeleteButtonSize);
+        }
+
+        private void StartBackgroundDelete(int layerIndex)
+        {
+            if (layerIndex < 0 || layerIndex >= backgroundLayers.Count)
+                return;
+
+            var layerRect = GetLayerWorldRect(backgroundLayers[layerIndex]);
+            pendingDeleteObstacleIndices = GetObstaclesInLayer(layerRect);
+
+            if (pendingDeleteObstacleIndices.Count == 0)
+            {
+                RemoveBackgroundLayerAt(layerIndex);
+                return;
+            }
+
+            isConfirmingBackgroundDelete = true;
+            pendingDeleteLayerIndex = layerIndex;
+        }
+
+        private void HandleBackgroundDeleteConfirmation(MouseState mouse)
+        {
+            UpdateConfirmButtonBounds();
+
+            if (confirmYesButton.Update(mouse, previousMouse))
+            {
+                RemovePendingObstacles();
+                RemoveBackgroundLayerAt(pendingDeleteLayerIndex);
+                CloseBackgroundDeleteConfirmation();
+                return;
+            }
+
+            if (confirmNoButton.Update(mouse, previousMouse))
+            {
+                RemoveBackgroundLayerAt(pendingDeleteLayerIndex);
+                CloseBackgroundDeleteConfirmation();
+            }
+        }
+
+        private void CloseBackgroundDeleteConfirmation()
+        {
+            isConfirmingBackgroundDelete = false;
+            pendingDeleteLayerIndex = -1;
+            pendingDeleteObstacleIndices.Clear();
+        }
+
+        private void RemovePendingObstacles()
+        {
+            if (pendingDeleteObstacleIndices == null || pendingDeleteObstacleIndices.Count == 0)
+                return;
+
+            pendingDeleteObstacleIndices.Sort();
+            for (int i = pendingDeleteObstacleIndices.Count - 1; i >= 0; i--)
+            {
+                int index = pendingDeleteObstacleIndices[i];
+                if (index >= 0 && index < placed.Count)
+                    placed.RemoveAt(index);
+            }
+        }
+
+        private Rectangle GetLayerWorldRect(BackgroundLayer layer)
+        {
+            return new Rectangle(layer.startX, 0, layer.texture.Width, screenHeight);
+        }
+
+        private List<int> GetObstaclesInLayer(Rectangle layerRect)
+        {
+            var indices = new List<int>();
+            for (int i = 0; i < placed.Count; i++)
+            {
+                if (layerRect.Contains(placed[i].Bounds))
+                    indices.Add(i);
+            }
+            return indices;
+        }
+
+        private void RemoveBackgroundLayerAt(int index)
+        {
+            if (index < 0 || index >= backgroundLayers.Count)
+                return;
+
+            var toRemove = backgroundLayers[index];
+            backgroundLayers.RemoveAt(index);
+            toRemove.texture?.Dispose();
+
+            if (backgroundLayers.Count == 0)
+            {
+                isCustomBackgroundLoaded = false;
+                customBackground = null;
+                phaseWidth = RightWallX;
+                UpdateCollidersForBackground();
+                UpdateImportButtonPosition();
+                mapCameraOffsetX = 0;
+                return;
+            }
+
+            int currentX = 0;
+            for (int i = 0; i < backgroundLayers.Count; i++)
+            {
+                var layer = backgroundLayers[i];
+                layer.startX = currentX;
+                backgroundLayers[i] = layer;
+                currentX += layer.texture.Width;
+            }
+
+            phaseWidth = currentX;
+            customBackground = backgroundLayers[0].texture;
+            isCustomBackgroundLoaded = true;
+            UpdateCollidersForBackground();
+            UpdateImportButtonPosition();
+
+            int mapDisplayWidth = screenWidth - panelWidth;
+            float minOffset = 0;
+            float maxOffset = Math.Max(minOffset, phaseWidth - mapDisplayWidth + 80);
+            mapCameraOffsetX = MathHelper.Clamp(mapCameraOffsetX, minOffset, maxOffset);
         }
 
         private bool IsKeyPressed(Microsoft.Xna.Framework.Input.Keys key, KeyboardState current)
@@ -417,6 +737,7 @@ namespace GameDuMouse.GameMain.UI
             DrawPlacedObstacles(spriteBatch);
             DrawImportButton(spriteBatch);
             backButton?.Draw(spriteBatch);
+            DrawBackgroundDeleteConfirmation(spriteBatch);
         }
 
         private void DrawBackground(SpriteBatch spriteBatch)
@@ -435,7 +756,18 @@ namespace GameDuMouse.GameMain.UI
                 // Draw multiple custom backgrounds in sequence
                 foreach (var layer in backgroundLayers)
                 {
-                    spriteBatch.Draw(layer.texture, new Vector2(layer.startX - mapCameraOffsetX + 200, 0), Color.White);
+                    spriteBatch.Draw(layer.texture, new Vector2(layer.startX - mapCameraOffsetX + BackgroundDrawOffsetX, 0), Color.White);
+                }
+
+                // Draw delete buttons centered on each background layer
+                foreach (var layer in backgroundLayers)
+                {
+                    var rect = GetBackgroundDeleteButtonScreenRect(layer);
+                    if (rect.Right < panelWidth || rect.Left > screenWidth)
+                        continue;
+
+                    spriteBatch.Draw(pixel, rect, Color.Black * 0.6f);
+                    DrawTrashIcon(spriteBatch, rect, Color.White);
                 }
             }
             else
@@ -468,6 +800,100 @@ namespace GameDuMouse.GameMain.UI
 
             // left panel
             spriteBatch.DrawString(font, "Obstaculos", new Vector2(Margin, Margin), Color.White);
+
+            previewButton?.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
+            saveButton?.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
+            if (!string.IsNullOrWhiteSpace(saveStatusMessage))
+                spriteBatch.DrawString(font, saveStatusMessage, new Vector2(Margin, screenHeight - 90), Color.Yellow);
+        }
+
+        private void DrawBackgroundDeleteConfirmation(SpriteBatch spriteBatch)
+        {
+            if (!isConfirmingBackgroundDelete)
+                return;
+
+            UpdateConfirmButtonBounds();
+
+            var overlay = new Rectangle(0, 0, screenWidth, screenHeight);
+            spriteBatch.Draw(pixel, overlay, Color.Black * 0.6f);
+
+            int dialogWidth = 460;
+            int dialogHeight = 160;
+            var dialogRect = new Rectangle(
+                (screenWidth - dialogWidth) / 2,
+                (screenHeight - dialogHeight) / 2,
+                dialogWidth,
+                dialogHeight);
+
+            spriteBatch.Draw(pixel, dialogRect, Color.DarkSlateGray);
+
+            string msg = "Deseja remover os obstaculos tambem?";
+            var msgSize = font.MeasureString(msg);
+            var msgPos = new Vector2(
+                dialogRect.X + (dialogRect.Width - msgSize.X) / 2f,
+                dialogRect.Y + 20);
+            spriteBatch.DrawString(font, msg, msgPos, Color.White);
+
+            confirmYesButton.Draw(spriteBatch, font, pixel, Color.ForestGreen, Color.White);
+            confirmNoButton.Draw(spriteBatch, font, pixel, Color.Firebrick, Color.White);
+        }
+
+        private void UpdateConfirmButtonBounds()
+        {
+            int dialogWidth = 460;
+            int dialogHeight = 160;
+            int dialogX = (screenWidth - dialogWidth) / 2;
+            int dialogY = (screenHeight - dialogHeight) / 2;
+
+            int buttonWidth = 120;
+            int buttonHeight = 40;
+            int gap = 20;
+            int totalButtonsWidth = buttonWidth * 2 + gap;
+            int buttonsX = dialogX + (dialogWidth - totalButtonsWidth) / 2;
+            int buttonsY = dialogY + dialogHeight - 60;
+
+            confirmYesButton.SetBounds(new Rectangle(buttonsX, buttonsY, buttonWidth, buttonHeight));
+            confirmNoButton.SetBounds(new Rectangle(buttonsX + buttonWidth + gap, buttonsY, buttonWidth, buttonHeight));
+        }
+
+        private void DrawTrashIcon(SpriteBatch spriteBatch, Rectangle rect, Color color)
+        {
+            int thickness = Math.Max(1, rect.Width / 10);
+            int padding = Math.Max(2, rect.Width / 6);
+
+            int lidHeight = Math.Max(2, rect.Height / 6);
+            int bodyTop = rect.Y + padding + lidHeight;
+            int bodyBottom = rect.Bottom - padding;
+            int bodyLeft = rect.X + padding;
+            int bodyRight = rect.Right - padding;
+
+            // Lid
+            var lidRect = new Rectangle(bodyLeft, rect.Y + padding, bodyRight - bodyLeft, lidHeight);
+            spriteBatch.Draw(pixel, lidRect, color);
+
+            // Handle
+            int handleWidth = Math.Max(2, lidRect.Width / 3);
+            int handleX = lidRect.X + (lidRect.Width - handleWidth) / 2;
+            var handleRect = new Rectangle(handleX, lidRect.Y - Math.Max(1, lidHeight / 2), handleWidth, Math.Max(1, lidHeight / 2));
+            spriteBatch.Draw(pixel, handleRect, color);
+
+            // Body outline
+            var left = new Rectangle(bodyLeft, bodyTop, thickness, bodyBottom - bodyTop);
+            var right = new Rectangle(bodyRight - thickness, bodyTop, thickness, bodyBottom - bodyTop);
+            var bottom = new Rectangle(bodyLeft, bodyBottom - thickness, bodyRight - bodyLeft, thickness);
+            spriteBatch.Draw(pixel, left, color);
+            spriteBatch.Draw(pixel, right, color);
+            spriteBatch.Draw(pixel, bottom, color);
+
+            // Inner lines
+            int lineCount = 2;
+            int gap = (bodyRight - bodyLeft) / (lineCount + 1);
+            for (int i = 1; i <= lineCount; i++)
+            {
+                int x = bodyLeft + i * gap;
+                var line = new Rectangle(x - thickness / 2, bodyTop + thickness, thickness, bodyBottom - bodyTop - thickness * 2);
+                spriteBatch.Draw(pixel, line, color);
+            }
         }
 
         private void DrawImportButton(SpriteBatch spriteBatch)
@@ -537,6 +963,104 @@ namespace GameDuMouse.GameMain.UI
                 var adjustedBounds = new Rectangle(topLeftScreen.X, topLeftScreen.Y, p.Bounds.Width, p.Bounds.Height);
                 spriteBatch.Draw(col, adjustedBounds, Color.White);
             }
+        }
+
+        private void UpdateImportButtonPosition()
+        {
+            int centerWorldY = (screenHeight / 2) - (importButtonSize / 2) - 30;
+
+            if (!isCustomBackgroundLoaded || backgroundLayers.Count == 0)
+            {
+                int leftWallX = 0;
+                int rightWallX = RightWallX;
+                int colliderAreaWidth = rightWallX - leftWallX;
+                int centerWorldX = leftWallX + colliderAreaWidth / 2 - importButtonSize / 2;
+                importButtonWorldPos = new Point(centerWorldX, centerWorldY);
+            }
+            else
+            {
+                importButtonWorldPos = new Point(phaseWidth + 20, centerWorldY);
+            }
+        }
+
+        private void SaveCurrentMap()
+        {
+            string mapName = MapListManager.CurrentMapName;
+            if (string.IsNullOrWhiteSpace(mapName))
+                mapName = "Mapa_Sem_Nome";
+
+            int rightWallX = customBackground != null ? phaseWidth : RightWallX;
+
+            var data = new MapData
+            {
+                MapName = mapName,
+                PhaseWidth = phaseWidth,
+                ScreenHeight = screenHeight,
+                IsCustomBackgroundLoaded = isCustomBackgroundLoaded,
+                DefaultBackgroundColor = "CornflowerBlue",
+                DefaultBackgroundWidth = defaultBackgroundTexture?.Width ?? 0,
+                DefaultBackgroundHeight = defaultBackgroundTexture?.Height ?? 0,
+                CreatedAtUtc = System.DateTime.UtcNow.ToString("o")
+            };
+
+            if (isCustomBackgroundLoaded && backgroundLayers.Count > 0)
+            {
+                foreach (var layer in backgroundLayers)
+                {
+                    data.BackgroundLayers.Add(new BackgroundLayerData
+                    {
+                        ImagePath = layer.sourcePath,
+                        StartX = layer.startX,
+                        Width = layer.texture.Width,
+                        Height = layer.texture.Height
+                    });
+                }
+            }
+
+            data.Colliders.Add(new ColliderData
+            {
+                Name = "LeftWall",
+                Type = "Wall",
+                Bounds = new RectangleData { X = 0, Y = 0, Width = WallThickness, Height = screenHeight - 75 }
+            });
+            data.Colliders.Add(new ColliderData
+            {
+                Name = "RightWall",
+                Type = "Wall",
+                Bounds = new RectangleData { X = rightWallX, Y = 0, Width = WallThickness, Height = screenHeight - 75 }
+            });
+            data.Colliders.Add(new ColliderData
+            {
+                Name = "Ceiling",
+                Type = "Ceiling",
+                Bounds = new RectangleData { X = 0, Y = 0, Width = rightWallX, Height = CeilingHeight }
+            });
+
+            for (int i = 0; i < GroundColliders.Count; i++)
+            {
+                var gc = GroundColliders[i];
+                data.Colliders.Add(new ColliderData
+                {
+                    Name = $"Ground_{i}",
+                    Type = "Ground",
+                    Bounds = new RectangleData { X = gc.X, Y = gc.Y, Width = gc.Width, Height = gc.Height }
+                });
+            }
+
+            for (int i = 0; i < placed.Count; i++)
+            {
+                var p = placed[i];
+                data.Obstacles.Add(new ObstacleData
+                {
+                    Name = $"Obstacle_{i}",
+                    TextureIndex = p.PaletteIndex,
+                    TextureName = p.TextureName,
+                    Bounds = new RectangleData { X = p.Bounds.X, Y = p.Bounds.Y, Width = p.Bounds.Width, Height = p.Bounds.Height }
+                });
+            }
+
+            MapDataManager.SaveMap(data);
+            saveStatusMessage = $"Mapa salvo: {mapName}";
         }
     }
 }

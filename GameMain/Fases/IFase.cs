@@ -22,6 +22,7 @@ namespace GameDuMouse.GameMain.Fases
         List<Rectangle> Platforms { get; }
         List<Obstacle> Obstacles1 { get; }
         List<Obstacle> Obstacles2 { get; }
+        List<Rectangle> WallColliders { get; }
 
     }
 }

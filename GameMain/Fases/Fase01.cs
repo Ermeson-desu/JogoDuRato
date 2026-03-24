@@ -48,6 +48,7 @@ namespace GameDuMouse.GameMain.Fases
         public List<Rectangle> Platforms { get; private set; }
         public List<Obstacle> Obstacles1 { get; private set; }
         public List<Obstacle> Obstacles2 { get; private set; }
+        public List<Rectangle> WallColliders { get; private set; }
 
         public Fase01(Game game)
         {
@@ -91,6 +92,7 @@ namespace GameDuMouse.GameMain.Fases
             Platforms = new List<Rectangle> { saltLid, upStove, platform1, platform2 };
             Obstacles1 = new List<Obstacle> { hotPan, venom1, venom2, venom3, venom4, venom5, venom6 };
             Obstacles2 = new List<Obstacle> { /* knifeTrap, panTrap se expostos pelo ReturnStage */ };
+            WallColliders = new List<Rectangle>();
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)

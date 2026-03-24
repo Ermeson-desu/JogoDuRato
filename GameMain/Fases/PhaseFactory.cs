@@ -14,5 +14,14 @@ namespace GameDuMouse.GameMain.Fases
                 _ => new Fase01(game) // fallback
             };
         }
+
+        public static IFase CreateDynamicFase(Game game, string mapName)
+        {
+            var data = GameDuMouse.GameMain.Core.MapDataManager.LoadByName(mapName);
+            if (data == null)
+                return null;
+
+            return new DynamicFase(game, data);
+        }
     }
 }

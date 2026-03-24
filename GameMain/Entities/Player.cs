@@ -103,7 +103,7 @@ namespace GameDuMouse.GameMain.Entities
             animationController.AddAnimation(PlayerState.TransitionToIdle, trans_idle);
         }
 
-        private void HandleInput()
+        private void HandleInput(IFase fase)
         {
             var keyboard = Keyboard.GetState();
             var state = directController.GetState();
@@ -155,7 +155,7 @@ namespace GameDuMouse.GameMain.Entities
                     FootPlayer = new Rectangle((int)animationController.Position.X + 65,
                                                (int)animationController.Position.Y + heightColliderPlayer,
                                                widthColliderPlayer - 30, 5);
-                    MoveRight();
+                    MoveRight(fase);
                 }
             }
             else if (moveLeft)
@@ -174,7 +174,7 @@ namespace GameDuMouse.GameMain.Entities
                     FootPlayer = new Rectangle((int)animationController.Position.X + 15,
                                                (int)animationController.Position.Y + heightColliderPlayer,
                                                widthColliderPlayer - 30, 5);
-                    MoveLeft();
+                    MoveLeft(fase);
                 }
             }
             else
@@ -189,23 +189,53 @@ namespace GameDuMouse.GameMain.Entities
             }
         }
 
-        private void MoveRight()
+        private bool CollidesWithWalls(IFase fase, Rectangle futureCollider)
+        {
+            if (fase?.WallColliders != null && fase.WallColliders.Count > 0)
+            {
+                foreach (var wall in fase.WallColliders)
+                {
+                    if (futureCollider.Intersects(wall))
+                        return true;
+                }
+                return false;
+            }
+
+            return futureCollider.Intersects(rightBarrerCollider);
+        }
+
+        private bool CollidesWithLeftBarrier(IFase fase, Rectangle futureCollider)
+        {
+            if (fase?.WallColliders != null && fase.WallColliders.Count > 0)
+            {
+                foreach (var wall in fase.WallColliders)
+                {
+                    if (futureCollider.Intersects(wall))
+                        return true;
+                }
+                return false;
+            }
+
+            return futureCollider.Intersects(leftBarrerCollider);
+        }
+
+        private void MoveRight(IFase fase)
         {
             var position = animationController.Position;
             var nextPosition = position + new Vector2(10, 0);
             var futureCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
 
-            if (futureCollider.Intersects(rightBarrerCollider)) return;
+            if (CollidesWithWalls(fase, futureCollider)) return;
             animationController.Position = nextPosition;
         }
 
-        private void MoveLeft()
+        private void MoveLeft(IFase fase)
         {
             var position = animationController.Position;
             var nextPosition = position + new Vector2(-10, 0);
             var futureCollider = new Rectangle((int)nextPosition.X, (int)nextPosition.Y, widthColliderPlayer, heightColliderPlayer);
 
-            if (futureCollider.Intersects(leftBarrerCollider)) return;
+            if (CollidesWithLeftBarrier(fase, futureCollider)) return;
             animationController.Position = nextPosition;
         }
 
@@ -325,7 +355,7 @@ namespace GameDuMouse.GameMain.Entities
             }
             keyboardState = Keyboard.GetState();
             ApplyPhysics(fase);
-            HandleInput();
+            HandleInput(fase);
             animationController.Update(gameTime);
             previousKeyboardState = keyboardState;
 

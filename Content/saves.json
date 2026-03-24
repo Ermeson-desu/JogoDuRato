@@ -3,5 +3,10 @@
     "PlayerName": "ERMESON DESU",
     "CurrentFaseIndex": 0,
     "IsReturning": true
+  },
+  {
+    "PlayerName": "TEST",
+    "CurrentFaseIndex": 0,
+    "IsReturning": true
   }
 ]

@@ -18,6 +18,8 @@ namespace GameDuMouse.GameMain.Core
         private Background background1;
         private LevelManager levelManager;
         private bool useDynamicBackground;
+        private bool startedFromChapterSelection;
+        private int currentCustomMapIndex = -1;
 
         private StateManager stateManager;
         private GameState previousGameState; // usado para detectar mudança de estado
@@ -198,11 +200,13 @@ namespace GameDuMouse.GameMain.Core
                 {
                     levelManager.AddFase(dynamicFase);
                     useDynamicBackground = true;
+                    currentCustomMapIndex = ResolveCustomMapIndex(exportedMap);
                 }
                 else
                 {
                     levelManager.AddFase(PhaseFactory.CreateFase(this, 0));
                     useDynamicBackground = false;
+                    currentCustomMapIndex = -1;
                 }
 
                 levelManager.LoadContent(Content);
@@ -224,10 +228,13 @@ namespace GameDuMouse.GameMain.Core
             // mantém jogador e fase atuais para futuros saves
             CurrentPlayerName = save.PlayerName?.Trim();
             CurrentFaseIndex = save.CurrentFaseIndex;
+            startedFromChapterSelection = false;
+            currentCustomMapIndex = -1;
 
             // recria a fase que estava em andamento
             levelManager = new LevelManager(this);
-            levelManager.AddFase(PhaseFactory.CreateFase(this, save.CurrentFaseIndex));
+            var fase = PhaseFactory.CreateFase(this, save.CurrentFaseIndex) ?? PhaseFactory.CreateFase(this, 0);
+            levelManager.AddFase(fase);
             levelManager.LoadContent(Content);
             useDynamicBackground = false;
 
@@ -254,6 +261,9 @@ namespace GameDuMouse.GameMain.Core
         /// </summary>
         public void SaveProgress(bool isReturning)
         {
+            if (startedFromChapterSelection)
+                return;
+
             if (string.IsNullOrWhiteSpace(CurrentPlayerName) || CurrentFaseIndex < 0)
                 return;
 
@@ -270,6 +280,64 @@ namespace GameDuMouse.GameMain.Core
         public void PrepareMapEditing(string mapName)
         {
             mappingScreen?.LoadMapForEditing(mapName);
+        }
+
+        public void SetChapterSelection(bool value)
+        {
+            startedFromChapterSelection = value;
+        }
+
+        public bool TryAdvanceToNextFase()
+        {
+            if (startedFromChapterSelection || levelManager == null)
+                return false;
+
+            bool advanced = levelManager.TryAdvanceToNextFase();
+            if (advanced)
+            {
+                CurrentFaseIndex++;
+                useDynamicBackground = false;
+                currentCustomMapIndex = -1;
+            }
+
+            if (advanced)
+                return true;
+
+            // No more native fases: try exported/custom maps
+            string nextCustom = GetNextCustomMapName();
+            if (string.IsNullOrWhiteSpace(nextCustom))
+                return false;
+
+            var customFase = PhaseFactory.CreateDynamicFase(this, nextCustom);
+            if (customFase == null)
+                return false;
+
+            levelManager.SwitchToNextFase(customFase);
+            useDynamicBackground = true;
+            return true;
+        }
+
+        private string GetNextCustomMapName()
+        {
+            var maps = GameDuMouse.GameMain.Core.MapListManager.LoadAllMaps();
+            if (maps == null || maps.Count == 0)
+                return null;
+
+            int nextIndex = currentCustomMapIndex + 1;
+            if (nextIndex < 0 || nextIndex >= maps.Count)
+                return null;
+
+            currentCustomMapIndex = nextIndex;
+            return maps[nextIndex];
+        }
+
+        private int ResolveCustomMapIndex(string mapName)
+        {
+            if (string.IsNullOrWhiteSpace(mapName))
+                return -1;
+
+            var maps = GameDuMouse.GameMain.Core.MapListManager.LoadAllMaps();
+            return maps.IndexOf(mapName.Trim());
         }
 
         protected override void Draw(GameTime gameTime)

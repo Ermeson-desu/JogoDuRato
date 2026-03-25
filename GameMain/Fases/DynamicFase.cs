@@ -13,6 +13,8 @@ namespace GameDuMouse.GameMain.Fases
         private readonly MapData data;
         private Texture2D pixel;
         private List<Texture2D> backgroundTextures = new List<Texture2D>();
+        private Cheese cheese;
+        private Rectangle burrowBounds;
 
         public bool IsReturning { get; private set; } = false;
         public bool HasWon { get; private set; } = false;
@@ -54,6 +56,31 @@ namespace GameDuMouse.GameMain.Fases
                 var b = obstacle.Bounds;
                 Obstacles1.Add(new Obstacle(game, b.X, b.Y, b.Width, b.Height, "Square"));
             }
+
+            if (data.ObstaclesReturn != null)
+            {
+                foreach (var obstacle in data.ObstaclesReturn)
+                {
+                    var b = obstacle.Bounds;
+                    Obstacles2.Add(new Obstacle(game, b.X, b.Y, b.Width, b.Height, "Square"));
+                }
+            }
+
+            if (data.CheeseBounds != null)
+            {
+                var c = data.CheeseBounds;
+                cheese = new Cheese(game, c.X, c.Y, c.Width, c.Height);
+            }
+
+            if (data.BurrowBounds != null)
+            {
+                var b = data.BurrowBounds;
+                burrowBounds = new Rectangle(b.X, b.Y, b.Width, b.Height);
+            }
+            else
+            {
+                burrowBounds = new Rectangle(100, 330, 80, 70);
+            }
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
@@ -76,15 +103,33 @@ namespace GameDuMouse.GameMain.Fases
 
         public void Update(Player player)
         {
-            // Por enquanto, sem lógica de vitória dinâmica.
+            if (!IsReturning && cheese != null && cheese.CollidesWith(player.Collider))
+            {
+                IsReturning = true;
+            }
+            else if (IsReturning && !HasWon)
+            {
+                if (burrowBounds.Intersects(player.Collider))
+                    HasWon = true;
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch, Player player)
         {
             DrawBackground(spriteBatch);
 
-            foreach (var obstacle in Obstacles1)
-                obstacle.Draw(spriteBatch);
+            if (!IsReturning)
+            {
+                foreach (var obstacle in Obstacles1)
+                    obstacle.Draw(spriteBatch);
+                cheese?.Draw(spriteBatch);
+            }
+            else
+            {
+                foreach (var obstacle in Obstacles2)
+                    obstacle.Draw(spriteBatch);
+                spriteBatch.Draw(pixel, burrowBounds, Color.SandyBrown * 0.6f);
+            }
 
             player.Draw(game.Services.GetService<GameTime>());
         }

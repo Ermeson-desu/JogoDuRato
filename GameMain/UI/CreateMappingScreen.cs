@@ -43,12 +43,16 @@ namespace GameDuMouse.GameMain.UI
         private BackButton backButton;
         private UiActionButton saveButton;
         private UiActionButton previewButton;
+        private UiButton nextPartButton;
+        private UiButton prevPartButton;
         private Texture2D defaultBackgroundTexture;
         private Texture2D pixel;
 
         private List<Texture2D> obstacleTextures = new List<Texture2D>();
         private List<string> obstacleTextureNames = new List<string>();
-        private List<PlacedObstacle> placed = new List<PlacedObstacle>();
+        private List<PlacedObstacle> placedPart1 = new List<PlacedObstacle>();
+        private List<PlacedObstacle> placedPart2 = new List<PlacedObstacle>();
+        private int currentPart = 1;
 
         private int panelWidth => game.GraphicsDevice.Viewport.Width / PanelFraction;
         private int screenWidth;
@@ -78,12 +82,20 @@ namespace GameDuMouse.GameMain.UI
         private bool isDialogOpen = false;
         private bool isCustomBackgroundLoaded = false; // Track if we've loaded a custom background
         private string saveStatusMessage = "";
+        private System.DateTime saveStatusExpiresAtUtc = System.DateTime.MinValue;
         private bool requestPreview = false;
         private bool isConfirmingBackgroundDelete = false;
         private int pendingDeleteLayerIndex = -1;
-        private List<int> pendingDeleteObstacleIndices = new List<int>();
+        private List<PendingObstacleRef> pendingDeleteObstacleIndices = new List<PendingObstacleRef>();
         private UiButton confirmYesButton;
         private UiButton confirmNoButton;
+        private const int PartButtonSize = 40;
+
+        private struct PendingObstacleRef
+        {
+            public bool IsReturnPart;
+            public int Index;
+        }
 
         // Multiple backgrounds support
         private struct BackgroundLayer
@@ -149,6 +161,10 @@ namespace GameDuMouse.GameMain.UI
                 obstacleTextureNames.Add("Placeholder_Olive");
             }
 
+            // Add Cheese item (unique, only allowed on Part 1)
+            obstacleTextures.Add(CreateSolidTexture(Color.Yellow));
+            obstacleTextureNames.Add("Cheese");
+
             // Initialize colliders based on default phaseWidth
             UpdateCollidersForBackground();
 
@@ -161,6 +177,9 @@ namespace GameDuMouse.GameMain.UI
 
             confirmYesButton = new UiButton(new Rectangle(0, 0, 120, 40), "SIM");
             confirmNoButton = new UiButton(new Rectangle(0, 0, 120, 40), "NAO");
+
+            prevPartButton = new UiButton(new Rectangle(panelWidth + 10, 20, PartButtonSize, PartButtonSize), "<");
+            nextPartButton = new UiButton(new Rectangle(screenWidth - PartButtonSize - 10, 20, PartButtonSize, PartButtonSize), ">");
         }
 
         public void LoadMapForEditing(string mapName)
@@ -170,13 +189,16 @@ namespace GameDuMouse.GameMain.UI
             selectedPaletteIndex = -1;
             leftScroll = 0f;
             mapCameraOffsetX = 0f;
-            placed.Clear();
+            placedPart1.Clear();
+            placedPart2.Clear();
             backgroundLayers.Clear();
             customBackground = null;
             isCustomBackgroundLoaded = false;
             pendingImagePath = null;
             saveStatusMessage = "";
+            saveStatusExpiresAtUtc = System.DateTime.MinValue;
             requestPreview = false;
+            currentPart = 1;
 
             var data = MapDataManager.LoadByName(mapName);
             if (data == null)
@@ -257,7 +279,7 @@ namespace GameDuMouse.GameMain.UI
                     if (texIndex < 0 || texIndex >= obstacleTextures.Count)
                         texIndex = 0;
 
-                    placed.Add(new PlacedObstacle
+                    placedPart1.Add(new PlacedObstacle
                     {
                         Texture = obstacleTextures[texIndex],
                         Bounds = new Rectangle(obstacle.Bounds.X, obstacle.Bounds.Y, obstacle.Bounds.Width, obstacle.Bounds.Height),
@@ -267,6 +289,47 @@ namespace GameDuMouse.GameMain.UI
                             : "Unknown"
                     });
                 }
+            }
+
+            if (data.ObstaclesReturn != null)
+            {
+                foreach (var obstacle in data.ObstaclesReturn)
+                {
+                    if (obstacle?.Bounds == null)
+                        continue;
+
+                    int texIndex = obstacle.TextureIndex;
+                    if (texIndex < 0 || texIndex >= obstacleTextures.Count)
+                        texIndex = obstacleTextureNames.IndexOf(obstacle.TextureName);
+                    if (texIndex < 0 || texIndex >= obstacleTextures.Count)
+                        texIndex = 0;
+
+                    placedPart2.Add(new PlacedObstacle
+                    {
+                        Texture = obstacleTextures[texIndex],
+                        Bounds = new Rectangle(obstacle.Bounds.X, obstacle.Bounds.Y, obstacle.Bounds.Width, obstacle.Bounds.Height),
+                        PaletteIndex = texIndex,
+                        TextureName = texIndex >= 0 && texIndex < obstacleTextureNames.Count
+                            ? obstacleTextureNames[texIndex]
+                            : "Unknown"
+                    });
+                }
+            }
+
+            if (data.CheeseBounds != null)
+            {
+                var c = data.CheeseBounds;
+                int cheeseIndex = obstacleTextureNames.IndexOf("Cheese");
+                if (cheeseIndex < 0)
+                    cheeseIndex = obstacleTextures.Count - 1;
+
+                placedPart1.Add(new PlacedObstacle
+                {
+                    Texture = obstacleTextures[cheeseIndex],
+                    Bounds = new Rectangle(c.X, c.Y, c.Width, c.Height),
+                    PaletteIndex = cheeseIndex,
+                    TextureName = "Cheese"
+                });
             }
 
             UpdateImportButtonPosition();
@@ -314,6 +377,9 @@ namespace GameDuMouse.GameMain.UI
             var mouse = Mouse.GetState();
             var keyboard = Keyboard.GetState();
 
+            if (!string.IsNullOrWhiteSpace(saveStatusMessage) && System.DateTime.UtcNow > saveStatusExpiresAtUtc)
+                saveStatusMessage = "";
+
             if (isConfirmingBackgroundDelete)
             {
                 HandleBackgroundDeleteConfirmation(mouse);
@@ -321,6 +387,8 @@ namespace GameDuMouse.GameMain.UI
                 previousKeyboard = keyboard;
                 return;
             }
+
+            HandlePartNavigation(mouse);
 
             if (HandleBackgroundDeleteButtons(mouse))
             {
@@ -449,8 +517,24 @@ namespace GameDuMouse.GameMain.UI
             return new Point(screenX, world.Y);
         }
 
+        private List<PlacedObstacle> GetActivePlaced()
+        {
+            return currentPart == 1 ? placedPart1 : placedPart2;
+        }
+
+        private bool HasCheesePlaced()
+        {
+            foreach (var p in placedPart1)
+            {
+                if (p.TextureName == "Cheese")
+                    return true;
+            }
+            return false;
+        }
+
         private void HandlePlacingAndDragging(MouseState mouse)
         {
+            var activePlaced = GetActivePlaced();
             if (mouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && previousMouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released)
             {
                 if (mouse.X >= panelWidth)      
@@ -459,11 +543,11 @@ namespace GameDuMouse.GameMain.UI
                     var worldMouse = ScreenToWorld(mouse.Position);
 
                     // check if clicking an existing placed obstacle
-                    for (int i = placed.Count - 1; i >= 0; i--)
+                    for (int i = activePlaced.Count - 1; i >= 0; i--)
                     {
-                        if (placed[i].Bounds.Contains(worldMouse))
+                        if (activePlaced[i].Bounds.Contains(worldMouse))
                         {
-                            dragging = placed[i];
+                            dragging = activePlaced[i];
                             dragOffset = new Point(worldMouse.X - dragging.Bounds.X, worldMouse.Y - dragging.Bounds.Y);
                             break;
                         }
@@ -472,17 +556,33 @@ namespace GameDuMouse.GameMain.UI
                     if (dragging == null && selectedPaletteIndex >= 0)
                     {
                         var tex = obstacleTextures[selectedPaletteIndex];
+                        var name = selectedPaletteIndex >= 0 && selectedPaletteIndex < obstacleTextureNames.Count
+                            ? obstacleTextureNames[selectedPaletteIndex]
+                            : "Unknown";
+
+                        if (name == "Cheese")
+                        {
+                            if (currentPart != 1)
+                            {
+                                SetStatusMessage("Cheese so pode ficar na Parte 1.");
+                                return;
+                            }
+                            if (HasCheesePlaced())
+                            {
+                                SetStatusMessage("Apenas um cheese por fase.");
+                                return;
+                            }
+                        }
+
                         // create bounds in world coords centered under the mouse
                         var topLeft = new Point(worldMouse.X - tex.Width / 2, worldMouse.Y - tex.Height / 2);
                         var rect = new Rectangle(topLeft, new Point(tex.Width, tex.Height));
-                        placed.Add(new PlacedObstacle
+                        activePlaced.Add(new PlacedObstacle
                         {
                             Texture = tex,
                             Bounds = rect,
                             PaletteIndex = selectedPaletteIndex,
-                            TextureName = selectedPaletteIndex >= 0 && selectedPaletteIndex < obstacleTextureNames.Count
-                                ? obstacleTextureNames[selectedPaletteIndex]
-                                : "Unknown"
+                            TextureName = name
                         });
                     }
                 }
@@ -509,11 +609,12 @@ namespace GameDuMouse.GameMain.UI
             {
                 var worldMouse = ScreenToWorld(mouse.Position);
                 // remove last placed or any that contain mouse
-                for (int i = placed.Count - 1; i >= 0; i--)
+                var activePlaced = GetActivePlaced();
+                for (int i = activePlaced.Count - 1; i >= 0; i--)
                 {
-                    if (placed[i].Bounds.Contains(worldMouse))
+                    if (activePlaced[i].Bounds.Contains(worldMouse))
                     {
-                        placed.RemoveAt(i);
+                        activePlaced.RemoveAt(i);
                         break;
                     }
                 }
@@ -524,11 +625,12 @@ namespace GameDuMouse.GameMain.UI
             {
                 var worldMouse = ScreenToWorld(mouse.Position);
                 // remove obstacle under mouse cursor
-                for (int i = placed.Count - 1; i >= 0; i--)
+                var activePlaced = GetActivePlaced();
+                for (int i = activePlaced.Count - 1; i >= 0; i--)
                 {
-                    if (placed[i].Bounds.Contains(worldMouse))
+                    if (activePlaced[i].Bounds.Contains(worldMouse))
                     {
-                        placed.RemoveAt(i);
+                        activePlaced.RemoveAt(i);
                         break;
                     }
                 }
@@ -562,9 +664,9 @@ namespace GameDuMouse.GameMain.UI
 
         private Rectangle GetBackgroundDeleteButtonScreenRect(BackgroundLayer layer)
         {
-            // Top-left corner of the layer, near the ceiling
+            // Bottom-left corner of the layer, above the ground area
             int worldX = layer.startX + 8;
-            int worldY = CeilingHeight + 6;
+            int worldY = screenHeight - 75 - BackgroundDeleteButtonSize - 6;
 
             int screenX = worldX - (int)mapCameraOffsetX + BackgroundDrawOffsetX;
             int screenY = worldY;
@@ -621,12 +723,20 @@ namespace GameDuMouse.GameMain.UI
             if (pendingDeleteObstacleIndices == null || pendingDeleteObstacleIndices.Count == 0)
                 return;
 
-            pendingDeleteObstacleIndices.Sort();
+            pendingDeleteObstacleIndices.Sort((a, b) => a.Index.CompareTo(b.Index));
             for (int i = pendingDeleteObstacleIndices.Count - 1; i >= 0; i--)
             {
-                int index = pendingDeleteObstacleIndices[i];
-                if (index >= 0 && index < placed.Count)
-                    placed.RemoveAt(index);
+                var item = pendingDeleteObstacleIndices[i];
+                if (item.IsReturnPart)
+                {
+                    if (item.Index >= 0 && item.Index < placedPart2.Count)
+                        placedPart2.RemoveAt(item.Index);
+                }
+                else
+                {
+                    if (item.Index >= 0 && item.Index < placedPart1.Count)
+                        placedPart1.RemoveAt(item.Index);
+                }
             }
         }
 
@@ -635,13 +745,18 @@ namespace GameDuMouse.GameMain.UI
             return new Rectangle(layer.startX, 0, layer.texture.Width, screenHeight);
         }
 
-        private List<int> GetObstaclesInLayer(Rectangle layerRect)
+        private List<PendingObstacleRef> GetObstaclesInLayer(Rectangle layerRect)
         {
-            var indices = new List<int>();
-            for (int i = 0; i < placed.Count; i++)
+            var indices = new List<PendingObstacleRef>();
+            for (int i = 0; i < placedPart1.Count; i++)
             {
-                if (layerRect.Contains(placed[i].Bounds))
-                    indices.Add(i);
+                if (layerRect.Contains(placedPart1[i].Bounds))
+                    indices.Add(new PendingObstacleRef { IsReturnPart = false, Index = i });
+            }
+            for (int i = 0; i < placedPart2.Count; i++)
+            {
+                if (layerRect.Contains(placedPart2[i].Bounds))
+                    indices.Add(new PendingObstacleRef { IsReturnPart = true, Index = i });
             }
             return indices;
         }
@@ -737,6 +852,7 @@ namespace GameDuMouse.GameMain.UI
             DrawPlacedObstacles(spriteBatch);
             DrawImportButton(spriteBatch);
             backButton?.Draw(spriteBatch);
+            DrawPartNavigation(spriteBatch);
             DrawBackgroundDeleteConfirmation(spriteBatch);
         }
 
@@ -805,6 +921,55 @@ namespace GameDuMouse.GameMain.UI
             saveButton?.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
             if (!string.IsNullOrWhiteSpace(saveStatusMessage))
                 spriteBatch.DrawString(font, saveStatusMessage, new Vector2(Margin, screenHeight - 90), Color.Yellow);
+        }
+
+        private void SetStatusMessage(string message, int durationMs = 2500)
+        {
+            saveStatusMessage = message ?? "";
+            saveStatusExpiresAtUtc = System.DateTime.UtcNow.AddMilliseconds(durationMs);
+        }
+
+        private void DrawPartNavigation(SpriteBatch spriteBatch)
+        {
+            string partLabel = currentPart == 1 ? "Parte 1" : "Parte 2";
+            if (currentPart == 1)
+            {
+                spriteBatch.DrawString(font, partLabel, new Vector2(panelWidth + 10, 20), Color.White);
+            }
+            else
+            {
+                var size = font.MeasureString(partLabel);
+                spriteBatch.DrawString(font, partLabel, new Vector2(screenWidth - Margin - size.X, 20), Color.White);
+            }
+
+            if (currentPart == 1)
+            {
+                nextPartButton.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
+            }
+            else
+            {
+                prevPartButton.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
+            }
+        }
+
+        private void HandlePartNavigation(MouseState mouse)
+        {
+            if (currentPart == 1)
+            {
+                if (nextPartButton.Update(mouse, previousMouse))
+                {
+                    currentPart = 2;
+                    dragging = null;
+                }
+            }
+            else
+            {
+                if (prevPartButton.Update(mouse, previousMouse))
+                {
+                    currentPart = 1;
+                    dragging = null;
+                }
+            }
         }
 
         private void DrawBackgroundDeleteConfirmation(SpriteBatch spriteBatch)
@@ -954,7 +1119,8 @@ namespace GameDuMouse.GameMain.UI
         private void DrawPlacedObstacles(SpriteBatch spriteBatch)
         {
             // draw placed obstacles converting from world coords to screen coords
-            foreach (var p in placed)
+            var activePlaced = GetActivePlaced();
+            foreach (var p in activePlaced)
             {
                 var topLeftScreen = WorldToScreen(p.Bounds.Location);
                 var adjustedPos = new Vector2(topLeftScreen.X, topLeftScreen.Y);
@@ -1047,12 +1213,37 @@ namespace GameDuMouse.GameMain.UI
                 });
             }
 
-            for (int i = 0; i < placed.Count; i++)
+            int obstacleIndex = 0;
+            for (int i = 0; i < placedPart1.Count; i++)
             {
-                var p = placed[i];
+                var p = placedPart1[i];
+                if (p.TextureName == "Cheese")
+                {
+                    data.CheeseBounds = new RectangleData
+                    {
+                        X = p.Bounds.X,
+                        Y = p.Bounds.Y,
+                        Width = p.Bounds.Width,
+                        Height = p.Bounds.Height
+                    };
+                    continue;
+                }
+
                 data.Obstacles.Add(new ObstacleData
                 {
-                    Name = $"Obstacle_{i}",
+                    Name = $"Obstacle_{obstacleIndex++}",
+                    TextureIndex = p.PaletteIndex,
+                    TextureName = p.TextureName,
+                    Bounds = new RectangleData { X = p.Bounds.X, Y = p.Bounds.Y, Width = p.Bounds.Width, Height = p.Bounds.Height }
+                });
+            }
+
+            for (int i = 0; i < placedPart2.Count; i++)
+            {
+                var p = placedPart2[i];
+                data.ObstaclesReturn.Add(new ObstacleData
+                {
+                    Name = $"ObstacleReturn_{i}",
                     TextureIndex = p.PaletteIndex,
                     TextureName = p.TextureName,
                     Bounds = new RectangleData { X = p.Bounds.X, Y = p.Bounds.Y, Width = p.Bounds.Width, Height = p.Bounds.Height }
@@ -1060,7 +1251,7 @@ namespace GameDuMouse.GameMain.UI
             }
 
             MapDataManager.SaveMap(data);
-            saveStatusMessage = $"Mapa salvo: {mapName}";
+            SetStatusMessage($"Mapa salvo: {mapName}");
         }
     }
 }

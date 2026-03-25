@@ -11,7 +11,18 @@ namespace GameDuMouse.GameMain.Fases
                 0 => new Fase01(game),
                 // 1 => new Fase02(game), // adicione conforme novas fases
                 // 2 => new Fase03(game),
-                _ => new Fase01(game) // fallback
+                _ => null
+            };
+        }
+
+        public static bool HasFase(int index)
+        {
+            return index switch
+            {
+                0 => true,
+                // 1 => true,
+                // 2 => true,
+                _ => false
             };
         }
 

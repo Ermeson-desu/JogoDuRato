@@ -35,12 +35,6 @@ namespace GameDuMouse.GameMain.Core
         public void Update(Player player)
         {
             CurrentFase.Update(player);
-
-            // Se a fase atual terminou, avança para a próxima
-            if (CurrentFase.HasWon && currentIndex < fases.Count - 1)
-            {
-                currentIndex++;
-            }
         }
 
         public void Draw(SpriteBatch spriteBatch, Player player)
@@ -48,22 +42,48 @@ namespace GameDuMouse.GameMain.Core
             CurrentFase.Draw(spriteBatch, player);
         }
 
-        // 🔑 Novo: reinicia a fase atual usando a fábrica
+        // Restart the current phase using the factory
         public void ReplayCurrentFase()
         {
-            fases[currentIndex] = PhaseFactory.CreateFase(game, currentIndex);
+            var replay = PhaseFactory.CreateFase(game, currentIndex);
+            if (replay == null)
+                return;
+
+            fases[currentIndex] = replay;
             fases[currentIndex].LoadContent(game.Content);
         }
 
-        // 🔑 Novo: avança para a próxima fase usando a fábrica
-        public void NextFase()
+        // Advance to the next phase using the factory
+        public bool TryAdvanceToNextFase()
         {
-            if (currentIndex < fases.Count - 1)
-            {
-                currentIndex++;
-                fases[currentIndex] = PhaseFactory.CreateFase(game, currentIndex);
-                fases[currentIndex].LoadContent(game.Content);
-            }
+            int nextIndex = currentIndex + 1;
+            var next = PhaseFactory.CreateFase(game, nextIndex);
+            if (next == null)
+                return false;
+
+            if (nextIndex < fases.Count)
+                fases[nextIndex] = next;
+            else
+                fases.Add(next);
+
+            currentIndex = nextIndex;
+            next.LoadContent(game.Content);
+            return true;
+        }
+
+        public void SwitchToNextFase(IFase next)
+        {
+            if (next == null)
+                return;
+
+            int nextIndex = currentIndex + 1;
+            if (nextIndex < fases.Count)
+                fases[nextIndex] = next;
+            else
+                fases.Add(next);
+
+            currentIndex = nextIndex;
+            next.LoadContent(game.Content);
         }
     }
 }

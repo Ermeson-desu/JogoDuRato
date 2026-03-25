@@ -93,8 +93,17 @@ namespace GameDuMouse.GameMain.UI
                     break;
 
                 case "Next":
-                    levelManager.NextFase();
-                    stateManager.ChangeState(GameState.Playing);
+                    if (game is Game1 g1)
+                    {
+                        if (g1.TryAdvanceToNextFase())
+                            stateManager.ChangeState(GameState.Playing);
+                        else
+                            stateManager.ChangeState(GameState.Menu);
+                    }
+                    else
+                    {
+                        stateManager.ChangeState(GameState.Menu);
+                    }
                     break;
             }
         }

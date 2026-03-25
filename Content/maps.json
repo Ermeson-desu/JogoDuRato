@@ -1,19 +1,19 @@
 [
   {
     "MapName": "MINHA NOSSA",
-    "PhaseWidth": 894,
+    "PhaseWidth": 1735,
     "ScreenHeight": 480,
     "IsCustomBackgroundLoaded": true,
     "DefaultBackgroundColor": "CornflowerBlue",
     "DefaultBackgroundWidth": 500,
     "DefaultBackgroundHeight": 480,
-    "CreatedAtUtc": "2026-03-25T16:59:45.7118157Z",
+    "CreatedAtUtc": "2026-03-25T20:23:08.1438864Z",
     "BackgroundLayers": [
       {
-        "ImagePath": "C:\\Users\\ermes\\Imagens\\Capturas de tela\\Captura de tela 2025-03-18 074542.png",
+        "ImagePath": "C:\\Users\\ermes\\Imagens\\Capturas de tela\\Captura de tela 2025-04-13 171452.png",
         "StartX": 0,
-        "Width": 894,
-        "Height": 615
+        "Width": 1735,
+        "Height": 900
       }
     ],
     "Colliders": [
@@ -31,7 +31,7 @@
         "Name": "RightWall",
         "Type": "Wall",
         "Bounds": {
-          "X": 894,
+          "X": 1735,
           "Y": 0,
           "Width": 10,
           "Height": 405
@@ -43,7 +43,7 @@
         "Bounds": {
           "X": 0,
           "Y": 0,
-          "Width": 894,
+          "Width": 1735,
           "Height": 10
         }
       },
@@ -53,12 +53,15 @@
         "Bounds": {
           "X": 0,
           "Y": 400,
-          "Width": 894,
+          "Width": 1735,
           "Height": 5
         }
       }
     ],
     "Obstacles": [],
-    "Objects": []
+    "ObstaclesReturn": [],
+    "Objects": [],
+    "CheeseBounds": null,
+    "BurrowBounds": null
   }
 ]

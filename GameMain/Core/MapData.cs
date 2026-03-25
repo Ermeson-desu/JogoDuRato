@@ -16,7 +16,10 @@ namespace GameDuMouse.GameMain.Core
         public List<BackgroundLayerData> BackgroundLayers { get; set; } = new List<BackgroundLayerData>();
         public List<ColliderData> Colliders { get; set; } = new List<ColliderData>();
         public List<ObstacleData> Obstacles { get; set; } = new List<ObstacleData>();
+        public List<ObstacleData> ObstaclesReturn { get; set; } = new List<ObstacleData>();
         public List<ObjectData> Objects { get; set; } = new List<ObjectData>();
+        public RectangleData CheeseBounds { get; set; }
+        public RectangleData BurrowBounds { get; set; }
     }
 
     public class BackgroundLayerData
@@ -46,6 +49,8 @@ namespace GameDuMouse.GameMain.Core
     {
         public string Name { get; set; }
         public Vector2Data Position { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
     }
 
     public class RectangleData

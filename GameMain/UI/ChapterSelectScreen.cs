@@ -167,6 +167,9 @@ namespace GameDuMouse.GameMain.UI
             else
                 MapListManager.ClearExportedMap();
 
+            if (game is GameDuMouse.GameMain.Core.Game1 g1)
+                g1.SetChapterSelection(true);
+
             stateManager.ChangeState(GameState.PreGame);
         }
 

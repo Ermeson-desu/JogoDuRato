@@ -1,14 +1,21 @@
 [
   {
     "MapName": "MINHA NOSSA",
-    "PhaseWidth": 590,
+    "PhaseWidth": 894,
     "ScreenHeight": 480,
-    "IsCustomBackgroundLoaded": false,
+    "IsCustomBackgroundLoaded": true,
     "DefaultBackgroundColor": "CornflowerBlue",
     "DefaultBackgroundWidth": 500,
     "DefaultBackgroundHeight": 480,
-    "CreatedAtUtc": "2026-03-24T18:28:51.8940113Z",
-    "BackgroundLayers": [],
+    "CreatedAtUtc": "2026-03-25T16:59:45.7118157Z",
+    "BackgroundLayers": [
+      {
+        "ImagePath": "C:\\Users\\ermes\\Imagens\\Capturas de tela\\Captura de tela 2025-03-18 074542.png",
+        "StartX": 0,
+        "Width": 894,
+        "Height": 615
+      }
+    ],
     "Colliders": [
       {
         "Name": "LeftWall",
@@ -24,7 +31,7 @@
         "Name": "RightWall",
         "Type": "Wall",
         "Bounds": {
-          "X": 590,
+          "X": 894,
           "Y": 0,
           "Width": 10,
           "Height": 405
@@ -36,7 +43,7 @@
         "Bounds": {
           "X": 0,
           "Y": 0,
-          "Width": 590,
+          "Width": 894,
           "Height": 10
         }
       },
@@ -46,7 +53,7 @@
         "Bounds": {
           "X": 0,
           "Y": 400,
-          "Width": 590,
+          "Width": 894,
           "Height": 5
         }
       }

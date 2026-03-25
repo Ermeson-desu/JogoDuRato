@@ -11,7 +11,8 @@ namespace GameDuMouse.GameMain.UI
         private SpriteFont font;
         // keep string consistent with NewMapMenu entry point so typo is less likely
         private const string MapOption = "Create Mapping";
-        private string[] options = { "New Game", "Load", "Settings", MapOption, "Exit" };
+        private const string ChapterOption = "Chapters";
+        private string[] options = { "New Game", "Load", ChapterOption, "Settings", MapOption, "Exit" };
         private int selectedIndex = 0;
 
         private KeyboardState previousKeyboardState;
@@ -113,6 +114,9 @@ namespace GameDuMouse.GameMain.UI
                     break;
                 case "Load":
                     stateManager.ChangeState(GameState.Load);
+                    break;
+                case ChapterOption:
+                    stateManager.ChangeState(GameState.ChapterSelect);
                     break;
                 case "Settings":
                     stateManager.ChangeState(GameState.Settings);

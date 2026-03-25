@@ -63,5 +63,20 @@ namespace GameDuMouse.GameMain.Core
             string json = JsonSerializer.Serialize(maps, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(mapDataPath, json);
         }
+
+        public static void DeleteByName(string mapName)
+        {
+            if (string.IsNullOrWhiteSpace(mapName))
+                return;
+
+            var maps = LoadAll();
+            int index = maps.FindIndex(m => m.MapName == mapName.Trim());
+            if (index < 0)
+                return;
+
+            maps.RemoveAt(index);
+            string json = JsonSerializer.Serialize(maps, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(mapDataPath, json);
+        }
     }
 }

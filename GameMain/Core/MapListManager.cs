@@ -7,7 +7,14 @@ namespace GameDuMouse.GameMain.Core
     public static class MapListManager
     {
         private static readonly string mapPath = Path.Combine("Content", "maps.json");
+        private static readonly string exportedMapPath = Path.Combine("Content", "exported_map.txt");
         public static string CurrentMapName { get; private set; }
+        public static string ExportedMapName { get; private set; }
+
+        static MapListManager()
+        {
+            LoadExportedMap();
+        }
 
         public static List<string> LoadAllMaps()
         {
@@ -53,5 +60,48 @@ namespace GameDuMouse.GameMain.Core
 
             CurrentMapName = name.Trim();
         }
+
+        public static void ExportMap(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return;
+
+            ExportedMapName = name.Trim();
+            File.WriteAllText(exportedMapPath, ExportedMapName);
+        }
+
+        public static void ClearExportedMap()
+        {
+            ExportedMapName = null;
+            if (File.Exists(exportedMapPath))
+                File.Delete(exportedMapPath);
+        }
+
+        public static void DeleteMap(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return;
+
+            string trimmed = name.Trim();
+            MapDataManager.DeleteByName(trimmed);
+
+            if (CurrentMapName == trimmed)
+                CurrentMapName = null;
+
+            if (ExportedMapName == trimmed)
+                ClearExportedMap();
+        }
+
+        private static void LoadExportedMap()
+        {
+            if (!File.Exists(exportedMapPath))
+                return;
+
+            var text = File.ReadAllText(exportedMapPath);
+            if (!string.IsNullOrWhiteSpace(text))
+                ExportedMapName = text.Trim();
+        }
+
+        
     }
 }

@@ -17,12 +17,14 @@ namespace GameDuMouse.GameMain.Core
         private Player player1;
         private Background background1;
         private LevelManager levelManager;
+        private bool useDynamicBackground;
 
         private StateManager stateManager;
         private GameState previousGameState; // usado para detectar mudança de estado
         private MenuScreen menuScreen;
         private VictoryScreen victoryScreen;
         private LoadScreen loadScreen;
+        private ChapterSelectScreen chapterSelectScreen;
         private NewMapMenuScreen newMapMenuScreen;
         private CreateMappingScreen mappingScreen;
         private MapTestScreen mapTestScreen;
@@ -78,6 +80,9 @@ namespace GameDuMouse.GameMain.Core
             // Load Screen
             loadScreen = new LoadScreen(this);
             loadScreen.LoadContent(Content);
+            // Chapter Select Screen
+            chapterSelectScreen = new ChapterSelectScreen(this);
+            chapterSelectScreen.LoadContent(Content);
             // New Map Menu Screen
             newMapMenuScreen = new NewMapMenuScreen(this);
             newMapMenuScreen.LoadContent(Content);
@@ -111,6 +116,8 @@ namespace GameDuMouse.GameMain.Core
                 }
                 if (stateManager.CurrentState == GameState.NewMapMenu)
                     newMapMenuScreen?.ResetInput();
+                if (stateManager.CurrentState == GameState.ChapterSelect)
+                    chapterSelectScreen?.ResetInput();
                 if (stateManager.CurrentState == GameState.PreGame)
                     preGameScreen.ResetInput();
 
@@ -139,6 +146,9 @@ namespace GameDuMouse.GameMain.Core
                 
                 case GameState.Load:
                     loadScreen.Update(stateManager);
+                    break;
+                case GameState.ChapterSelect:
+                    chapterSelectScreen?.Update(stateManager);
                     break;
 
                 case GameState.Mapping:
@@ -178,7 +188,23 @@ namespace GameDuMouse.GameMain.Core
                 CurrentFaseIndex = 0;
 
                 levelManager = new LevelManager(this);
-                levelManager.AddFase(PhaseFactory.CreateFase(this, 0));
+
+                var exportedMap = GameDuMouse.GameMain.Core.MapListManager.ExportedMapName;
+                var dynamicFase = !string.IsNullOrWhiteSpace(exportedMap)
+                    ? PhaseFactory.CreateDynamicFase(this, exportedMap)
+                    : null;
+
+                if (dynamicFase != null)
+                {
+                    levelManager.AddFase(dynamicFase);
+                    useDynamicBackground = true;
+                }
+                else
+                {
+                    levelManager.AddFase(PhaseFactory.CreateFase(this, 0));
+                    useDynamicBackground = false;
+                }
+
                 levelManager.LoadContent(Content);
 
                 // once we're actually in play, clear any history so that "back"
@@ -203,6 +229,7 @@ namespace GameDuMouse.GameMain.Core
             levelManager = new LevelManager(this);
             levelManager.AddFase(PhaseFactory.CreateFase(this, save.CurrentFaseIndex));
             levelManager.LoadContent(Content);
+            useDynamicBackground = false;
 
             // aplica situação de retorno e posiciona o player
             if (levelManager.CurrentFase != null)
@@ -263,7 +290,8 @@ namespace GameDuMouse.GameMain.Core
                     break;
 
                 case GameState.Playing:
-                    background1.Draw(spriteBatch);
+                    if (!useDynamicBackground)
+                        background1.Draw(spriteBatch);
                     levelManager.Draw(spriteBatch, player1);
                     break;
 
@@ -290,6 +318,9 @@ namespace GameDuMouse.GameMain.Core
 
                 case GameState.Load:
                     loadScreen.Draw(spriteBatch);
+                    break;
+                case GameState.ChapterSelect:
+                    chapterSelectScreen?.Draw(spriteBatch);
                     break;
 
 

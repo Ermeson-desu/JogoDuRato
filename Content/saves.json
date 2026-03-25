@@ -8,5 +8,10 @@
     "PlayerName": "TEST",
     "CurrentFaseIndex": 0,
     "IsReturning": true
+  },
+  {
+    "PlayerName": "ERMESON",
+    "CurrentFaseIndex": 0,
+    "IsReturning": false
   }
 ]

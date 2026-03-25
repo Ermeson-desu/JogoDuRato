@@ -4,6 +4,7 @@ namespace GameDuMouse.GameMain.Core
     {
         Menu,
         PreGame,
+        ChapterSelect,
         NewMapMenu,
         Playing,
         Settings,

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
+using GameDuMouse.GameMain.Input;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -12,6 +13,7 @@ namespace GameDuMouse.GameMain.UI
         private SpriteFont font;
         private Texture2D pixel;
         private BackButton backButton;
+        private InputManager inputManager;
 
         private readonly List<ChapterEntry> chapters = new List<ChapterEntry>();
         private int selectedIndex;
@@ -35,15 +37,16 @@ namespace GameDuMouse.GameMain.UI
         public ChapterSelectScreen(Game game)
         {
             this.game = game;
-            previousKeyboard = Keyboard.GetState();
-            previousMouse = Mouse.GetState();
+            inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
+            previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
         {
             font = content.Load<SpriteFont>("Font/Arial");
-            backButton = new BackButton(font);
+            backButton = new BackButton(font, inputManager);
 
             pixel = new Texture2D(game.GraphicsDevice, 1, 1);
             pixel.SetData(new[] { Color.White });
@@ -53,8 +56,8 @@ namespace GameDuMouse.GameMain.UI
 
         public void ResetInput()
         {
-            previousKeyboard = Keyboard.GetState();
-            previousMouse = Mouse.GetState();
+            previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
             backButton?.ResetInput();
             ReloadChapters();
@@ -68,8 +71,8 @@ namespace GameDuMouse.GameMain.UI
 
             if (ignoreNextInput)
             {
-                var k = Keyboard.GetState();
-                var m = Mouse.GetState();
+                var k = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+                var m = inputManager != null ? inputManager.Mouse : Mouse.GetState();
                 previousKeyboard = k;
                 previousMouse = m;
                 if (m.LeftButton == ButtonState.Released && !k.IsKeyDown(Keys.Enter))
@@ -77,8 +80,8 @@ namespace GameDuMouse.GameMain.UI
                 return;
             }
 
-            var keyboard = Keyboard.GetState();
-            var mouse = Mouse.GetState();
+            var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
 
             if (IsKeyPressed(Keys.Down, keyboard))
                 selectedIndex = (selectedIndex + 1) % chapters.Count;

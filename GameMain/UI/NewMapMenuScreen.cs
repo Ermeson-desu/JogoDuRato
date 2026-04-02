@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.UI.Components;
+using GameDuMouse.GameMain.Input;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -19,6 +20,7 @@ namespace GameDuMouse.GameMain.UI
         private TextEntryModal textEntry;
         private Texture2D pixel;
         private List<string> maps = new List<string>();
+        private InputManager inputManager;
         private bool isOptionsOpen;
         private int optionsTargetIndex = -1;
         private string statusMessage;
@@ -34,15 +36,16 @@ namespace GameDuMouse.GameMain.UI
         public NewMapMenuScreen(Game game)
         {
             this.game = game;
-            previousKeyboard = Keyboard.GetState();
-            previousMouse = Mouse.GetState();
+            inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
+            previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
         {
             font = content.Load<SpriteFont>("Font/Arial");
-            backButton = new BackButton(font);
+            backButton = new BackButton(font, inputManager);
 
             pixel = new Texture2D(game.GraphicsDevice, 1, 1);
             pixel.SetData(new[] { Color.White });
@@ -62,8 +65,8 @@ namespace GameDuMouse.GameMain.UI
 
         public void ResetInput()
         {
-            previousKeyboard = Keyboard.GetState();
-            previousMouse = Mouse.GetState();
+            previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
             backButton?.ResetInput();
             isOptionsOpen = false;
@@ -80,8 +83,8 @@ namespace GameDuMouse.GameMain.UI
 
             if (ignoreNextInput)
             {
-                var k = Keyboard.GetState();
-                var m = Mouse.GetState();
+                var k = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+                var m = inputManager != null ? inputManager.Mouse : Mouse.GetState();
                 previousKeyboard = k;
                 previousMouse = m;
                 if (m.LeftButton == ButtonState.Released && !k.IsKeyDown(Keys.Enter))
@@ -106,8 +109,8 @@ namespace GameDuMouse.GameMain.UI
                 return;
             }
 
-            var keyboard = Keyboard.GetState();
-            var mouse = Mouse.GetState();
+            var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
 
             if (isOptionsOpen)
             {

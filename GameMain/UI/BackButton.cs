@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
+using GameDuMouse.GameMain.Input;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -14,15 +15,17 @@ namespace GameDuMouse.GameMain.UI
     {
         private readonly Rectangle bounds = new Rectangle(10, 10, 48, 24);
         private SpriteFont font;
+        private readonly InputManager inputManager;
 
         private KeyboardState previousKeyboardState;
         private MouseState previousMouseState;
 
-        public BackButton(SpriteFont font)
+        public BackButton(SpriteFont font, InputManager inputManager = null)
         {
             this.font = font;
-            previousKeyboardState = Keyboard.GetState();
-            previousMouseState = Mouse.GetState();
+            this.inputManager = inputManager;
+            previousKeyboardState = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            previousMouseState = inputManager != null ? inputManager.Mouse : Mouse.GetState();
         }
 
         /// <summary>
@@ -31,8 +34,8 @@ namespace GameDuMouse.GameMain.UI
         /// </summary>
         public void ResetInput()
         {
-            previousKeyboardState = Keyboard.GetState();
-            previousMouseState = Mouse.GetState();
+            previousKeyboardState = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            previousMouseState = inputManager != null ? inputManager.Mouse : Mouse.GetState();
         }
 
         /// <summary>
@@ -46,8 +49,8 @@ namespace GameDuMouse.GameMain.UI
         /// example the name entry in <see cref="PreGameScreen"/>).</param>
         public void Update(StateManager stateManager, bool ignoreBackKey = false)
         {
-            var keyboard = Keyboard.GetState();
-            var mouse = Mouse.GetState();
+            var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
 
             if (!ignoreBackKey && IsKeyPressed(Keys.Back, keyboard))
             {

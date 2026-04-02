@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using GameDuMouse.GameMain.Input;
 
 namespace GameDuMouse.GameMain.UI.Components
 {
@@ -20,6 +21,7 @@ namespace GameDuMouse.GameMain.UI.Components
         private KeyboardState previousKeyboard;
         private MouseState previousMouse;
         private bool isOpen;
+        private InputManager inputManager;
 
         public bool WasConfirmed { get; private set; }
         public bool WasCanceled { get; private set; }
@@ -28,6 +30,7 @@ namespace GameDuMouse.GameMain.UI.Components
         public TextEntryModal(Game game)
         {
             this.game = game;
+            inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
         }
 
         public string CurrentText => textBuffer.ToString();
@@ -56,8 +59,8 @@ namespace GameDuMouse.GameMain.UI.Components
 
         public void ResetInput()
         {
-            previousKeyboard = Keyboard.GetState();
-            previousMouse = Mouse.GetState();
+            previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
         }
 
         public void Update()
@@ -65,8 +68,8 @@ namespace GameDuMouse.GameMain.UI.Components
             if (!isOpen)
                 return;
 
-            var keyboard = Keyboard.GetState();
-            var mouse = Mouse.GetState();
+            var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
 
             if (IsKeyPressed(Keys.Enter, keyboard))
             {

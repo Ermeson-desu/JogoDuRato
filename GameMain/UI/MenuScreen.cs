@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
-using GameDuMouse.GameMain.Utils;
+using GameDuMouse.GameMain.Input;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -17,7 +17,7 @@ namespace GameDuMouse.GameMain.UI
 
         private KeyboardState previousKeyboardState;
         private MouseState previousMouseState;
-        private DirectInputController directController;
+        private InputManager inputManager;
         private Game game;
 
         private bool ignoreNextInput; // usado para não processar clique residual
@@ -25,17 +25,17 @@ namespace GameDuMouse.GameMain.UI
         public MenuScreen(Game game)
         {
             this.game = game;
-            directController = new DirectInputController();
+            inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
 
-            previousKeyboardState = Keyboard.GetState();
-            previousMouseState = Mouse.GetState();
+            previousKeyboardState = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            previousMouseState = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
         }
 
         public void ResetInput()
         {
-            previousKeyboardState = Keyboard.GetState();
-            previousMouseState = Mouse.GetState();
+            previousKeyboardState = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            previousMouseState = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
         }
 
@@ -46,9 +46,9 @@ namespace GameDuMouse.GameMain.UI
 
         public void Update(StateManager stateManager)
         {
-            var keyboard = Keyboard.GetState();
-            var mouse = Mouse.GetState();
-            var state = directController.GetState();
+            var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
+            var state = inputManager?.GetJoystickState();
 
             if (ignoreNextInput)
             {

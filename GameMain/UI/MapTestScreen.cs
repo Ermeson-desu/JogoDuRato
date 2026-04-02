@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Entities;
 using GameDuMouse.GameMain.Fases;
+using GameDuMouse.GameMain.Input;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -15,18 +16,20 @@ namespace GameDuMouse.GameMain.UI
         private LevelManager levelManager;
         private Camera camera;
         private string statusMessage;
+        private InputManager inputManager;
 
         public Matrix CameraTransform => camera != null ? camera.Transform : Matrix.Identity;
 
         public MapTestScreen(Game game)
         {
             this.game = game;
+            inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
         {
             font = content.Load<SpriteFont>("Font/Arial");
-            backButton = new BackButton(font);
+            backButton = new BackButton(font, inputManager);
 
             player = new Player(game);
             player.LoadContent(content);

@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Animations;
-using GameDuMouse.GameMain.Utils;
+using GameDuMouse.GameMain.Input;
 using GameDuMouse.GameMain.Fases;
 
 namespace GameDuMouse.GameMain.Entities
@@ -22,7 +22,7 @@ namespace GameDuMouse.GameMain.Entities
         private int widthColliderPlayer, heightColliderPlayer, heightPlayerRun;
         private Rectangle rightBarrerCollider, leftBarrerCollider;
         private Rectangle? manualCollider, footManualCollider;
-        private DirectInputController directController;
+        private InputManager inputManager;
 
         public Rectangle Collider
         {
@@ -56,7 +56,7 @@ namespace GameDuMouse.GameMain.Entities
         {
             this.game = game;
             Initialize();
-            directController = new DirectInputController();
+            inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
         }
 
         public Vector2 GetPosition() => new Vector2(Collider.X, 300);
@@ -105,8 +105,8 @@ namespace GameDuMouse.GameMain.Entities
 
         private void HandleInput(IFase fase)
         {
-            var keyboard = Keyboard.GetState();
-            var state = directController.GetState();
+            var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            var state = inputManager?.GetJoystickState();
 
             // --- PULO ---
             bool jumpPressed = keyboard.IsKeyDown(Keys.Space);
@@ -353,7 +353,7 @@ namespace GameDuMouse.GameMain.Entities
             {
                 return;   
             }
-            keyboardState = Keyboard.GetState();
+            keyboardState = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             ApplyPhysics(fase);
             HandleInput(fase);
             animationController.Update(gameTime);

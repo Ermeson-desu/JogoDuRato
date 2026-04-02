@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
-using GameDuMouse.GameMain.Utils;
+using GameDuMouse.GameMain.Input;
 using System.Text;
 
 namespace GameDuMouse.GameMain.UI
@@ -14,7 +14,7 @@ namespace GameDuMouse.GameMain.UI
         private StringBuilder playerName;
         private KeyboardState previousKeyboardState;
         private MouseState previousMouseState;
-        private DirectInputController directController;
+        private InputManager inputManager;
         private Game game;
         private BackButton backButton;
 
@@ -31,16 +31,16 @@ namespace GameDuMouse.GameMain.UI
         {
             this.game = game;
             playerName = new StringBuilder();
-            directController = new DirectInputController();
+            inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
 
-            previousKeyboardState = Keyboard.GetState();
-            previousMouseState = Mouse.GetState();
+            previousKeyboardState = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            previousMouseState = inputManager != null ? inputManager.Mouse : Mouse.GetState();
         }
 
         public void ResetInput()
         {
-            previousKeyboardState = Keyboard.GetState();
-            previousMouseState = Mouse.GetState();
+            previousKeyboardState = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            previousMouseState = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             // not using ignore flag here because PreGame has more complex mouse interactions,
             // but we at least reset states so earlier clicks don't trigger buttons accidentally.
             backButton?.ResetInput();
@@ -49,7 +49,7 @@ namespace GameDuMouse.GameMain.UI
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
         {
             font = content.Load<SpriteFont>("Font/Arial");
-            backButton = new BackButton(font);
+            backButton = new BackButton(font, inputManager);
         }
 
         public void Update(StateManager stateManager)
@@ -57,9 +57,9 @@ namespace GameDuMouse.GameMain.UI
             // handle shared back-navigation (click or backspace when name empty)
             backButton?.Update(stateManager, ignoreBackKey: playerName.Length > 0);
 
-            var keyboard = Keyboard.GetState();
-            var mouse = Mouse.GetState();
-            var state = directController.GetState();
+            var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
+            var state = inputManager?.GetJoystickState();
 
             // --- Input via teclado físico ---
             if (IsKeyPressed(Keys.Enter, keyboard))

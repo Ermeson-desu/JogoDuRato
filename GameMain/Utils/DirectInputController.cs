@@ -3,7 +3,7 @@ using System;
 
 namespace GameDuMouse.GameMain.Utils
 {
-    public class DirectInputController
+    public class DirectInputController : IDisposable
     {
         private DirectInput directInput;
         private Joystick joystick;
@@ -32,6 +32,23 @@ namespace GameDuMouse.GameMain.Utils
             if (joystick == null) return null;
             joystick.Poll();
             return joystick.GetCurrentState();
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                joystick?.Unacquire();
+                joystick?.Dispose();
+            }
+            catch
+            {
+                // ignore cleanup errors
+            }
+            joystick = null;
+
+            directInput?.Dispose();
+            directInput = null;
         }
     }
 }

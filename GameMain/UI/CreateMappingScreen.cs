@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Utils;
+using GameDuMouse.GameMain.Input;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.UI.Components;
 using System.Runtime.InteropServices;
@@ -64,7 +65,7 @@ namespace GameDuMouse.GameMain.UI
 
         private MouseState previousMouse;
         private KeyboardState previousKeyboard;
-        private DirectInputController directController;
+        private InputManager inputManager;
 
         private PlacedObstacle dragging;
         private Point dragOffset;
@@ -117,9 +118,9 @@ namespace GameDuMouse.GameMain.UI
         public CreateMappingScreen(Game game)
         {
             this.game = game;
-            directController = new DirectInputController();
-            previousMouse = Mouse.GetState();
-            previousKeyboard = Keyboard.GetState();
+            inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
+            previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
+            previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             
             // Initialize CreateMappingScreen's own ground colliders
             groundCollider = new Rectangle(0, 400, 600, 5);
@@ -130,7 +131,7 @@ namespace GameDuMouse.GameMain.UI
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
         {
             font = content.Load<SpriteFont>("Font/Arial");
-            backButton = new BackButton(font);
+            backButton = new BackButton(font, inputManager);
             pixel = new Texture2D(game.GraphicsDevice, 1, 1);
             pixel.SetData(new[] { Color.White });
             
@@ -362,8 +363,8 @@ namespace GameDuMouse.GameMain.UI
 
         public void ResetInput()
         {
-            previousMouse = Mouse.GetState();
-            previousKeyboard = Keyboard.GetState();
+            previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
+            previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             backButton?.ResetInput();
         }
 
@@ -374,8 +375,8 @@ namespace GameDuMouse.GameMain.UI
             if (stateManager.CurrentState != GameState.Mapping)
                 return;
 
-            var mouse = Mouse.GetState();
-            var keyboard = Keyboard.GetState();
+            var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
+            var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
 
             if (!string.IsNullOrWhiteSpace(saveStatusMessage) && System.DateTime.UtcNow > saveStatusExpiresAtUtc)
                 saveStatusMessage = "";

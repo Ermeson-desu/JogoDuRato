@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
-using GameDuMouse.GameMain.Utils;
+using GameDuMouse.GameMain.Input;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -14,13 +14,13 @@ namespace GameDuMouse.GameMain.UI
 
         private KeyboardState previousKeyboardState;
         private MouseState previousMouseState;
-        private DirectInputController directController;
+        private InputManager inputManager;
         private Game game;
 
         public VictoryMenu(Game game)
         {
             this.game = game;
-            directController = new DirectInputController();
+            inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
@@ -30,9 +30,9 @@ namespace GameDuMouse.GameMain.UI
 
         public void Update(StateManager stateManager, LevelManager levelManager)
         {
-            var keyboard = Keyboard.GetState();
-            var mouse = Mouse.GetState();
-            var state = directController.GetState();
+            var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
+            var state = inputManager?.GetJoystickState();
 
             // --- Navegação teclado (edge detection) ---
             if (IsKeyPressed(Keys.Right, keyboard) || IsKeyPressed(Keys.D, keyboard))

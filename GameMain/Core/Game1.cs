@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Entities;
 using GameDuMouse.GameMain.Fases;
 using GameDuMouse.GameMain.UI;
+using GameDuMouse.GameMain.Input;
 
 namespace GameDuMouse.GameMain.Core
 {
@@ -30,6 +31,7 @@ namespace GameDuMouse.GameMain.Core
         private NewMapMenuScreen newMapMenuScreen;
         private CreateMappingScreen mappingScreen;
         private MapTestScreen mapTestScreen;
+        private InputManager inputManager;
 
         // player/name state used for saving mid–game
         public string CurrentPlayerName { get; private set; }
@@ -51,6 +53,8 @@ namespace GameDuMouse.GameMain.Core
             camera = new Camera();
             stateManager = new StateManager();
             previousGameState = stateManager.CurrentState;
+            inputManager = new InputManager();
+            Services.AddService(typeof(InputManager), inputManager);
             base.Initialize();
         }
 
@@ -99,7 +103,7 @@ namespace GameDuMouse.GameMain.Core
 
         protected override void Update(GameTime gameTime)
         {
-            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (inputManager != null && inputManager.Keyboard.IsKeyDown(Keys.Escape))
                 Exit();
 
             // Detecta transição entre estados e dispara callbacks auxiliares
@@ -399,6 +403,13 @@ namespace GameDuMouse.GameMain.Core
 
             spriteBatch.End();
             base.Draw(gameTime);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                inputManager?.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

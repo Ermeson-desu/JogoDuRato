@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
-using GameDuMouse.GameMain.Utils;
+using GameDuMouse.GameMain.Input;
 using System.Collections.Generic;
 
 namespace GameDuMouse.GameMain.UI
@@ -15,7 +15,7 @@ namespace GameDuMouse.GameMain.UI
 
         private KeyboardState previousKeyboardState;
         private MouseState previousMouseState;
-        private DirectInputController directController;
+        private InputManager inputManager;
 
         private Game game;
         private BackButton backButton;
@@ -27,20 +27,20 @@ namespace GameDuMouse.GameMain.UI
         public LoadScreen(Game game)
         {
             this.game = game;
-            directController = new DirectInputController();
+            inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
             saves = SaveManager.LoadAllSaves();
 
             // make sure the first update won't treat whatever input happened during
             // initialization as a selection
-            previousMouseState = Mouse.GetState();
-            previousKeyboardState = Keyboard.GetState();
+            previousMouseState = inputManager != null ? inputManager.Mouse : Mouse.GetState();
+            previousKeyboardState = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             ignoreNextInput = true;
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
         {
             font = content.Load<SpriteFont>("Font/Arial");
-            backButton = new BackButton(font);
+            backButton = new BackButton(font, inputManager);
         }
         public void Update(StateManager stateManager)
         {
@@ -59,8 +59,8 @@ namespace GameDuMouse.GameMain.UI
             // if we just arrived to the screen clear any lingering input
             if (ignoreNextInput)
             {
-                var k = Keyboard.GetState();
-                var m = Mouse.GetState();
+                var k = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+                var m = inputManager != null ? inputManager.Mouse : Mouse.GetState();
                 previousKeyboardState = k;
                 previousMouseState = m;
                 // wait until user releases the button/keys before accepting input
@@ -69,9 +69,9 @@ namespace GameDuMouse.GameMain.UI
                 return;
             }
 
-            var keyboard = Keyboard.GetState();
-            var mouse = Mouse.GetState();
-            var state = directController.GetState();
+            var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
+            var state = inputManager?.GetJoystickState();
 
             if (IsKeyPressed(Keys.Enter, keyboard))
                 ConfirmSelection(stateManager);
@@ -134,8 +134,8 @@ namespace GameDuMouse.GameMain.UI
         /// </summary>
         public void ResetInput()
         {
-            previousKeyboardState = Keyboard.GetState();
-            previousMouseState = Mouse.GetState();
+            previousKeyboardState = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
+            previousMouseState = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
             backButton?.ResetInput();
         }

@@ -18,6 +18,7 @@ namespace GameDuMouse.GameMain.UI
         private InputManager inputManager;
         private TextureCache textureCache;
         private AssetManager assetManager;
+        private MapService mapService;
 
         private readonly List<ChapterEntry> chapters = new List<ChapterEntry>();
         private int selectedIndex;
@@ -25,6 +26,7 @@ namespace GameDuMouse.GameMain.UI
         private KeyboardState previousKeyboard;
         private MouseState previousMouse;
         private bool ignoreNextInput;
+        private int mapVersion = -1;
 
         private const int ItemHeight = 60;
         private const int ThumbSize = 30;
@@ -44,6 +46,7 @@ namespace GameDuMouse.GameMain.UI
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
             textureCache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
             assetManager = game.Services.GetService(typeof(AssetManager)) as AssetManager;
+            mapService = game.Services.GetService(typeof(MapService)) as MapService;
             previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
@@ -56,7 +59,8 @@ namespace GameDuMouse.GameMain.UI
 
             pixel = textureCache != null ? textureCache.Pixel : pixel;
 
-            ReloadChapters();
+            mapService?.RefreshAsync();
+            ReloadChapters(true);
         }
 
         public void ResetInput()
@@ -65,7 +69,8 @@ namespace GameDuMouse.GameMain.UI
             previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
             backButton?.ResetInput();
-            ReloadChapters();
+            mapService?.RefreshAsync();
+            ReloadChapters(true);
         }
 
         public void Update(StateManager stateManager)
@@ -73,6 +78,8 @@ namespace GameDuMouse.GameMain.UI
             backButton?.Update(stateManager);
             if (stateManager.CurrentState != GameState.ChapterSelect)
                 return;
+
+            ReloadChapters();
 
             if (ignoreNextInput)
             {
@@ -171,9 +178,9 @@ namespace GameDuMouse.GameMain.UI
 
             var selected = chapters[selectedIndex];
             if (selected.IsCustom)
-                MapListManager.ExportMap(selected.MapName);
+                mapService?.ExportMap(selected.MapName);
             else
-                MapListManager.ClearExportedMap();
+                mapService?.ClearExportedMap();
 
             if (game is GameDuMouse.GameMain.Core.Game1 g1)
                 g1.SetChapterSelection(true);
@@ -181,8 +188,19 @@ namespace GameDuMouse.GameMain.UI
             stateManager.ChangeState(GameState.PreGame);
         }
 
-        private void ReloadChapters()
+        private void ReloadChapters(bool force = false)
         {
+            if (mapService == null)
+            {
+                chapters.Clear();
+                mapVersion = -1;
+                selectedIndex = 0;
+                return;
+            }
+
+            if (!force && mapVersion == mapService.Version)
+                return;
+
             chapters.Clear();
 
             // Built-in chapters
@@ -195,10 +213,10 @@ namespace GameDuMouse.GameMain.UI
             });
 
             // Exported custom chapter (if any)
-            var exported = MapListManager.ExportedMapName;
+            var exported = mapService.ExportedMapName;
             if (!string.IsNullOrWhiteSpace(exported))
             {
-                var data = MapDataManager.LoadByName(exported);
+                var data = mapService.GetByName(exported);
                 chapters.Add(new ChapterEntry
                 {
                     DisplayName = exported,
@@ -210,6 +228,8 @@ namespace GameDuMouse.GameMain.UI
 
             if (selectedIndex >= chapters.Count)
                 selectedIndex = 0;
+
+            mapVersion = mapService.Version;
         }
 
         private Texture2D LoadBuiltInThumbnail()

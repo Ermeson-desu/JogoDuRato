@@ -4,6 +4,7 @@ using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Entities;
 using GameDuMouse.GameMain.Fases;
 using GameDuMouse.GameMain.Input;
+using GameDuMouse.GameMain.Services;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -17,6 +18,7 @@ namespace GameDuMouse.GameMain.UI
         private Camera camera;
         private string statusMessage;
         private InputManager inputManager;
+        private MapService mapService;
 
         public Matrix CameraTransform => camera != null ? camera.Transform : Matrix.Identity;
 
@@ -24,6 +26,7 @@ namespace GameDuMouse.GameMain.UI
         {
             this.game = game;
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
+            mapService = game.Services.GetService(typeof(MapService)) as MapService;
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
@@ -47,7 +50,7 @@ namespace GameDuMouse.GameMain.UI
             statusMessage = null;
             levelManager = new LevelManager(game);
 
-            var data = MapDataManager.LoadByName(mapName);
+            var data = mapService != null ? mapService.GetByName(mapName) : null;
             if (data == null)
             {
                 statusMessage = "Mapa nao encontrado para teste.";

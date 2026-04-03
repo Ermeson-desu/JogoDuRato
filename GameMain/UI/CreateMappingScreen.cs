@@ -51,6 +51,7 @@ namespace GameDuMouse.GameMain.UI
         private Texture2D pixel;
         private TextureCache textureCache;
         private AssetManager assetManager;
+        private MapService mapService;
 
         private List<Texture2D> obstacleTextures = new List<Texture2D>();
         private List<string> obstacleTextureNames = new List<string>();
@@ -124,6 +125,7 @@ namespace GameDuMouse.GameMain.UI
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
             textureCache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
             assetManager = game.Services.GetService(typeof(AssetManager)) as AssetManager;
+            mapService = game.Services.GetService(typeof(MapService)) as MapService;
             previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             
@@ -202,7 +204,7 @@ namespace GameDuMouse.GameMain.UI
             requestPreview = false;
             currentPart = 1;
 
-            var data = MapDataManager.LoadByName(mapName);
+            var data = mapService != null ? mapService.GetByName(mapName) : null;
             if (data == null)
             {
                 phaseWidth = RightWallX;
@@ -1135,7 +1137,7 @@ namespace GameDuMouse.GameMain.UI
 
         private void SaveCurrentMap()
         {
-            string mapName = MapListManager.CurrentMapName;
+            string mapName = mapService != null ? mapService.CurrentMapName : null;
             if (string.IsNullOrWhiteSpace(mapName))
                 mapName = "Mapa_Sem_Nome";
 
@@ -1234,7 +1236,7 @@ namespace GameDuMouse.GameMain.UI
                 });
             }
 
-            MapDataManager.SaveMap(data);
+            mapService?.SaveMap(data);
             SetStatusMessage($"Mapa salvo: {mapName}");
         }
     }

@@ -6,6 +6,7 @@ using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.UI.Components;
 using GameDuMouse.GameMain.Input;
 using GameDuMouse.GameMain.Rendering;
+using GameDuMouse.GameMain.Services;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -23,6 +24,7 @@ namespace GameDuMouse.GameMain.UI
         private List<string> maps = new List<string>();
         private InputManager inputManager;
         private TextureCache textureCache;
+        private MapService mapService;
         private bool isOptionsOpen;
         private int optionsTargetIndex = -1;
         private string statusMessage;
@@ -30,6 +32,7 @@ namespace GameDuMouse.GameMain.UI
         private int listLineHeight;
         private int listWidth;
         private Rectangle optionsAnchorRect;
+        private int mapVersion = -1;
 
         private KeyboardState previousKeyboard;
         private MouseState previousMouse;
@@ -40,6 +43,7 @@ namespace GameDuMouse.GameMain.UI
             this.game = game;
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
             textureCache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
+            mapService = game.Services.GetService(typeof(MapService)) as MapService;
             previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
@@ -62,7 +66,8 @@ namespace GameDuMouse.GameMain.UI
             exportButton = new UiButton(new Rectangle(0, 0, 160, 36), "Exportar");
             deleteButton = new UiButton(new Rectangle(0, 0, 160, 36), "Excluir");
 
-            ReloadMaps();
+            mapService?.RefreshAsync();
+            ReloadMaps(true);
         }
 
         public void ResetInput()
@@ -74,7 +79,8 @@ namespace GameDuMouse.GameMain.UI
             isOptionsOpen = false;
             optionsTargetIndex = -1;
             statusMessage = null;
-            ReloadMaps();
+            mapService?.RefreshAsync();
+            ReloadMaps(true);
         }
 
         public void Update(StateManager stateManager)
@@ -82,6 +88,8 @@ namespace GameDuMouse.GameMain.UI
             backButton?.Update(stateManager);
             if (stateManager.CurrentState != GameState.NewMapMenu)
                 return;
+
+            ReloadMaps();
 
             if (ignoreNextInput)
             {
@@ -100,8 +108,8 @@ namespace GameDuMouse.GameMain.UI
                 string confirmed = textEntry.ConsumeConfirmedText();
                 if (!string.IsNullOrWhiteSpace(confirmed))
                 {
-                    MapListManager.AddMap(confirmed);
-                    ReloadMaps();
+                    mapService?.AddMap(confirmed);
+                    ReloadMaps(true);
                     textEntry.Close();
                 }
 
@@ -142,7 +150,7 @@ namespace GameDuMouse.GameMain.UI
                 if (activatedIndex >= 0 && activatedIndex < maps.Count)
                 {
                     var selectedMap = maps[activatedIndex];
-                    MapListManager.SetCurrentMap(selectedMap);
+                    mapService?.SetCurrentMap(selectedMap);
                     if (game is GameDuMouse.GameMain.Core.Game1 g1)
                         g1.PrepareMapEditing(selectedMap);
                     stateManager.ChangeState(GameState.Mapping);
@@ -176,10 +184,22 @@ namespace GameDuMouse.GameMain.UI
             DrawOptionsPopup(spriteBatch);
         }
 
-        private void ReloadMaps()
+        private void ReloadMaps(bool force = false)
         {
-            maps = MapListManager.LoadAllMaps();
+            if (mapService == null)
+            {
+                maps = new List<string>();
+                mapList.SetItems(maps);
+                mapVersion = -1;
+                return;
+            }
+
+            if (!force && mapVersion == mapService.Version)
+                return;
+
+            maps = mapService.GetMapNamesSnapshot();
             mapList.SetItems(maps);
+            mapVersion = mapService.Version;
             if (maps.Count == 0)
             {
                 isOptionsOpen = false;
@@ -265,7 +285,7 @@ namespace GameDuMouse.GameMain.UI
                 return;
 
             string mapName = maps[optionsTargetIndex];
-            MapListManager.ExportMap(mapName);
+            mapService?.ExportMap(mapName);
             statusMessage = $"Mapa exportado: {mapName}";
         }
 
@@ -275,9 +295,9 @@ namespace GameDuMouse.GameMain.UI
                 return;
 
             string mapName = maps[optionsTargetIndex];
-            MapListManager.DeleteMap(mapName);
+            mapService?.DeleteMap(mapName);
             statusMessage = $"Mapa excluido: {mapName}";
-            ReloadMaps();
+            ReloadMaps(true);
         }
 
         private Rectangle GetOptionsButtonRectForIndex(int index)

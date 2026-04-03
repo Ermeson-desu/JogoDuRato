@@ -36,6 +36,8 @@ namespace GameDuMouse.GameMain.Core
         private InputManager inputManager;
         private TextureCache textureCache;
         private AssetManager assetManager;
+        private MapService mapService;
+        private SaveService saveService;
 
         // player/name state used for saving mid–game
         public string CurrentPlayerName { get; private set; }
@@ -59,6 +61,10 @@ namespace GameDuMouse.GameMain.Core
             previousGameState = stateManager.CurrentState;
             inputManager = new InputManager();
             Services.AddService(typeof(InputManager), inputManager);
+            mapService = new MapService();
+            Services.AddService(typeof(MapService), mapService);
+            saveService = new SaveService();
+            Services.AddService(typeof(SaveService), saveService);
             base.Initialize();
         }
 
@@ -128,7 +134,7 @@ namespace GameDuMouse.GameMain.Core
                 if (stateManager.CurrentState == GameState.MappingTest)
                 {
                     mapTestScreen?.ResetInput();
-                    mapTestScreen?.StartTest(GameDuMouse.GameMain.Core.MapListManager.CurrentMapName);
+                    mapTestScreen?.StartTest(mapService != null ? mapService.CurrentMapName : null);
                 }
                 if (stateManager.CurrentState == GameState.NewMapMenu)
                     newMapMenuScreen?.ResetInput();
@@ -205,7 +211,7 @@ namespace GameDuMouse.GameMain.Core
 
                 levelManager = new LevelManager(this);
 
-                var exportedMap = GameDuMouse.GameMain.Core.MapListManager.ExportedMapName;
+                var exportedMap = mapService != null ? mapService.ExportedMapName : null;
                 var dynamicFase = !string.IsNullOrWhiteSpace(exportedMap)
                     ? PhaseFactory.CreateDynamicFase(this, exportedMap)
                     : null;
@@ -288,7 +294,7 @@ namespace GameDuMouse.GameMain.Core
                 IsReturning = isReturning
             };
 
-            SaveManager.SaveGame(save);
+            saveService?.Save(save);
         }
 
         public void PrepareMapEditing(string mapName)
@@ -333,7 +339,7 @@ namespace GameDuMouse.GameMain.Core
 
         private string GetNextCustomMapName()
         {
-            var maps = GameDuMouse.GameMain.Core.MapListManager.LoadAllMaps();
+            var maps = mapService != null ? mapService.GetMapNamesSnapshot() : null;
             if (maps == null || maps.Count == 0)
                 return null;
 
@@ -350,7 +356,7 @@ namespace GameDuMouse.GameMain.Core
             if (string.IsNullOrWhiteSpace(mapName))
                 return -1;
 
-            var maps = GameDuMouse.GameMain.Core.MapListManager.LoadAllMaps();
+            var maps = mapService != null ? mapService.GetMapNamesSnapshot() : null;
             return maps.IndexOf(mapName.Trim());
         }
 
@@ -422,6 +428,8 @@ namespace GameDuMouse.GameMain.Core
                 inputManager?.Dispose();
                 textureCache?.Dispose();
                 assetManager?.Dispose();
+                mapService?.Dispose();
+                saveService?.Dispose();
             }
             base.Dispose(disposing);
         }

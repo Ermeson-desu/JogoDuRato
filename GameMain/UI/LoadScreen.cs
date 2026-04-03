@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Input;
 using System.Collections.Generic;
+using GameDuMouse.GameMain.Services;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -16,6 +17,8 @@ namespace GameDuMouse.GameMain.UI
         private KeyboardState previousKeyboardState;
         private MouseState previousMouseState;
         private InputManager inputManager;
+        private SaveService saveService;
+        private int savesVersion = -1;
 
         private Game game;
         private BackButton backButton;
@@ -28,7 +31,8 @@ namespace GameDuMouse.GameMain.UI
         {
             this.game = game;
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
-            saves = SaveManager.LoadAllSaves();
+            saveService = game.Services.GetService(typeof(SaveService)) as SaveService;
+            saves = new List<SaveData>();
 
             // make sure the first update won't treat whatever input happened during
             // initialization as a selection
@@ -41,6 +45,8 @@ namespace GameDuMouse.GameMain.UI
         {
             font = content.Load<SpriteFont>("Font/Arial");
             backButton = new BackButton(font, inputManager);
+            saveService?.RefreshAsync();
+            ReloadSaves(true);
         }
         public void Update(StateManager stateManager)
         {
@@ -50,8 +56,7 @@ namespace GameDuMouse.GameMain.UI
             if (stateManager.CurrentState != GameState.Load)
                 return;
 
-            // 🔑 sempre recarrega a lista
-            saves = SaveManager.LoadAllSaves();
+            ReloadSaves();
 
             if (saves.Count == 0)
                 return;
@@ -138,6 +143,8 @@ namespace GameDuMouse.GameMain.UI
             previousMouseState = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
             backButton?.ResetInput();
+            saveService?.RefreshAsync();
+            ReloadSaves(true);
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -156,6 +163,26 @@ namespace GameDuMouse.GameMain.UI
                 Color color = (i == selectedIndex) ? Color.Yellow : Color.White;
                 spriteBatch.DrawString(font, saves[i].PlayerName, new Vector2(300, 200 + i * 50), color);
             }
+        }
+
+        private void ReloadSaves(bool force = false)
+        {
+            if (saveService == null)
+            {
+                saves = new List<SaveData>();
+                savesVersion = -1;
+                selectedIndex = 0;
+                return;
+            }
+
+            if (!force && savesVersion == saveService.Version)
+                return;
+
+            saves = saveService.GetSavesSnapshot();
+            savesVersion = saveService.Version;
+
+            if (selectedIndex >= saves.Count)
+                selectedIndex = 0;
         }
     }
 }

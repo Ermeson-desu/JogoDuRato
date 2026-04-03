@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Input;
 using System.Text;
+using GameDuMouse.GameMain.Services;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -15,6 +16,7 @@ namespace GameDuMouse.GameMain.UI
         private KeyboardState previousKeyboardState;
         private MouseState previousMouseState;
         private InputManager inputManager;
+        private SaveService saveService;
         private Game game;
         private BackButton backButton;
 
@@ -32,6 +34,7 @@ namespace GameDuMouse.GameMain.UI
             this.game = game;
             playerName = new StringBuilder();
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
+            saveService = game.Services.GetService(typeof(SaveService)) as SaveService;
 
             previousKeyboardState = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             previousMouseState = inputManager != null ? inputManager.Mouse : Mouse.GetState();
@@ -61,10 +64,10 @@ namespace GameDuMouse.GameMain.UI
             var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             var state = inputManager?.GetJoystickState();
 
-            // --- Input via teclado físico ---
+            // --- Input via teclado f??sico ---
             if (IsKeyPressed(Keys.Enter, keyboard))
             {
-                // só salva/começa se tiver nome válido
+                // s?? salva/come??a se tiver nome v??lido
                 string name = playerName.ToString();
                 if (!string.IsNullOrWhiteSpace(name) && name.Length > 3)
                 {
@@ -75,7 +78,7 @@ namespace GameDuMouse.GameMain.UI
                         IsReturning = false
                     };
 
-                    SaveManager.SaveGame(save); // 🔑 grava o save inicial
+                    saveService?.Save(save);
                     ((Game1)game).StartNewGame(name);
                 }
             }
@@ -117,7 +120,7 @@ namespace GameDuMouse.GameMain.UI
                     }
                 }
 
-                // Botões extras
+                // Bot??es extras
                 Rectangle spaceBtn = new Rectangle(100, 500, 80, 40);
                 Rectangle backBtn = new Rectangle(200, 500, 80, 40);
                 Rectangle okBtn = new Rectangle(300, 500, 80, 40);
@@ -137,14 +140,14 @@ namespace GameDuMouse.GameMain.UI
                             IsReturning = false
                         };
 
-                        SaveManager.SaveGame(save);
+                        saveService?.Save(save);
                         ((Game1)game).StartNewGame(name);
                     }
                 }
                 if (cancelBtn.Contains(mouse.Position)) stateManager.GoBack();
             }
 
-            // --- Input via controle genérico ---
+            // --- Input via controle gen??rico ---
             if (state != null)
             {
                 if (state.PointOfViewControllers.Length > 0)
@@ -156,19 +159,19 @@ namespace GameDuMouse.GameMain.UI
                     if (pov == 9000) selectedCol = Math.Min(qwertyRows[selectedRow].Length - 1, selectedCol + 1); // direita
                 }
 
-                // Botão X → confirma letra
+                // Bot??o X ??? confirma letra
                 if (state.Buttons[2])
                     playerName.Append(qwertyRows[selectedRow][selectedCol]);
 
-                // Botão O → espaço
+                // Bot??o O ??? espa??o
                 if (state.Buttons[1])
                     playerName.Append(" ");
 
-                // Botão quadrado → apagar
+                // Bot??o quadrado ??? apagar
                 if (state.Buttons[0] && playerName.Length > 0)
                     playerName.Remove(playerName.Length - 1, 1);
 
-                // Botão triângulo → voltar à tela anterior (menu neste caso)
+                // Bot??o tri??ngulo ??? voltar ?? tela anterior (menu neste caso)
                 if (state.Buttons[3])
                     stateManager.GoBack();
             }
@@ -203,7 +206,7 @@ namespace GameDuMouse.GameMain.UI
                 spriteBatch.DrawString(font, "Nome deve ter mais de 3 caracteres!", new Vector2(100, 200), Color.Red);
             }
 
-            // Botões extras
+            // Bot??es extras
             spriteBatch.DrawString(font, "[SPACE]", new Vector2(100, 500), Color.White);
             spriteBatch.DrawString(font, "[BACK]", new Vector2(200, 500), Color.White);
             spriteBatch.DrawString(font, "[OK]", new Vector2(300, 500), Color.White);

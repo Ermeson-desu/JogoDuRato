@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using GameDuMouse.GameMain.Services;
 
 namespace GameDuMouse.GameMain.Fases
 {
@@ -28,7 +29,8 @@ namespace GameDuMouse.GameMain.Fases
 
         public static IFase CreateDynamicFase(Game game, string mapName)
         {
-            var data = GameDuMouse.GameMain.Core.MapDataManager.LoadByName(mapName);
+            var mapService = game.Services.GetService(typeof(MapService)) as MapService;
+            var data = mapService != null ? mapService.GetByName(mapName) : null;
             if (data == null)
                 return null;
 

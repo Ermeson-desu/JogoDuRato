@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Input;
+using GameDuMouse.GameMain.Managers;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -15,12 +16,14 @@ namespace GameDuMouse.GameMain.UI
         private KeyboardState previousKeyboardState;
         private MouseState previousMouseState;
         private InputManager inputManager;
+        private IGameFlow gameFlow;
         private Game game;
 
         public VictoryMenu(Game game)
         {
             this.game = game;
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
+            gameFlow = game.Services.GetService(typeof(IGameFlow)) as IGameFlow;
         }
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
@@ -93,17 +96,10 @@ namespace GameDuMouse.GameMain.UI
                     break;
 
                 case "Next":
-                    if (game is Game1 g1)
-                    {
-                        if (g1.TryAdvanceToNextFase())
-                            stateManager.ChangeState(GameState.Playing);
-                        else
-                            stateManager.ChangeState(GameState.Menu);
-                    }
+                    if (gameFlow != null && gameFlow.TryAdvanceToNextFase())
+                        stateManager.ChangeState(GameState.Playing);
                     else
-                    {
                         stateManager.ChangeState(GameState.Menu);
-                    }
                     break;
             }
         }

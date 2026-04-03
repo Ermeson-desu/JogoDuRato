@@ -6,6 +6,7 @@ using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Input;
 using System.Text;
 using GameDuMouse.GameMain.Services;
+using GameDuMouse.GameMain.Managers;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -17,6 +18,7 @@ namespace GameDuMouse.GameMain.UI
         private MouseState previousMouseState;
         private InputManager inputManager;
         private SaveService saveService;
+        private IGameFlow gameFlow;
         private Game game;
         private BackButton backButton;
 
@@ -35,6 +37,7 @@ namespace GameDuMouse.GameMain.UI
             playerName = new StringBuilder();
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
             saveService = game.Services.GetService(typeof(SaveService)) as SaveService;
+            gameFlow = game.Services.GetService(typeof(IGameFlow)) as IGameFlow;
 
             previousKeyboardState = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             previousMouseState = inputManager != null ? inputManager.Mouse : Mouse.GetState();
@@ -79,7 +82,7 @@ namespace GameDuMouse.GameMain.UI
                     };
 
                     saveService?.Save(save);
-                    ((Game1)game).StartNewGame(name);
+                    gameFlow?.StartNewGame(name);
                 }
             }
 
@@ -141,7 +144,7 @@ namespace GameDuMouse.GameMain.UI
                         };
 
                         saveService?.Save(save);
-                        ((Game1)game).StartNewGame(name);
+                        gameFlow?.StartNewGame(name);
                     }
                 }
                 if (cancelBtn.Contains(mouse.Position)) stateManager.GoBack();

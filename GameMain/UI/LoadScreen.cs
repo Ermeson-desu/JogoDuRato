@@ -5,6 +5,7 @@ using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Input;
 using System.Collections.Generic;
 using GameDuMouse.GameMain.Services;
+using GameDuMouse.GameMain.Managers;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -19,6 +20,7 @@ namespace GameDuMouse.GameMain.UI
         private InputManager inputManager;
         private SaveService saveService;
         private int savesVersion = -1;
+        private IGameFlow gameFlow;
 
         private Game game;
         private BackButton backButton;
@@ -32,6 +34,7 @@ namespace GameDuMouse.GameMain.UI
             this.game = game;
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
             saveService = game.Services.GetService(typeof(SaveService)) as SaveService;
+            gameFlow = game.Services.GetService(typeof(IGameFlow)) as IGameFlow;
             saves = new List<SaveData>();
 
             // make sure the first update won't treat whatever input happened during
@@ -115,9 +118,7 @@ namespace GameDuMouse.GameMain.UI
                 return;
 
             var save = saves[selectedIndex];
-            var game1 = (Game1)game;
-
-            game1.LoadSave(save);
+            gameFlow?.LoadSave(save);
             stateManager.ChangeState(GameState.Playing);
         }
 
@@ -126,9 +127,7 @@ namespace GameDuMouse.GameMain.UI
             if (saves.Count == 0) return;
 
             var save = saves[selectedIndex];
-            var game1 = (Game1)game;
-
-            game1.LoadSave(save);
+            gameFlow?.LoadSave(save);
             stateManager.ChangeState(GameState.Playing);
         }
 

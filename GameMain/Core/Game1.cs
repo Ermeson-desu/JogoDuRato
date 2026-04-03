@@ -7,6 +7,7 @@ using GameDuMouse.GameMain.UI;
 using GameDuMouse.GameMain.Input;
 using GameDuMouse.GameMain.Rendering;
 using GameDuMouse.GameMain.Services;
+using GameDuMouse.GameMain.Managers;
 
 namespace GameDuMouse.GameMain.Core
 {
@@ -38,6 +39,7 @@ namespace GameDuMouse.GameMain.Core
         private AssetManager assetManager;
         private MapService mapService;
         private SaveService saveService;
+        private GameManager gameManager;
 
         // player/name state used for saving mid–game
         public string CurrentPlayerName { get; private set; }
@@ -65,6 +67,8 @@ namespace GameDuMouse.GameMain.Core
             Services.AddService(typeof(MapService), mapService);
             saveService = new SaveService();
             Services.AddService(typeof(SaveService), saveService);
+            gameManager = new GameManager(this);
+            Services.AddService(typeof(IGameFlow), gameManager);
             base.Initialize();
         }
 

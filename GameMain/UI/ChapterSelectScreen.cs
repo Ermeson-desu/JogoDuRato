@@ -6,6 +6,7 @@ using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Input;
 using GameDuMouse.GameMain.Rendering;
 using GameDuMouse.GameMain.Services;
+using GameDuMouse.GameMain.Managers;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -19,6 +20,7 @@ namespace GameDuMouse.GameMain.UI
         private TextureCache textureCache;
         private AssetManager assetManager;
         private MapService mapService;
+        private IGameFlow gameFlow;
 
         private readonly List<ChapterEntry> chapters = new List<ChapterEntry>();
         private int selectedIndex;
@@ -47,6 +49,7 @@ namespace GameDuMouse.GameMain.UI
             textureCache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
             assetManager = game.Services.GetService(typeof(AssetManager)) as AssetManager;
             mapService = game.Services.GetService(typeof(MapService)) as MapService;
+            gameFlow = game.Services.GetService(typeof(IGameFlow)) as IGameFlow;
             previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
@@ -182,8 +185,7 @@ namespace GameDuMouse.GameMain.UI
             else
                 mapService?.ClearExportedMap();
 
-            if (game is GameDuMouse.GameMain.Core.Game1 g1)
-                g1.SetChapterSelection(true);
+            gameFlow?.SetChapterSelection(true);
 
             stateManager.ChangeState(GameState.PreGame);
         }

@@ -5,6 +5,7 @@ using GameDuMouse.GameMain.Entities;
 using GameDuMouse.GameMain.UI;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Rendering;
+using GameDuMouse.GameMain.Managers;
 
 namespace GameDuMouse.GameMain.Fases
 {
@@ -112,8 +113,8 @@ namespace GameDuMouse.GameMain.Fases
 
                     // gravar progresso automaticamente assim que o queijo for pego
                     
-                    if (game is Game1 g1)
-                        g1.SaveProgress(true);
+                    var flow = game.Services.GetService(typeof(IGameFlow)) as IGameFlow;
+                    flow?.SaveProgress(true);
                 }
             }
             else if (!hasWon)

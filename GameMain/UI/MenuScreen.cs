@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Input;
+using GameDuMouse.GameMain.Managers;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -18,6 +19,7 @@ namespace GameDuMouse.GameMain.UI
         private KeyboardState previousKeyboardState;
         private MouseState previousMouseState;
         private InputManager inputManager;
+        private IGameFlow gameFlow;
         private Game game;
 
         private bool ignoreNextInput; // usado para não processar clique residual
@@ -26,6 +28,7 @@ namespace GameDuMouse.GameMain.UI
         {
             this.game = game;
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
+            gameFlow = game.Services.GetService(typeof(IGameFlow)) as IGameFlow;
 
             previousKeyboardState = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             previousMouseState = inputManager != null ? inputManager.Mouse : Mouse.GetState();
@@ -110,13 +113,11 @@ namespace GameDuMouse.GameMain.UI
             switch (options[selectedIndex])
             {
                 case "New Game":
-                    if (game is GameDuMouse.GameMain.Core.Game1 g1)
-                        g1.SetChapterSelection(false);
+                    gameFlow?.SetChapterSelection(false);
                     stateManager.ChangeState(GameState.PreGame);
                     break;
                 case "Load":
-                    if (game is GameDuMouse.GameMain.Core.Game1 g1Load)
-                        g1Load.SetChapterSelection(false);
+                    gameFlow?.SetChapterSelection(false);
                     stateManager.ChangeState(GameState.Load);
                     break;
                 case ChapterOption:

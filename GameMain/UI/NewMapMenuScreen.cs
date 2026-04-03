@@ -7,6 +7,7 @@ using GameDuMouse.GameMain.UI.Components;
 using GameDuMouse.GameMain.Input;
 using GameDuMouse.GameMain.Rendering;
 using GameDuMouse.GameMain.Services;
+using GameDuMouse.GameMain.Managers;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -25,6 +26,7 @@ namespace GameDuMouse.GameMain.UI
         private InputManager inputManager;
         private TextureCache textureCache;
         private MapService mapService;
+        private IGameFlow gameFlow;
         private bool isOptionsOpen;
         private int optionsTargetIndex = -1;
         private string statusMessage;
@@ -44,6 +46,7 @@ namespace GameDuMouse.GameMain.UI
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
             textureCache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
             mapService = game.Services.GetService(typeof(MapService)) as MapService;
+            gameFlow = game.Services.GetService(typeof(IGameFlow)) as IGameFlow;
             previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
@@ -151,8 +154,7 @@ namespace GameDuMouse.GameMain.UI
                 {
                     var selectedMap = maps[activatedIndex];
                     mapService?.SetCurrentMap(selectedMap);
-                    if (game is GameDuMouse.GameMain.Core.Game1 g1)
-                        g1.PrepareMapEditing(selectedMap);
+                    gameFlow?.PrepareMapEditing(selectedMap);
                     stateManager.ChangeState(GameState.Mapping);
                 }
             }

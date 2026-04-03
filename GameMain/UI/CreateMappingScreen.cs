@@ -7,6 +7,8 @@ using GameDuMouse.GameMain.Utils;
 using GameDuMouse.GameMain.Input;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.UI.Components;
+using GameDuMouse.GameMain.Rendering;
+using GameDuMouse.GameMain.Services;
 using System.Runtime.InteropServices;
 
 namespace GameDuMouse.GameMain.UI
@@ -46,8 +48,9 @@ namespace GameDuMouse.GameMain.UI
         private UiActionButton previewButton;
         private UiButton nextPartButton;
         private UiButton prevPartButton;
-        private Texture2D defaultBackgroundTexture;
         private Texture2D pixel;
+        private TextureCache textureCache;
+        private AssetManager assetManager;
 
         private List<Texture2D> obstacleTextures = new List<Texture2D>();
         private List<string> obstacleTextureNames = new List<string>();
@@ -119,6 +122,8 @@ namespace GameDuMouse.GameMain.UI
         {
             this.game = game;
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
+            textureCache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
+            assetManager = game.Services.GetService(typeof(AssetManager)) as AssetManager;
             previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             
@@ -132,17 +137,13 @@ namespace GameDuMouse.GameMain.UI
         {
             font = content.Load<SpriteFont>("Font/Arial");
             backButton = new BackButton(font, inputManager);
-            pixel = new Texture2D(game.GraphicsDevice, 1, 1);
-            pixel.SetData(new[] { Color.White });
+            pixel = textureCache != null ? textureCache.Pixel : pixel;
             
             screenWidth = game.GraphicsDevice.Viewport.Width;
             screenHeight = game.GraphicsDevice.Viewport.Height;
 
             // Initialize camera offset
             mapCameraOffsetX = 0;
-
-            // Create default background texture 
-            defaultBackgroundTexture = CreateSolidTexture(Color.CornflowerBlue, 500, screenHeight);
 
             // Try to load available obstacle textures; fall back to colored placeholders
             try
@@ -217,8 +218,8 @@ namespace GameDuMouse.GameMain.UI
                 foreach (var layer in data.BackgroundLayers)
                 {
                     Texture2D tex = null;
-                    if (!string.IsNullOrWhiteSpace(layer.ImagePath) && System.IO.File.Exists(layer.ImagePath))
-                        tex = Texture2D.FromFile(game.GraphicsDevice, layer.ImagePath);
+                    if (!string.IsNullOrWhiteSpace(layer.ImagePath))
+                        tex = assetManager != null ? assetManager.LoadTextureFromFile(layer.ImagePath) : null;
 
                     if (tex != null)
                     {
@@ -411,44 +412,29 @@ namespace GameDuMouse.GameMain.UI
             // Check if there's a pending image to load
             if (pendingImagePath != null)
             {
-                System.Console.WriteLine("Loading pending image: " + pendingImagePath);
-                try
+                var newBackground = assetManager != null ? assetManager.LoadTextureFromFile(pendingImagePath) : null;
+                if (newBackground != null)
                 {
-                    Texture2D newBackground = Texture2D.FromFile(game.GraphicsDevice, pendingImagePath);
-                    
                     if (!isCustomBackgroundLoaded)
                     {
-                        // First custom background: replace the default
-                        System.Console.WriteLine("Loading first custom background");
                         customBackground = newBackground;
                         backgroundLayers.Clear();
                         backgroundLayers.Add(new BackgroundLayer { texture = newBackground, startX = 0, sourcePath = pendingImagePath });
                         phaseWidth = newBackground.Width;
                         isCustomBackgroundLoaded = true;
-                        mapCameraOffsetX = 0; // Reset camera to start of image
+                        mapCameraOffsetX = 0;
                     }
                     else
                     {
-                        // Already have a custom background: add new layer at the end
-                        System.Console.WriteLine("Adding additional background layer");
                         int newBackgroundStartX = phaseWidth;
                         backgroundLayers.Add(new BackgroundLayer { texture = newBackground, startX = newBackgroundStartX, sourcePath = pendingImagePath });
                         phaseWidth += newBackground.Width;
                     }
-                    
-                    // Update colliders to match new total background width
+
                     UpdateCollidersForBackground();
-                    
-                    // Recalculate button position based on new total background width
                     UpdateImportButtonPosition();
-                    
-                    System.Console.WriteLine("Background loaded successfully, total width: " + phaseWidth);
                 }
-                catch (Exception ex)
-                {
-                    System.Console.WriteLine("Error loading image: " + ex.Message);
-                }
-                pendingImagePath = null; // Clear pending
+                pendingImagePath = null;
             }
 
             HandleScroll(mouse);
@@ -769,7 +755,6 @@ namespace GameDuMouse.GameMain.UI
 
             var toRemove = backgroundLayers[index];
             backgroundLayers.RemoveAt(index);
-            toRemove.texture?.Dispose();
 
             if (backgroundLayers.Count == 0)
             {
@@ -889,8 +874,10 @@ namespace GameDuMouse.GameMain.UI
             }
             else
             {
-                // Draw default background (600px wide)
-                spriteBatch.Draw(defaultBackgroundTexture, new Vector2(-mapCameraOffsetX, 0), Color.White);
+                // Draw default background (solid color)
+                int width = phaseWidth > 0 ? phaseWidth : RightWallX;
+                var rect = new Rectangle((int)(-mapCameraOffsetX), 0, width, screenHeight);
+                spriteBatch.Draw(pixel, rect, Color.CornflowerBlue);
             }
             
             spriteBatch.End();
@@ -905,8 +892,7 @@ namespace GameDuMouse.GameMain.UI
             
             // background panel
             var panelRect = new Rectangle(0, 0, panelWidth, screenHeight);
-            Texture2D panelBg = CreateSolidTexture(Color.DarkSlateGray * PanelAlpha);
-            spriteBatch.Draw(panelBg, panelRect, Color.White);
+            spriteBatch.Draw(pixel, panelRect, Color.DarkSlateGray * PanelAlpha);
 
             // Show dialog status
             if (isDialogOpen)
@@ -1071,8 +1057,7 @@ namespace GameDuMouse.GameMain.UI
             // Only draw if it's visible in the editing area
             if (buttonScreenRect.X >= panelWidth && buttonScreenRect.X < screenWidth)
             {
-                Texture2D buttonBg = CreateSolidTexture(Color.Gray);
-                spriteBatch.Draw(buttonBg, buttonScreenRect, Color.White);
+                spriteBatch.Draw(pixel, buttonScreenRect, Color.Gray);
                 spriteBatch.DrawString(font, "+", new Vector2(buttonScreenRect.X + buttonScreenRect.Width / 2 - 5, buttonScreenRect.Y + buttonScreenRect.Height / 2 - 8), Color.White);
             }
         }
@@ -1100,10 +1085,9 @@ namespace GameDuMouse.GameMain.UI
             int rightWallAdjust = customBackground != null ? 0 : RightWallAdjust;
             var rightWall = new Rectangle((int)(panelWidth + rightWallX - mapCameraOffsetX + rightWallAdjust ), 0, WallThickness, screenHeight - 75);
             var ceiling = new Rectangle((int)(panelWidth - mapCameraOffsetX), 0, rightWallX, CeilingHeight);
-            var colliderTex = CreateSolidTexture(Color.Red * ColliderAlpha);
-            spriteBatch.Draw(colliderTex, leftWall, Color.White);
-            spriteBatch.Draw(colliderTex, rightWall, Color.White);
-            spriteBatch.Draw(colliderTex, ceiling, Color.White);
+            spriteBatch.Draw(pixel, leftWall, Color.Red * ColliderAlpha);
+            spriteBatch.Draw(pixel, rightWall, Color.Red * ColliderAlpha);
+            spriteBatch.Draw(pixel, ceiling, Color.Red * ColliderAlpha);
 
             // Draw CreateMappingScreen's own ground colliders
             foreach (var gc in GroundColliders)
@@ -1113,7 +1097,7 @@ namespace GameDuMouse.GameMain.UI
                     gc.Y,
                     gc.Width,
                     gc.Height);
-                spriteBatch.Draw(colliderTex, r, Color.White);
+                spriteBatch.Draw(pixel, r, Color.Red * ColliderAlpha);
             }
         }
 
@@ -1126,9 +1110,8 @@ namespace GameDuMouse.GameMain.UI
                 var topLeftScreen = WorldToScreen(p.Bounds.Location);
                 var adjustedPos = new Vector2(topLeftScreen.X, topLeftScreen.Y);
                 spriteBatch.Draw(p.Texture, adjustedPos, Color.White);
-                var col = CreateSolidTexture(Color.Red * PlacedAlpha);
                 var adjustedBounds = new Rectangle(topLeftScreen.X, topLeftScreen.Y, p.Bounds.Width, p.Bounds.Height);
-                spriteBatch.Draw(col, adjustedBounds, Color.White);
+                spriteBatch.Draw(pixel, adjustedBounds, Color.Red * PlacedAlpha);
             }
         }
 
@@ -1165,8 +1148,8 @@ namespace GameDuMouse.GameMain.UI
                 ScreenHeight = screenHeight,
                 IsCustomBackgroundLoaded = isCustomBackgroundLoaded,
                 DefaultBackgroundColor = "CornflowerBlue",
-                DefaultBackgroundWidth = defaultBackgroundTexture?.Width ?? 0,
-                DefaultBackgroundHeight = defaultBackgroundTexture?.Height ?? 0,
+                DefaultBackgroundWidth = phaseWidth > 0 ? phaseWidth : RightWallX,
+                DefaultBackgroundHeight = screenHeight,
                 CreatedAtUtc = System.DateTime.UtcNow.ToString("o")
             };
 

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Input;
+using GameDuMouse.GameMain.Rendering;
 
 namespace GameDuMouse.GameMain.UI.Components
 {
@@ -22,6 +23,7 @@ namespace GameDuMouse.GameMain.UI.Components
         private MouseState previousMouse;
         private bool isOpen;
         private InputManager inputManager;
+        private TextureCache textureCache;
 
         public bool WasConfirmed { get; private set; }
         public bool WasCanceled { get; private set; }
@@ -31,6 +33,7 @@ namespace GameDuMouse.GameMain.UI.Components
         {
             this.game = game;
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
+            textureCache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
         }
 
         public string CurrentText => textBuffer.ToString();
@@ -39,8 +42,7 @@ namespace GameDuMouse.GameMain.UI.Components
 
         public void LoadContent(GraphicsDevice graphicsDevice)
         {
-            pixel = new Texture2D(graphicsDevice, 1, 1);
-            pixel.SetData(new[] { Color.White });
+            pixel = textureCache != null ? textureCache.Pixel : pixel;
         }
 
         public void Open()

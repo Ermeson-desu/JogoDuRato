@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Entities;
+using GameDuMouse.GameMain.Rendering;
+using GameDuMouse.GameMain.Services;
 
 namespace GameDuMouse.GameMain.Fases
 {
@@ -15,6 +17,7 @@ namespace GameDuMouse.GameMain.Fases
         private List<Texture2D> backgroundTextures = new List<Texture2D>();
         private Cheese cheese;
         private Rectangle burrowBounds;
+        private AssetManager assetManager;
 
         public bool IsReturning { get; private set; } = false;
         public bool HasWon { get; private set; } = false;
@@ -29,6 +32,7 @@ namespace GameDuMouse.GameMain.Fases
         {
             this.game = game;
             this.data = data;
+            assetManager = game.Services.GetService(typeof(AssetManager)) as AssetManager;
             BuildFromData();
         }
 
@@ -85,8 +89,8 @@ namespace GameDuMouse.GameMain.Fases
 
         public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
         {
-            pixel = new Texture2D(game.GraphicsDevice, 1, 1);
-            pixel.SetData(new[] { Color.White });
+            var cache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
+            pixel = cache != null ? cache.Pixel : pixel;
 
             backgroundTextures.Clear();
             if (data.IsCustomBackgroundLoaded && data.BackgroundLayers.Count > 0)
@@ -94,8 +98,8 @@ namespace GameDuMouse.GameMain.Fases
                 foreach (var layer in data.BackgroundLayers)
                 {
                     Texture2D tex = null;
-                    if (!string.IsNullOrWhiteSpace(layer.ImagePath) && File.Exists(layer.ImagePath))
-                        tex = Texture2D.FromFile(game.GraphicsDevice, layer.ImagePath);
+                    if (!string.IsNullOrWhiteSpace(layer.ImagePath))
+                        tex = assetManager != null ? assetManager.LoadTextureFromFile(layer.ImagePath) : null;
                     backgroundTextures.Add(tex);
                 }
             }

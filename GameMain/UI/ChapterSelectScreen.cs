@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Input;
+using GameDuMouse.GameMain.Rendering;
+using GameDuMouse.GameMain.Services;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -14,6 +16,8 @@ namespace GameDuMouse.GameMain.UI
         private Texture2D pixel;
         private BackButton backButton;
         private InputManager inputManager;
+        private TextureCache textureCache;
+        private AssetManager assetManager;
 
         private readonly List<ChapterEntry> chapters = new List<ChapterEntry>();
         private int selectedIndex;
@@ -38,6 +42,8 @@ namespace GameDuMouse.GameMain.UI
         {
             this.game = game;
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
+            textureCache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
+            assetManager = game.Services.GetService(typeof(AssetManager)) as AssetManager;
             previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
@@ -48,8 +54,7 @@ namespace GameDuMouse.GameMain.UI
             font = content.Load<SpriteFont>("Font/Arial");
             backButton = new BackButton(font, inputManager);
 
-            pixel = new Texture2D(game.GraphicsDevice, 1, 1);
-            pixel.SetData(new[] { Color.White });
+            pixel = textureCache != null ? textureCache.Pixel : pixel;
 
             ReloadChapters();
         }
@@ -228,14 +233,7 @@ namespace GameDuMouse.GameMain.UI
             if (string.IsNullOrWhiteSpace(path) || !System.IO.File.Exists(path))
                 return null;
 
-            try
-            {
-                return Texture2D.FromFile(game.GraphicsDevice, path);
-            }
-            catch
-            {
-                return null;
-            }
+            return assetManager != null ? assetManager.LoadTextureFromFile(path) : null;
         }
     }
 }

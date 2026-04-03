@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using GameDuMouse.GameMain.Entities;
 using GameDuMouse.GameMain.UI;
 using GameDuMouse.GameMain.Core;
+using GameDuMouse.GameMain.Rendering;
 
 namespace GameDuMouse.GameMain.Fases
 {
@@ -84,8 +85,8 @@ namespace GameDuMouse.GameMain.Fases
             burrow = new RatsBurrow(game, 100, 330, 80, 70);
             victoryScreen = new VictoryScreen(game);
 
-            debugTexture = new Texture2D(game.GraphicsDevice, 1, 1);
-            debugTexture.SetData(new[] { Color.White });
+            var cache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
+            debugTexture = cache != null ? cache.Pixel : debugTexture;
 
             // Inicializa listas para o Player
             GroundColliders = new List<Rectangle> { groundCollider, groundCollider2 };

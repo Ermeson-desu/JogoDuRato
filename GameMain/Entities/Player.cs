@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Animations;
 using GameDuMouse.GameMain.Input;
+using GameDuMouse.GameMain.Rendering;
 using GameDuMouse.GameMain.Fases;
 
 namespace GameDuMouse.GameMain.Entities
@@ -74,8 +75,8 @@ namespace GameDuMouse.GameMain.Entities
 
         public void LoadContent(ContentManager content)
         {
-            debugTexture = new Texture2D(game.GraphicsDevice, 1, 1);
-            debugTexture.SetData(new[] { Color.White });
+            var cache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
+            debugTexture = cache != null ? cache.Pixel : debugTexture;
 
             idleAnime = new Animation(game, 170f);
             idleAnime.AddSprite("Idle/Idle01", "Idle/Idle02", "Idle/Idle03",

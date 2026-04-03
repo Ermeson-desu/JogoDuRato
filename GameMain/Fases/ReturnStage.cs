@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using GameDuMouse.GameMain.Entities;
+using GameDuMouse.GameMain.Rendering;
 
 namespace GameDuMouse.GameMain.Fases
 {
@@ -39,8 +40,8 @@ namespace GameDuMouse.GameMain.Fases
             // queijo no final
             cheese = new Cheese(game, 2800, 350, 50, 50);
 
-            debugTexture = new Texture2D(game.GraphicsDevice, 1, 1);
-            debugTexture.SetData(new[] { Color.White });
+            var cache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
+            debugTexture = cache != null ? cache.Pixel : debugTexture;
         }
 
         public void Update(Player player)

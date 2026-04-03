@@ -5,6 +5,8 @@ using GameDuMouse.GameMain.Entities;
 using GameDuMouse.GameMain.Fases;
 using GameDuMouse.GameMain.UI;
 using GameDuMouse.GameMain.Input;
+using GameDuMouse.GameMain.Rendering;
+using GameDuMouse.GameMain.Services;
 
 namespace GameDuMouse.GameMain.Core
 {
@@ -32,6 +34,8 @@ namespace GameDuMouse.GameMain.Core
         private CreateMappingScreen mappingScreen;
         private MapTestScreen mapTestScreen;
         private InputManager inputManager;
+        private TextureCache textureCache;
+        private AssetManager assetManager;
 
         // player/name state used for saving mid–game
         public string CurrentPlayerName { get; private set; }
@@ -62,6 +66,12 @@ namespace GameDuMouse.GameMain.Core
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             Services.AddService(typeof(SpriteBatch), spriteBatch);
+
+            textureCache = new TextureCache(GraphicsDevice);
+            Services.AddService(typeof(TextureCache), textureCache);
+
+            assetManager = new AssetManager(Content, GraphicsDevice);
+            Services.AddService(typeof(AssetManager), assetManager);
 
             // Menu
             menuScreen = new MenuScreen(this);
@@ -408,7 +418,11 @@ namespace GameDuMouse.GameMain.Core
         protected override void Dispose(bool disposing)
         {
             if (disposing)
+            {
                 inputManager?.Dispose();
+                textureCache?.Dispose();
+                assetManager?.Dispose();
+            }
             base.Dispose(disposing);
         }
     }

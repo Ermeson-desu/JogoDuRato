@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using GameDuMouse.GameMain.Rendering;
 
 namespace GameDuMouse.GameMain.Entities
 {
@@ -36,8 +37,8 @@ namespace GameDuMouse.GameMain.Entities
             this.height = height;
             this.shape = Enum.TryParse(shapeStr, true, out ObstacleShape parsedShape) ? parsedShape : ObstacleShape.Square;
 
-            texture = new Texture2D(game.GraphicsDevice, 1, 1);
-            texture.SetData(new[] { Color.Red });
+            var cache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
+            texture = cache != null ? cache.Pixel : texture;
 
             if (shape == ObstacleShape.Triangle)
             {
@@ -53,6 +54,8 @@ namespace GameDuMouse.GameMain.Entities
 
         public void Draw(SpriteBatch spriteBatch)
         {
+            if (texture == null)
+                return;
             Color color = shape switch
             {
                 ObstacleShape.Circle => Color.Red * 0.6f,

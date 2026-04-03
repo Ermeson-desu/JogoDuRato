@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.UI.Components;
 using GameDuMouse.GameMain.Input;
+using GameDuMouse.GameMain.Rendering;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -21,6 +22,7 @@ namespace GameDuMouse.GameMain.UI
         private Texture2D pixel;
         private List<string> maps = new List<string>();
         private InputManager inputManager;
+        private TextureCache textureCache;
         private bool isOptionsOpen;
         private int optionsTargetIndex = -1;
         private string statusMessage;
@@ -37,6 +39,7 @@ namespace GameDuMouse.GameMain.UI
         {
             this.game = game;
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
+            textureCache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
             previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             ignoreNextInput = true;
@@ -47,8 +50,7 @@ namespace GameDuMouse.GameMain.UI
             font = content.Load<SpriteFont>("Font/Arial");
             backButton = new BackButton(font, inputManager);
 
-            pixel = new Texture2D(game.GraphicsDevice, 1, 1);
-            pixel.SetData(new[] { Color.White });
+            pixel = textureCache != null ? textureCache.Pixel : pixel;
 
             createButton = new UiButton(new Rectangle(300, 120, 240, 40), "Create New Map");
             listPosition = new Vector2(300, 200);

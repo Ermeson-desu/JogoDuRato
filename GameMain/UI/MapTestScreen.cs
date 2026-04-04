@@ -72,6 +72,8 @@ namespace GameDuMouse.GameMain.UI
 
             if (data.PhaseWidth > 0)
                 camera.MaxPosition = new Vector2(data.PhaseWidth, 290);
+
+            camera.ResetVerticalLock(player.GetPosition().Y);
         }
 
         public void Update(StateManager stateManager, GameTime gameTime)

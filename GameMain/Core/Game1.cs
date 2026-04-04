@@ -39,6 +39,7 @@ namespace GameDuMouse.GameMain.Core
         private AssetManager assetManager;
         private MapService mapService;
         private SaveService saveService;
+        private EditorService editorService;
         private GameManager gameManager;
 
         // player/name state used for saving mid–game
@@ -67,6 +68,8 @@ namespace GameDuMouse.GameMain.Core
             Services.AddService(typeof(MapService), mapService);
             saveService = new SaveService();
             Services.AddService(typeof(SaveService), saveService);
+            editorService = new EditorService();
+            Services.AddService(typeof(EditorService), editorService);
             gameManager = new GameManager(this);
             Services.AddService(typeof(IGameFlow), gameManager);
             base.Initialize();
@@ -146,6 +149,8 @@ namespace GameDuMouse.GameMain.Core
                     chapterSelectScreen?.ResetInput();
                 if (stateManager.CurrentState == GameState.PreGame)
                     preGameScreen.ResetInput();
+                if (stateManager.CurrentState == GameState.Playing && camera != null && player1 != null)
+                    camera.ResetVerticalLock(player1.GetPosition().Y);
 
                 previousGameState = stateManager.CurrentState;
             }
@@ -434,6 +439,7 @@ namespace GameDuMouse.GameMain.Core
                 assetManager?.Dispose();
                 mapService?.Dispose();
                 saveService?.Dispose();
+                editorService?.Dispose();
             }
             base.Dispose(disposing);
         }

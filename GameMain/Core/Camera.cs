@@ -8,19 +8,50 @@ namespace GameDuMouse.GameMain.Core
     {
         public Matrix Transform { get; set; }
         public Vector2 Position { get; set; }
-        
+
         public Vector2 MaxPosition { get; set; } = new Vector2(5200, 290);
         private Vector2 targetPos;
         private const float LerpSpeed = 0.15f; 
+        private bool hasLockedY;
+        private float lockedY;
+
+        public bool LockVertical { get; set; } = true;
+
+        public void ResetVerticalLock(float? targetY = null)
+        {
+            if (targetY.HasValue)
+            {
+                lockedY = Math.Max(0, Math.Min(targetY.Value, MaxPosition.Y));
+                hasLockedY = true;
+                Position = new Vector2(Position.X, lockedY);
+                return;
+            }
+
+            hasLockedY = false;
+        }
         
         public void Follow(Vector2 targetPosition)
         {
-            targetPos = new Vector2(
-                Math.Max(0, Math.Min(targetPosition.X, MaxPosition.X)),
-                Math.Max(0, Math.Min(targetPosition.Y, MaxPosition.Y))
-            );
-            
-            Position = Vector2.Lerp(Position, targetPos, LerpSpeed);
+            float clampedX = Math.Max(0, Math.Min(targetPosition.X, MaxPosition.X));
+            float clampedY = Math.Max(0, Math.Min(targetPosition.Y, MaxPosition.Y));
+
+            if (LockVertical)
+            {
+                if (!hasLockedY)
+                {
+                    lockedY = clampedY;
+                    hasLockedY = true;
+                }
+
+                targetPos = new Vector2(clampedX, lockedY);
+                float nextX = MathHelper.Lerp(Position.X, targetPos.X, LerpSpeed);
+                Position = new Vector2(nextX, lockedY);
+            }
+            else
+            {
+                targetPos = new Vector2(clampedX, clampedY);
+                Position = Vector2.Lerp(Position, targetPos, LerpSpeed);
+            }
             
             Transform = Matrix.CreateTranslation(
                 new Vector3(-Position.X + 300, -Position.Y + 300, 0)

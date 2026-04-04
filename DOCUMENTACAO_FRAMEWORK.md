@@ -71,6 +71,7 @@ A arquitetura foi refatorada para:
   - `AssetManager`
   - `MapService`
   - `SaveService`
+  - `EditorService`
   - `IGameFlow` (via `GameManager`)
 - Instancia e carrega todas as telas
 - Controla o fluxo de estados via `StateManager`
@@ -160,6 +161,13 @@ Arquivo: `GameMain/Services/SaveService.cs`
 - `RefreshAsync()`
 - `GetSavesSnapshot()`
 - `Save()`
+
+### 7.6 EditorService
+Arquivo: `GameMain/Services/EditorService.cs`
+
+- Dialogo de selecao de imagem (assinc)
+- Importa imagens para `Content/Imported` (sem travar o loop)
+- Remove arquivos importados nao utilizados
 
 ---
 
@@ -257,6 +265,7 @@ Fluxo de importacao:
 Remocao:
 - Ao apagar o background, o arquivo em `Content/Imported` e removido
   se nao houver outro layer usando o mesmo arquivo.
+  - A remocao usa `EditorService` em background.
 
 ---
 
@@ -275,9 +284,12 @@ Estrutura:
 - `ObstaclesReturn[]`
 - `Objects[]`
 
-Enums:
+Enums (tipados no JSON como string):
 - `ColliderType` = Ground, Platform, Wall, Ceiling
 - `ObjectType` = Spawn
+
+Observacao:
+- Valores desconhecidos sao mapeados para `Unknown` no carregamento.
 
 ### 12.2 saves.json
 Arquivo: `Content/saves.json`

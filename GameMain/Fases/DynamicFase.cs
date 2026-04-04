@@ -47,12 +47,18 @@ namespace GameDuMouse.GameMain.Fases
             foreach (var collider in data.Colliders)
             {
                 var r = new Rectangle(collider.Bounds.X, collider.Bounds.Y, collider.Bounds.Width, collider.Bounds.Height);
-                if (collider.Type == "Ground")
-                    GroundColliders.Add(r);
-                else if (collider.Type == "Platform")
-                    Platforms.Add(r);
-                else if (collider.Type == "Wall")
-                    WallColliders.Add(r);
+                switch (collider.Type)
+                {
+                    case ColliderType.Ground:
+                        GroundColliders.Add(r);
+                        break;
+                    case ColliderType.Platform:
+                        Platforms.Add(r);
+                        break;
+                    case ColliderType.Wall:
+                        WallColliders.Add(r);
+                        break;
+                }
             }
 
             foreach (var obstacle in data.Obstacles)
@@ -169,7 +175,7 @@ namespace GameDuMouse.GameMain.Fases
             {
                 foreach (var obj in data.Objects)
                 {
-                    if (obj != null && obj.Name == "Spawn")
+                    if (obj != null && obj.Name == ObjectType.Spawn)
                         return new Vector2(obj.Position.X, obj.Position.Y);
                 }
             }

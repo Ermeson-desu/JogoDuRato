@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using GameDuMouse.GameMain.Utils;
 
 namespace GameDuMouse.GameMain.Core
 {
@@ -33,7 +35,8 @@ namespace GameDuMouse.GameMain.Core
     public class ColliderData
     {
         public string Name { get; set; }
-        public string Type { get; set; }
+        [JsonConverter(typeof(SafeEnumConverter<ColliderType>))]
+        public ColliderType Type { get; set; }
         public RectangleData Bounds { get; set; }
     }
 
@@ -47,7 +50,8 @@ namespace GameDuMouse.GameMain.Core
 
     public class ObjectData
     {
-        public string Name { get; set; }
+        [JsonConverter(typeof(SafeEnumConverter<ObjectType>))]
+        public ObjectType Name { get; set; }
         public Vector2Data Position { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
@@ -65,5 +69,20 @@ namespace GameDuMouse.GameMain.Core
     {
         public int X { get; set; }
         public int Y { get; set; }
+    }
+
+    public enum ColliderType
+    {
+        Unknown = 0,
+        Ground,
+        Platform,
+        Wall,
+        Ceiling
+    }
+
+    public enum ObjectType
+    {
+        Unknown = 0,
+        Spawn
     }
 }

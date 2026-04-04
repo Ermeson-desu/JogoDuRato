@@ -52,6 +52,7 @@ namespace GameDuMouse.GameMain.UI
         private TextureCache textureCache;
         private AssetManager assetManager;
         private MapService mapService;
+        private EditorService editorService;
 
         private List<Texture2D> obstacleTextures = new List<Texture2D>();
         private List<string> obstacleTextureNames = new List<string>();
@@ -84,7 +85,6 @@ namespace GameDuMouse.GameMain.UI
         private Texture2D customBackground;
         private int phaseWidth = 590; // default
         private string pendingImagePath = null;
-        private bool isDialogOpen = false;
         private bool isCustomBackgroundLoaded = false; // Track if we've loaded a custom background
         private string saveStatusMessage = "";
         private System.DateTime saveStatusExpiresAtUtc = System.DateTime.MinValue;
@@ -126,6 +126,7 @@ namespace GameDuMouse.GameMain.UI
             textureCache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
             assetManager = game.Services.GetService(typeof(AssetManager)) as AssetManager;
             mapService = game.Services.GetService(typeof(MapService)) as MapService;
+            editorService = game.Services.GetService(typeof(EditorService)) as EditorService;
             previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             
@@ -259,7 +260,7 @@ namespace GameDuMouse.GameMain.UI
             {
                 foreach (var collider in data.Colliders)
                 {
-                    if (collider?.Type == "Ground")
+                    if (collider != null && collider.Type == ColliderType.Ground)
                     {
                         var b = collider.Bounds;
                         GroundColliders.Add(new Rectangle(b.X, b.Y, b.Width, b.Height));
@@ -381,6 +382,15 @@ namespace GameDuMouse.GameMain.UI
             var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
 
+            if (editorService != null)
+            {
+                if (editorService.TryConsumePickedImage(out var pickedPath))
+                    editorService.BeginImportImage(pickedPath);
+
+                if (editorService.TryConsumeImportedImage(out var importedPath))
+                    pendingImagePath = importedPath;
+            }
+
             if (!string.IsNullOrWhiteSpace(saveStatusMessage) && System.DateTime.UtcNow > saveStatusExpiresAtUtc)
                 saveStatusMessage = "";
 
@@ -404,11 +414,9 @@ namespace GameDuMouse.GameMain.UI
             // Check import button click
             var buttonScreenPos = WorldToScreen(importButtonWorldPos);
             var importButtonScreenRect = new Rectangle(buttonScreenPos.X, buttonScreenPos.Y, importButtonSize, importButtonSize);
-            if (mouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && previousMouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released && importButtonScreenRect.Contains(mouse.Position) && !isDialogOpen)
+            if (mouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && previousMouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released && importButtonScreenRect.Contains(mouse.Position) && editorService != null && !editorService.IsDialogOpen)
             {
-                System.Console.WriteLine("Import button clicked!");
-                // launch external dialog via PowerShell
-                OpenFileDialogAsync();
+                editorService.BeginPickImage();
             }
 
             // Check if there's a pending image to load
@@ -758,6 +766,19 @@ namespace GameDuMouse.GameMain.UI
             var toRemove = backgroundLayers[index];
             backgroundLayers.RemoveAt(index);
 
+            if (editorService != null && !string.IsNullOrWhiteSpace(toRemove.sourcePath))
+            {
+                var remainingPaths = new List<string>();
+                for (int i = 0; i < backgroundLayers.Count; i++)
+                {
+                    var path = backgroundLayers[i].sourcePath;
+                    if (!string.IsNullOrWhiteSpace(path))
+                        remainingPaths.Add(path);
+                }
+
+                editorService.BeginDeleteImportedIfUnused(toRemove.sourcePath, remainingPaths);
+            }
+
             if (backgroundLayers.Count == 0)
             {
                 isCustomBackgroundLoaded = false;
@@ -793,42 +814,6 @@ namespace GameDuMouse.GameMain.UI
         private bool IsKeyPressed(Microsoft.Xna.Framework.Input.Keys key, KeyboardState current)
         {
             return current.IsKeyDown(key) && !previousKeyboard.IsKeyDown(key);
-        }
-
-        private void OpenFileDialogAsync()
-        {
-            System.Console.WriteLine("Launching PowerShell file dialog...");
-            isDialogOpen = true;
-
-            // build PowerShell command script
-            string psScript = @"Add-Type -AssemblyName System.Windows.Forms; 
-                                $ofd = New-Object System.Windows.Forms.OpenFileDialog; 
-                                $ofd.Filter = 'Image files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg'; 
-                                if($ofd.ShowDialog() -eq 'OK'){ Write-Output $ofd.FileName }";
-
-            var psi = new System.Diagnostics.ProcessStartInfo("powershell", "-NoProfile -Command " + psScript)
-            {
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            var proc = new System.Diagnostics.Process { StartInfo = psi, EnableRaisingEvents = true };
-            proc.OutputDataReceived += (s, e) =>
-            {
-                if (!string.IsNullOrWhiteSpace(e.Data))
-                {
-                    pendingImagePath = e.Data.Trim();
-                    System.Console.WriteLine("PowerShell returned path: " + pendingImagePath);
-                }
-            };
-            proc.Exited += (s, e) =>
-            {
-                isDialogOpen = false;
-            };
-
-            proc.Start();
-            proc.BeginOutputReadLine();
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -897,7 +882,7 @@ namespace GameDuMouse.GameMain.UI
             spriteBatch.Draw(pixel, panelRect, Color.DarkSlateGray * PanelAlpha);
 
             // Show dialog status
-            if (isDialogOpen)
+            if (editorService != null && editorService.IsDialogOpen)
             {
                 Vector2 statusPos = new Vector2(Margin, screenHeight / 2 + Margin);
                 spriteBatch.DrawString(font, "Opening file dialog...", statusPos, Color.Yellow);
@@ -1172,19 +1157,19 @@ namespace GameDuMouse.GameMain.UI
             data.Colliders.Add(new ColliderData
             {
                 Name = "LeftWall",
-                Type = "Wall",
+                Type = ColliderType.Wall,
                 Bounds = new RectangleData { X = 0, Y = 0, Width = WallThickness, Height = screenHeight - 75 }
             });
             data.Colliders.Add(new ColliderData
             {
                 Name = "RightWall",
-                Type = "Wall",
+                Type = ColliderType.Wall,
                 Bounds = new RectangleData { X = rightWallX, Y = 0, Width = WallThickness, Height = screenHeight - 75 }
             });
             data.Colliders.Add(new ColliderData
             {
                 Name = "Ceiling",
-                Type = "Ceiling",
+                Type = ColliderType.Ceiling,
                 Bounds = new RectangleData { X = 0, Y = 0, Width = rightWallX, Height = CeilingHeight }
             });
 
@@ -1194,7 +1179,7 @@ namespace GameDuMouse.GameMain.UI
                 data.Colliders.Add(new ColliderData
                 {
                     Name = $"Ground_{i}",
-                    Type = "Ground",
+                    Type = ColliderType.Ground,
                     Bounds = new RectangleData { X = gc.X, Y = gc.Y, Width = gc.Width, Height = gc.Height }
                 });
             }

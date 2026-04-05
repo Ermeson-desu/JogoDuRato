@@ -8,8 +8,9 @@ namespace GameDuMouse.GameMain.Core
     {
         public Matrix Transform { get; set; }
         public Vector2 Position { get; set; }
-
+        
         public Vector2 MaxPosition { get; set; } = new Vector2(5200, 290);
+        public Vector2 ViewOffset { get; set; } = new Vector2(300f, 300f);
         private Vector2 targetPos;
         private const float LerpSpeed = 0.15f; 
         private bool hasLockedY;
@@ -54,7 +55,7 @@ namespace GameDuMouse.GameMain.Core
             }
             
             Transform = Matrix.CreateTranslation(
-                new Vector3(-Position.X + 300, -Position.Y + 300, 0)
+                new Vector3(-Position.X + ViewOffset.X, -Position.Y + ViewOffset.Y, 0)
             );
         }
     }

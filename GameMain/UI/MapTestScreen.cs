@@ -5,6 +5,7 @@ using GameDuMouse.GameMain.Entities;
 using GameDuMouse.GameMain.Fases;
 using GameDuMouse.GameMain.Input;
 using GameDuMouse.GameMain.Services;
+using GameDuMouse.GameMain.Rendering;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -98,7 +99,9 @@ namespace GameDuMouse.GameMain.UI
                 return;
             }
 
-            levelManager?.Draw(spriteBatch, player);
+            var viewport = game.GraphicsDevice != null ? game.GraphicsDevice.Viewport : default;
+            var renderContext = RenderContext.FromCamera(camera, viewport);
+            levelManager?.Draw(spriteBatch, player, renderContext);
             backButton?.Draw(spriteBatch);
         }
     }

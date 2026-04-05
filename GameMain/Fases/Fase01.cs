@@ -42,7 +42,8 @@ namespace GameDuMouse.GameMain.Fases
                 return new Vector2(cheese.Bounds.X, cheese.Bounds.Y);
 
             // posição inicial padrão (igual ao ResetPlayer)
-            return new Vector2(210, 300);
+            int screenHeight = game.GraphicsDevice != null ? game.GraphicsDevice.Viewport.Height : 0;
+            return new Vector2(210, LayoutConfig.GetPlayerSpawnY(screenHeight));
         }
 
         // Propriedades públicas para o Player acessar
@@ -63,27 +64,35 @@ namespace GameDuMouse.GameMain.Fases
 
         private void Initialize()
         {
-            groundCollider = new Rectangle(0, 400, 2600, 5);
-            groundCollider2 = new Rectangle(3000, 400, 2700, 5);
-            saltLid = new Rectangle(1155, 291, 95, 5);
-            upStove = new Rectangle(1310, 173, 95, 5);
-            platform1 = new Rectangle(3300, 291, 190, 5);
-            platform2 = new Rectangle(3650, 240, 190, 5);
+            int screenHeight = game.GraphicsDevice != null ? game.GraphicsDevice.Viewport.Height : 0;
+            int groundY = LayoutConfig.GetGroundY(screenHeight);
+            int lowObstacleY = groundY - 70;
+            int platformY = groundY - 109;
+            int upperPlatformY = groundY - 160;
+            int stoveY = groundY - 227;
+            int panY = groundY - 150;
 
-            hotPan = new Obstacle(game, 1330, 250, 200, 150, "square");
-            venom1 = new Obstacle(game, 3425, 330, 80, 70, "triangle");
-            venom2 = new Obstacle(game, 3510, 330, 80, 70, "triangle");
-            venom3 = new Obstacle(game, 3600, 330, 80, 70, "triangle");
-            venom4 = new Obstacle(game, 3930, 330, 80, 70, "triangle");
-            venom5 = new Obstacle(game, 4565, 330, 80, 70, "triangle");
-            venom6 = new Obstacle(game, 4715, 330, 80, 70, "triangle");
+            groundCollider = new Rectangle(0, groundY, 2600, LayoutConfig.GroundThickness);
+            groundCollider2 = new Rectangle(3000, groundY, 2700, LayoutConfig.GroundThickness);
+            saltLid = new Rectangle(1155, platformY, 95, LayoutConfig.GroundThickness);
+            upStove = new Rectangle(1310, stoveY, 95, LayoutConfig.GroundThickness);
+            platform1 = new Rectangle(3300, platformY, 190, LayoutConfig.GroundThickness);
+            platform2 = new Rectangle(3650, upperPlatformY, 190, LayoutConfig.GroundThickness);
 
-            cheese = new Cheese(game, 5500, 330, 80, 70);
+            hotPan = new Obstacle(game, 1330, panY, 200, 150, "square");
+            venom1 = new Obstacle(game, 3425, lowObstacleY, 80, 70, "triangle");
+            venom2 = new Obstacle(game, 3510, lowObstacleY, 80, 70, "triangle");
+            venom3 = new Obstacle(game, 3600, lowObstacleY, 80, 70, "triangle");
+            venom4 = new Obstacle(game, 3930, lowObstacleY, 80, 70, "triangle");
+            venom5 = new Obstacle(game, 4565, lowObstacleY, 80, 70, "triangle");
+            venom6 = new Obstacle(game, 4715, lowObstacleY, 80, 70, "triangle");
+
+            cheese = new Cheese(game, 5500, lowObstacleY, 80, 70);
 
             returnStage = new ReturnStage(game);
 
             // Toca do rato (aparece só no retorno)
-            burrow = new RatsBurrow(game, 100, 330, 80, 70);
+            burrow = new RatsBurrow(game, 100, lowObstacleY, 80, 70);
             victoryScreen = new VictoryScreen(game);
 
             var cache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
@@ -129,32 +138,35 @@ namespace GameDuMouse.GameMain.Fases
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch, Player player)
+        public void Draw(SpriteBatch spriteBatch, Player player, RenderContext renderContext)
         {
             if (!IsReturning)
             {
-                spriteBatch.Draw(debugTexture, groundCollider, Color.Red * 0.4f);
-                spriteBatch.Draw(debugTexture, groundCollider2, Color.Red * 0.4f);
-                spriteBatch.Draw(debugTexture, saltLid, Color.Blue * 0.4f);
-                spriteBatch.Draw(debugTexture, upStove, Color.Blue * 0.4f);
-                spriteBatch.Draw(debugTexture, platform1, Color.Blue * 0.4f);
-                spriteBatch.Draw(debugTexture, platform2, Color.Blue * 0.4f);
+                if (debugTexture != null)
+                {
+                    DrawRect(debugTexture, spriteBatch, renderContext, groundCollider, Color.Red * 0.4f);
+                    DrawRect(debugTexture, spriteBatch, renderContext, groundCollider2, Color.Red * 0.4f);
+                    DrawRect(debugTexture, spriteBatch, renderContext, saltLid, Color.Blue * 0.4f);
+                    DrawRect(debugTexture, spriteBatch, renderContext, upStove, Color.Blue * 0.4f);
+                    DrawRect(debugTexture, spriteBatch, renderContext, platform1, Color.Blue * 0.4f);
+                    DrawRect(debugTexture, spriteBatch, renderContext, platform2, Color.Blue * 0.4f);
+                }
 
-                hotPan.Draw(spriteBatch);
-                venom1.Draw(spriteBatch);
-                venom2.Draw(spriteBatch);
-                venom3.Draw(spriteBatch);
-                venom4.Draw(spriteBatch);
-                venom5.Draw(spriteBatch);
-                venom6.Draw(spriteBatch);
+                DrawObstacle(spriteBatch, renderContext, hotPan);
+                DrawObstacle(spriteBatch, renderContext, venom1);
+                DrawObstacle(spriteBatch, renderContext, venom2);
+                DrawObstacle(spriteBatch, renderContext, venom3);
+                DrawObstacle(spriteBatch, renderContext, venom4);
+                DrawObstacle(spriteBatch, renderContext, venom5);
+                DrawObstacle(spriteBatch, renderContext, venom6);
 
-                cheese.Draw(spriteBatch);
+                DrawCheese(spriteBatch, renderContext, cheese);
                 player.Draw(game.Services.GetService<GameTime>());
             }
             else if (!hasWon)
             {
-                returnStage.Draw(spriteBatch);
-                burrow.Draw(spriteBatch);
+                returnStage.Draw(spriteBatch, renderContext);
+                DrawBurrow(spriteBatch, renderContext, burrow);
                 player.Draw(game.Services.GetService<GameTime>());
             }
             else
@@ -165,5 +177,29 @@ namespace GameDuMouse.GameMain.Fases
         }
         
         public bool HasWon => hasWon;
+
+        private static void DrawRect(Texture2D texture, SpriteBatch spriteBatch, RenderContext renderContext, Rectangle rect, Color color)
+        {
+            if (renderContext.IsVisible(rect))
+                spriteBatch.Draw(texture, rect, color);
+        }
+
+        private static void DrawObstacle(SpriteBatch spriteBatch, RenderContext renderContext, Obstacle obstacle)
+        {
+            if (obstacle != null && renderContext.IsVisible(obstacle.Bounds))
+                obstacle.Draw(spriteBatch);
+        }
+
+        private static void DrawCheese(SpriteBatch spriteBatch, RenderContext renderContext, Cheese targetCheese)
+        {
+            if (targetCheese != null && renderContext.IsVisible(targetCheese.Bounds))
+                targetCheese.Draw(spriteBatch);
+        }
+
+        private static void DrawBurrow(SpriteBatch spriteBatch, RenderContext renderContext, RatsBurrow targetBurrow)
+        {
+            if (targetBurrow != null && renderContext.IsVisible(targetBurrow.Bounds))
+                targetBurrow.Draw(spriteBatch);
+        }
     }
 }

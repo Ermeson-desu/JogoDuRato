@@ -124,27 +124,27 @@ namespace GameDuMouse.GameMain.Fases
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch, Player player)
+        public void Draw(SpriteBatch spriteBatch, Player player, RenderContext renderContext)
         {
-            DrawBackground(spriteBatch);
+            DrawBackground(spriteBatch, renderContext);
 
             if (!IsReturning)
             {
                 foreach (var obstacle in Obstacles1)
-                    obstacle.Draw(spriteBatch);
-                cheese?.Draw(spriteBatch);
+                    DrawObstacle(spriteBatch, renderContext, obstacle);
+                DrawCheese(spriteBatch, renderContext, cheese);
             }
             else
             {
                 foreach (var obstacle in Obstacles2)
-                    obstacle.Draw(spriteBatch);
-                spriteBatch.Draw(pixel, burrowBounds, Color.SandyBrown * 0.6f);
+                    DrawObstacle(spriteBatch, renderContext, obstacle);
+                DrawBurrow(spriteBatch, renderContext, burrowBounds);
             }
 
             player.Draw(game.Services.GetService<GameTime>());
         }
 
-        private void DrawBackground(SpriteBatch spriteBatch)
+        private void DrawBackground(SpriteBatch spriteBatch, RenderContext renderContext)
         {
             if (data.IsCustomBackgroundLoaded && data.BackgroundLayers.Count > 0)
             {
@@ -153,14 +153,20 @@ namespace GameDuMouse.GameMain.Fases
                     var layer = data.BackgroundLayers[i];
                     var tex = i < backgroundTextures.Count ? backgroundTextures[i] : null;
                     if (tex != null)
-                        spriteBatch.Draw(tex, new Vector2(layer.StartX, 0), Color.White);
+                    {
+                        var bounds = new Rectangle((int)layer.StartX, 0, tex.Width, tex.Height);
+                        if (renderContext.IsVisible(bounds))
+                            spriteBatch.Draw(tex, new Vector2(layer.StartX, 0), Color.White);
+                    }
                 }
             }
             else
             {
                 int width = data.PhaseWidth > 0 ? data.PhaseWidth : 600;
                 int height = data.ScreenHeight > 0 ? data.ScreenHeight : 480;
-                spriteBatch.Draw(pixel, new Rectangle(0, 0, width, height), Color.CornflowerBlue);
+                var bounds = new Rectangle(0, 0, width, height);
+                if (renderContext.IsVisible(bounds))
+                    spriteBatch.Draw(pixel, bounds, Color.CornflowerBlue);
             }
         }
 
@@ -181,6 +187,24 @@ namespace GameDuMouse.GameMain.Fases
             }
 
             return new Vector2(210, 300);
+        }
+
+        private static void DrawObstacle(SpriteBatch spriteBatch, RenderContext renderContext, Obstacle obstacle)
+        {
+            if (obstacle != null && renderContext.IsVisible(obstacle.Bounds))
+                obstacle.Draw(spriteBatch);
+        }
+
+        private static void DrawCheese(SpriteBatch spriteBatch, RenderContext renderContext, Cheese targetCheese)
+        {
+            if (targetCheese != null && renderContext.IsVisible(targetCheese.Bounds))
+                targetCheese.Draw(spriteBatch);
+        }
+
+        private void DrawBurrow(SpriteBatch spriteBatch, RenderContext renderContext, Rectangle burrow)
+        {
+            if (pixel != null && renderContext.IsVisible(burrow))
+                spriteBatch.Draw(pixel, burrow, Color.SandyBrown * 0.6f);
         }
     }
 }

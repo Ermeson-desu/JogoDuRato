@@ -55,9 +55,12 @@ A arquitetura foi refatorada para:
 - `GameMain/Input`    — Input centralizado
 - `GameMain/Managers` — Fluxo do jogo (IGameFlow)
 - `GameMain/Services` — Assets e IO (cacheados)
-- `GameMain/Rendering`— Cache de texturas
+- `GameMain/Rendering`— Cache de texturas e contexto de render/culling
 - `GameMain/Utils`    — Utilitarios gerais
 - `Content`           — Assets e dados (Content Pipeline + JSON)
+
+Arquivo chave:
+- `GameMain/Core/LayoutConfig.cs` — Config central de layout/resolucao (ground, offsets, editor)
 
 ---
 
@@ -84,8 +87,8 @@ A arquitetura foi refatorada para:
 ## 5) Ciclo de Jogo (Loop)
 
 - `Update(GameTime)` sempre usa `deltaTime` (TotalSeconds)
-- `Draw(GameTime)` usa `RenderContext` para culling simples
-- `GameTime` e passado explicitamente para `IFase.Draw`
+- `Draw(GameTime)` cria `RenderContext` para culling simples
+- `RenderContext` e passado explicitamente para `IFase.Draw`
 
 ---
 
@@ -134,7 +137,17 @@ Regras:
 - Nunca criar `Texture2D` dentro de `Draw()`.
 - Use `Pixel` + tint para retangulos.
 
-### 7.3 AssetManager
+### 7.3 RenderContext
+Arquivo: `GameMain/Rendering/RenderContext.cs`
+
+- Calcula bounds visiveis a partir da camera e viewport
+- Expande culling para reduzir draw calls fora da tela
+
+Uso:
+- Criar no `Draw` (ex: `RenderContext.FromCamera(camera, viewport)`)
+- Usar `IsVisible(Rectangle)` antes de desenhar
+
+### 7.4 AssetManager
 Arquivo: `GameMain/Services/AssetManager.cs`
 
 - `LoadContent<T>(assetName)`
@@ -145,7 +158,7 @@ Regras:
 - Texturas externas devem ser copiadas para `Content/Imported`.
 - Caminhos fora da pasta do jogo sao bloqueados.
 
-### 7.4 MapService
+### 7.5 MapService
 Arquivo: `GameMain/Services/MapService.cs`
 
 - Cache de `maps.json`
@@ -154,7 +167,7 @@ Arquivo: `GameMain/Services/MapService.cs`
 - `SaveMap()` / `DeleteMap()` / `AddMap()`
 - `ExportMap()` / `ClearExportedMap()`
 
-### 7.5 SaveService
+### 7.6 SaveService
 Arquivo: `GameMain/Services/SaveService.cs`
 
 - Cache de `saves.json`
@@ -162,7 +175,7 @@ Arquivo: `GameMain/Services/SaveService.cs`
 - `GetSavesSnapshot()`
 - `Save()`
 
-### 7.6 EditorService
+### 7.7 EditorService
 Arquivo: `GameMain/Services/EditorService.cs`
 
 - Dialogo de selecao de imagem (assinc)
@@ -215,7 +228,7 @@ Arquivo: `GameMain/Fases/IFase.cs`
 Contrato:
 - `LoadContent(ContentManager)`
 - `Update(Player)`
-- `Draw(SpriteBatch, Player, GameTime)`
+- `Draw(SpriteBatch, Player, RenderContext)`
 - `HasWon`, `IsReturning`
 - `GetSpawnPosition(bool returning)`
 
@@ -308,6 +321,7 @@ Campos:
 - IO somente via `FileService`/`MapService`/`SaveService`
 - Validar caminhos para assets externos
 - Evitar LINQ e alocacoes no loop
+- Centralizar tamanhos/offsets em `LayoutConfig` e calcular por `Viewport` quando precisar ser relativo
 
 ---
 

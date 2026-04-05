@@ -389,7 +389,8 @@ namespace GameDuMouse.GameMain.Core
                 case GameState.Playing:
                     if (!useDynamicBackground)
                         background1.Draw(spriteBatch);
-                    levelManager.Draw(spriteBatch, player1);
+                    var renderContext = RenderContext.FromCamera(camera, GraphicsDevice.Viewport);
+                    levelManager.Draw(spriteBatch, player1, renderContext);
                     break;
 
                 case GameState.Settings:

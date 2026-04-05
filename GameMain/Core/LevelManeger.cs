@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using GameDuMouse.GameMain.Fases;
 using GameDuMouse.GameMain.Entities;
+using GameDuMouse.GameMain.Rendering;
 
 namespace GameDuMouse.GameMain.Core
 {
@@ -37,9 +38,9 @@ namespace GameDuMouse.GameMain.Core
             CurrentFase.Update(player);
         }
 
-        public void Draw(SpriteBatch spriteBatch, Player player)
+        public void Draw(SpriteBatch spriteBatch, Player player, RenderContext renderContext)
         {
-            CurrentFase.Draw(spriteBatch, player);
+            CurrentFase.Draw(spriteBatch, player, renderContext);
         }
 
         // Restart the current phase using the factory

@@ -2,16 +2,15 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using GameDuMouse.GameMain.Entities;
+using GameDuMouse.GameMain.Rendering;
 
 namespace GameDuMouse.GameMain.Fases
 {
-    using Microsoft.Xna.Framework;
-
     public interface IFase
     {
         void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content);
         void Update(Player player);
-        void Draw(SpriteBatch spriteBatch, Player player);
+        void Draw(SpriteBatch spriteBatch, Player player, RenderContext renderContext);
         bool HasWon { get; }
 
         bool IsReturning { get; }  

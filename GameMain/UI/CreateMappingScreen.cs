@@ -22,7 +22,6 @@ namespace GameDuMouse.GameMain.UI
         private const int SW_RESTORE = 9;
 
         // Constants to replace magic numbers
-        private const int PanelFraction = 4;
         private const int PaletteItemHeight = 60;
         private const int Margin = 10;
         private const int ScrollPadding = 30;
@@ -34,12 +33,7 @@ namespace GameDuMouse.GameMain.UI
         private const float PanelAlpha = 0.7f;
         private const int BackgroundShift = -600;
         private const int BackgroundDrawOffsetX = 200;
-        private const int RightWallX = 590;
         private const int TextOffsetY = 8;
-        private const int RightWallAdjust = 0;
-        private const int WallThickness = 10;
-        private const int CeilingHeight = 10;
-        private const int BackgroundDeleteButtonSize = 28;
 
         private Game game;
         private SpriteFont font;
@@ -60,7 +54,7 @@ namespace GameDuMouse.GameMain.UI
         private List<PlacedObstacle> placedPart2 = new List<PlacedObstacle>();
         private int currentPart = 1;
 
-        private int panelWidth => game.GraphicsDevice.Viewport.Width / PanelFraction;
+        private int panelWidth => game.GraphicsDevice.Viewport.Width / LayoutConfig.EditorPanelFraction;
         private int screenWidth;
         private int screenHeight;
 
@@ -83,7 +77,8 @@ namespace GameDuMouse.GameMain.UI
         private Point importButtonWorldPos;
         private int importButtonSize = 50;
         private Texture2D customBackground;
-        private int phaseWidth = 590; // default
+        private int phaseWidth = LayoutConfig.EditorMinPhaseWidth; // default
+        private int defaultPhaseWidth;
         private string pendingImagePath = null;
         private bool isCustomBackgroundLoaded = false; // Track if we've loaded a custom background
         private string saveStatusMessage = "";
@@ -144,6 +139,8 @@ namespace GameDuMouse.GameMain.UI
             
             screenWidth = game.GraphicsDevice.Viewport.Width;
             screenHeight = game.GraphicsDevice.Viewport.Height;
+            defaultPhaseWidth = LayoutConfig.GetDefaultPhaseWidth(screenWidth, panelWidth);
+            phaseWidth = defaultPhaseWidth;
 
             // Initialize camera offset
             mapCameraOffsetX = 0;
@@ -208,13 +205,13 @@ namespace GameDuMouse.GameMain.UI
             var data = mapService != null ? mapService.GetByName(mapName) : null;
             if (data == null)
             {
-                phaseWidth = RightWallX;
+                phaseWidth = defaultPhaseWidth > 0 ? defaultPhaseWidth : LayoutConfig.EditorMinPhaseWidth;
                 UpdateCollidersForBackground();
                 UpdateImportButtonPosition();
                 return;
             }
 
-            phaseWidth = data.PhaseWidth > 0 ? data.PhaseWidth : RightWallX;
+            phaseWidth = data.PhaseWidth > 0 ? data.PhaseWidth : (defaultPhaseWidth > 0 ? defaultPhaseWidth : LayoutConfig.EditorMinPhaseWidth);
 
             if (data.IsCustomBackgroundLoaded && data.BackgroundLayers != null && data.BackgroundLayers.Count > 0)
             {
@@ -343,7 +340,8 @@ namespace GameDuMouse.GameMain.UI
         private void UpdateCollidersForBackground()
         {
             // Update groundCollider width to match background width
-            groundCollider = new Rectangle(0, 400, phaseWidth, 5);
+            int groundY = LayoutConfig.GetGroundY(screenHeight);
+            groundCollider = new Rectangle(0, groundY, phaseWidth, LayoutConfig.EditorGroundThickness);
             GroundColliders = new List<Rectangle> { groundCollider };
         }
 
@@ -494,7 +492,7 @@ namespace GameDuMouse.GameMain.UI
             && previousMouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released 
             && mouse.X < panelWidth)
             {
-                int index = (int)((mouse.Y + leftScroll - Margin) / PaletteItemHeight);
+                int index = (int)((mouse.Y + leftScroll - (Margin + 40)) / PaletteItemHeight);
                 if (index >= 0 && index < obstacleTextures.Count)
                     selectedPaletteIndex = index;
             }
@@ -663,12 +661,12 @@ namespace GameDuMouse.GameMain.UI
         {
             // Bottom-left corner of the layer, above the ground area
             int worldX = layer.startX + 8;
-            int worldY = screenHeight - 75 - BackgroundDeleteButtonSize - 6;
+            int worldY = screenHeight - LayoutConfig.EditorFloorPadding - LayoutConfig.EditorBackgroundDeleteButtonSize - 6;
 
             int screenX = worldX - (int)mapCameraOffsetX + BackgroundDrawOffsetX;
             int screenY = worldY;
 
-            return new Rectangle(screenX, screenY, BackgroundDeleteButtonSize, BackgroundDeleteButtonSize);
+            return new Rectangle(screenX, screenY, LayoutConfig.EditorBackgroundDeleteButtonSize, LayoutConfig.EditorBackgroundDeleteButtonSize);
         }
 
         private void StartBackgroundDelete(int layerIndex)
@@ -783,7 +781,7 @@ namespace GameDuMouse.GameMain.UI
             {
                 isCustomBackgroundLoaded = false;
                 customBackground = null;
-                phaseWidth = RightWallX;
+                phaseWidth = defaultPhaseWidth > 0 ? defaultPhaseWidth : LayoutConfig.EditorMinPhaseWidth;
                 UpdateCollidersForBackground();
                 UpdateImportButtonPosition();
                 mapCameraOffsetX = 0;
@@ -862,7 +860,7 @@ namespace GameDuMouse.GameMain.UI
             else
             {
                 // Draw default background (solid color)
-                int width = phaseWidth > 0 ? phaseWidth : RightWallX;
+                int width = phaseWidth > 0 ? phaseWidth : (defaultPhaseWidth > 0 ? defaultPhaseWidth : LayoutConfig.EditorMinPhaseWidth);
                 var rect = new Rectangle((int)(-mapCameraOffsetX), 0, width, screenHeight);
                 spriteBatch.Draw(pixel, rect, Color.CornflowerBlue);
             }
@@ -889,7 +887,7 @@ namespace GameDuMouse.GameMain.UI
             }
 
             // left panel
-            spriteBatch.DrawString(font, "Obstaculos", new Vector2(Margin, Margin), Color.White);
+            spriteBatch.DrawString(font, "Obstaculos", new Vector2(Margin, Margin + 20), Color.White);
 
             previewButton?.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
             saveButton?.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
@@ -1054,7 +1052,7 @@ namespace GameDuMouse.GameMain.UI
             // palette items
             for (int i = 0; i < obstacleTextures.Count; i++)
             {
-                int y = Margin + i * PaletteItemHeight - (int)leftScroll + Margin;
+                int y = (Margin + i * PaletteItemHeight - (int)leftScroll + Margin) + 40;
                 var thumb = obstacleTextures[i];
                 spriteBatch.Draw(thumb, new Vector2(Margin, y), Color.White);
                 Color c = (i == selectedPaletteIndex) ? Color.Yellow : Color.White;
@@ -1064,14 +1062,14 @@ namespace GameDuMouse.GameMain.UI
 
         private void DrawColliders(SpriteBatch spriteBatch)
         {
-            int rightWallX = customBackground != null ? phaseWidth : RightWallX;
+            int rightWallX = customBackground != null ? phaseWidth : (defaultPhaseWidth > 0 ? defaultPhaseWidth : LayoutConfig.EditorMinPhaseWidth);
 
             // Draw map boundary colliders (left/right walls + ceiling)
-            var leftWall = new Rectangle((int)(panelWidth - mapCameraOffsetX), 0, WallThickness, screenHeight - 75);
+            var leftWall = new Rectangle((int)(panelWidth - mapCameraOffsetX), 0, LayoutConfig.EditorWallThickness, screenHeight - LayoutConfig.EditorFloorPadding);
             // Only apply RightWallAdjust when there's no custom background
-            int rightWallAdjust = customBackground != null ? 0 : RightWallAdjust;
-            var rightWall = new Rectangle((int)(panelWidth + rightWallX - mapCameraOffsetX + rightWallAdjust ), 0, WallThickness, screenHeight - 75);
-            var ceiling = new Rectangle((int)(panelWidth - mapCameraOffsetX), 0, rightWallX, CeilingHeight);
+            int rightWallAdjust = customBackground != null ? 0 : LayoutConfig.EditorRightWallAdjust;
+            var rightWall = new Rectangle((int)(panelWidth + rightWallX - mapCameraOffsetX + rightWallAdjust ), 0, LayoutConfig.EditorWallThickness, screenHeight - LayoutConfig.EditorFloorPadding);
+            var ceiling = new Rectangle((int)(panelWidth - mapCameraOffsetX), 0, rightWallX, LayoutConfig.EditorCeilingHeight);
             spriteBatch.Draw(pixel, leftWall, Color.Red * ColliderAlpha);
             spriteBatch.Draw(pixel, rightWall, Color.Red * ColliderAlpha);
             spriteBatch.Draw(pixel, ceiling, Color.Red * ColliderAlpha);
@@ -1109,7 +1107,7 @@ namespace GameDuMouse.GameMain.UI
             if (!isCustomBackgroundLoaded || backgroundLayers.Count == 0)
             {
                 int leftWallX = 0;
-                int rightWallX = RightWallX;
+                int rightWallX = defaultPhaseWidth > 0 ? defaultPhaseWidth : LayoutConfig.EditorMinPhaseWidth;
                 int colliderAreaWidth = rightWallX - leftWallX;
                 int centerWorldX = leftWallX + colliderAreaWidth / 2 - importButtonSize / 2;
                 importButtonWorldPos = new Point(centerWorldX, centerWorldY);
@@ -1126,7 +1124,7 @@ namespace GameDuMouse.GameMain.UI
             if (string.IsNullOrWhiteSpace(mapName))
                 mapName = "Mapa_Sem_Nome";
 
-            int rightWallX = customBackground != null ? phaseWidth : RightWallX;
+            int rightWallX = customBackground != null ? phaseWidth : (defaultPhaseWidth > 0 ? defaultPhaseWidth : LayoutConfig.EditorMinPhaseWidth);
 
             var data = new MapData
             {
@@ -1135,7 +1133,7 @@ namespace GameDuMouse.GameMain.UI
                 ScreenHeight = screenHeight,
                 IsCustomBackgroundLoaded = isCustomBackgroundLoaded,
                 DefaultBackgroundColor = "CornflowerBlue",
-                DefaultBackgroundWidth = phaseWidth > 0 ? phaseWidth : RightWallX,
+                DefaultBackgroundWidth = phaseWidth > 0 ? phaseWidth : (defaultPhaseWidth > 0 ? defaultPhaseWidth : LayoutConfig.EditorMinPhaseWidth),
                 DefaultBackgroundHeight = screenHeight,
                 CreatedAtUtc = System.DateTime.UtcNow.ToString("o")
             };
@@ -1158,19 +1156,19 @@ namespace GameDuMouse.GameMain.UI
             {
                 Name = "LeftWall",
                 Type = ColliderType.Wall,
-                Bounds = new RectangleData { X = 0, Y = 0, Width = WallThickness, Height = screenHeight - 75 }
+                Bounds = new RectangleData { X = 0, Y = 0, Width = LayoutConfig.EditorWallThickness, Height = screenHeight - LayoutConfig.EditorFloorPadding }
             });
             data.Colliders.Add(new ColliderData
             {
                 Name = "RightWall",
                 Type = ColliderType.Wall,
-                Bounds = new RectangleData { X = rightWallX, Y = 0, Width = WallThickness, Height = screenHeight - 75 }
+                Bounds = new RectangleData { X = rightWallX, Y = 0, Width = LayoutConfig.EditorWallThickness, Height = screenHeight - LayoutConfig.EditorFloorPadding }
             });
             data.Colliders.Add(new ColliderData
             {
                 Name = "Ceiling",
                 Type = ColliderType.Ceiling,
-                Bounds = new RectangleData { X = 0, Y = 0, Width = rightWallX, Height = CeilingHeight }
+                Bounds = new RectangleData { X = 0, Y = 0, Width = rightWallX, Height = LayoutConfig.EditorCeilingHeight }
             });
 
             for (int i = 0; i < GroundColliders.Count; i++)

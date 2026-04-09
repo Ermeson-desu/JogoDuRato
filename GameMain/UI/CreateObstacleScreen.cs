@@ -37,6 +37,9 @@ namespace GameDuMouse.GameMain.UI
 
         public void Draw(SpriteBatch spriteBatch)
         {
+            if (font == null)
+                return;
+
             string title = "Criar Novo Obstáculo";
             var titleSize = font.MeasureString(title);
             var titlePos = new Vector2((game.GraphicsDevice.Viewport.Width - titleSize.X) / 2f, 50);

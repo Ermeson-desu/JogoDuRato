@@ -33,6 +33,7 @@ namespace GameDuMouse.GameMain.Core
         private ChapterSelectScreen chapterSelectScreen;
         private NewMapMenuScreen newMapMenuScreen;
         private CreateMappingScreen mappingScreen;
+        private CreateObstacleScreen createObstacleScreen;
         private MapTestScreen mapTestScreen;
         private InputManager inputManager;
         private TextureCache textureCache;
@@ -118,6 +119,9 @@ namespace GameDuMouse.GameMain.Core
             // Mapping / Map Editor
             mappingScreen = new CreateMappingScreen(this);
             mappingScreen.LoadContent(Content);
+            // Create Obstacle Screen
+            createObstacleScreen = new CreateObstacleScreen(this);
+            createObstacleScreen.LoadContent(Content);
             // Map Test Screen
             mapTestScreen = new MapTestScreen(this);
             mapTestScreen.LoadContent(Content);
@@ -138,6 +142,8 @@ namespace GameDuMouse.GameMain.Core
                     menuScreen.ResetInput();
                 if (stateManager.CurrentState == GameState.Mapping)
                     mappingScreen?.ResetInput();
+                if (stateManager.CurrentState == GameState.CreatingObstacle)
+                    createObstacleScreen?.ResetInput();
                 if (stateManager.CurrentState == GameState.MappingTest)
                 {
                     mapTestScreen?.ResetInput();
@@ -185,6 +191,11 @@ namespace GameDuMouse.GameMain.Core
                 case GameState.Mapping:
                     if (mappingScreen != null)
                         mappingScreen.Update(stateManager);
+                    break;
+
+                case GameState.CreatingObstacle:
+                    if (createObstacleScreen != null)
+                        createObstacleScreen.Update(stateManager);
                     break;
 
                 case GameState.MappingTest:
@@ -400,6 +411,11 @@ namespace GameDuMouse.GameMain.Core
                 case GameState.Mapping:
                     if (mappingScreen != null)
                         mappingScreen.Draw(spriteBatch);
+                    break;
+
+                case GameState.CreatingObstacle:
+                    if (createObstacleScreen != null)
+                        createObstacleScreen.Draw(spriteBatch);
                     break;
 
                 case GameState.MappingTest:

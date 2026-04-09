@@ -41,6 +41,7 @@ namespace GameDuMouse.GameMain.UI
         private const int PlatformDefaultHeight = LayoutConfig.EditorGroundThickness;
 
         private Game game;
+        private StateManager stateManager;
         private SpriteFont font;
         private BackButton backButton;
         private UiActionButton saveButton;
@@ -401,6 +402,7 @@ namespace GameDuMouse.GameMain.UI
 
         public void Update(StateManager stateManager)
         {
+            this.stateManager = stateManager;
             // Back button (early): if it changes the state we should bail out
             backButton?.Update(stateManager);
             if (stateManager.CurrentState != GameState.Mapping)
@@ -1340,8 +1342,12 @@ namespace GameDuMouse.GameMain.UI
 
         private void OpenCreateObstacleScreen()
         {
-            // TODO: Implement obstacle creation dialog
-            SetStatusMessage("Abrindo tela de criação de obstáculos...");
+            // Navegar para a tela de criação de obstáculos
+            // A referência ao StateManager virá através do Update
+            if (stateManager != null)
+            {
+                stateManager.ChangeState(GameState.CreatingObstacle);
+            }
         }
     }
 }

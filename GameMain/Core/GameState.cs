@@ -9,6 +9,7 @@ namespace GameDuMouse.GameMain.Core
         Playing,
         Settings,
         Mapping,
+        CreatingObstacle,
         MappingTest,
         Victory, 
         Load,

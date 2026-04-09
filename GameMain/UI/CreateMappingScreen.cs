@@ -47,6 +47,7 @@ namespace GameDuMouse.GameMain.UI
         private UiActionButton previewButton;
         private UiButton nextPartButton;
         private UiButton prevPartButton;
+        private UiActionButton addObstacleButton;
         private Texture2D pixel;
         private TextureCache textureCache;
         private AssetManager assetManager;
@@ -193,6 +194,11 @@ namespace GameDuMouse.GameMain.UI
 
             prevPartButton = new UiButton(new Rectangle(panelWidth + 10, 20, PartButtonSize, PartButtonSize), "<");
             nextPartButton = new UiButton(new Rectangle(screenWidth - PartButtonSize - 10, 20, PartButtonSize, PartButtonSize), ">");
+            
+            // Add obstacle button (positioned next to "Obstáculos" title)
+            int addButtonSize = 30;
+            var addButtonBounds = new Rectangle(panelWidth - Margin - addButtonSize, Margin + 15, addButtonSize, addButtonSize);
+            addObstacleButton = new UiActionButton(addButtonBounds, "+", OpenCreateObstacleScreen);
         }
 
         public void LoadMapForEditing(string mapName)
@@ -474,6 +480,7 @@ namespace GameDuMouse.GameMain.UI
             HandleDelete(mouse, keyboard);
             saveButton?.Update(mouse, previousMouse);
             previewButton?.Update(mouse, previousMouse);
+            addObstacleButton?.Update(mouse, previousMouse);
 
             if (requestPreview)
             {
@@ -958,6 +965,7 @@ namespace GameDuMouse.GameMain.UI
 
             // left panel
             spriteBatch.DrawString(font, "Obstaculos", new Vector2(Margin, Margin + 20), Color.White);
+            addObstacleButton?.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
 
             previewButton?.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
             saveButton?.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
@@ -1328,6 +1336,12 @@ namespace GameDuMouse.GameMain.UI
 
             mapService?.SaveMap(data);
             SetStatusMessage($"Mapa salvo: {mapName}");
+        }
+
+        private void OpenCreateObstacleScreen()
+        {
+            // TODO: Implement obstacle creation dialog
+            SetStatusMessage("Abrindo tela de criação de obstáculos...");
         }
     }
 }

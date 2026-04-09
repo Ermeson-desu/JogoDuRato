@@ -12,6 +12,11 @@
   {
     "PlayerName": "ERMESON",
     "CurrentFaseIndex": 0,
+    "IsReturning": true
+  },
+  {
+    "PlayerName": "SANTO ANTHSAO JOSE",
+    "CurrentFaseIndex": 0,
     "IsReturning": false
   }
 ]

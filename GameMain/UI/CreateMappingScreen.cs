@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Utils;
 using GameDuMouse.GameMain.Input;
 using GameDuMouse.GameMain.Core;
+using GameDuMouse.GameMain.Entities;
 using GameDuMouse.GameMain.UI.Components;
 using GameDuMouse.GameMain.Rendering;
 using GameDuMouse.GameMain.Services;
@@ -34,6 +35,10 @@ namespace GameDuMouse.GameMain.UI
         private const int BackgroundShift = -600;
         private const int BackgroundDrawOffsetX = 200;
         private const int TextOffsetY = 8;
+        private const int PaletteTopOffset = 40;
+        private const string PlatformItemName = "Plataform";
+        private const int PlatformDefaultWidth = 190;
+        private const int PlatformDefaultHeight = LayoutConfig.EditorGroundThickness;
 
         private Game game;
         private SpriteFont font;
@@ -52,6 +57,7 @@ namespace GameDuMouse.GameMain.UI
         private List<string> obstacleTextureNames = new List<string>();
         private List<PlacedObstacle> placedPart1 = new List<PlacedObstacle>();
         private List<PlacedObstacle> placedPart2 = new List<PlacedObstacle>();
+        private List<Plataform> placedPlatforms = new List<Plataform>();
         private int currentPart = 1;
 
         private int panelWidth => game.GraphicsDevice.Viewport.Width / LayoutConfig.EditorPanelFraction;
@@ -67,6 +73,7 @@ namespace GameDuMouse.GameMain.UI
         private InputManager inputManager;
 
         private PlacedObstacle dragging;
+        private Plataform draggingPlatform;
         private Point dragOffset;
 
         // CreateMappingScreen's own ground colliders
@@ -163,6 +170,10 @@ namespace GameDuMouse.GameMain.UI
                 obstacleTextureNames.Add("Placeholder_Olive");
             }
 
+            // Add platform item (for colliders)
+            obstacleTextures.Add(CreateSolidTexture(Color.SlateGray));
+            obstacleTextureNames.Add(PlatformItemName);
+
             // Add Cheese item (unique, only allowed on Part 1)
             obstacleTextures.Add(CreateSolidTexture(Color.Yellow));
             obstacleTextureNames.Add("Cheese");
@@ -193,6 +204,7 @@ namespace GameDuMouse.GameMain.UI
             mapCameraOffsetX = 0f;
             placedPart1.Clear();
             placedPart2.Clear();
+            placedPlatforms.Clear();
             backgroundLayers.Clear();
             customBackground = null;
             isCustomBackgroundLoaded = false;
@@ -201,6 +213,7 @@ namespace GameDuMouse.GameMain.UI
             saveStatusExpiresAtUtc = System.DateTime.MinValue;
             requestPreview = false;
             currentPart = 1;
+            draggingPlatform = null;
 
             var data = mapService != null ? mapService.GetByName(mapName) : null;
             if (data == null)
@@ -257,10 +270,20 @@ namespace GameDuMouse.GameMain.UI
             {
                 foreach (var collider in data.Colliders)
                 {
-                    if (collider != null && collider.Type == ColliderType.Ground)
+                    if (collider == null || collider.Bounds == null)
+                        continue;
+
+                    if (collider.Type == ColliderType.Ground)
                     {
                         var b = collider.Bounds;
                         GroundColliders.Add(new Rectangle(b.X, b.Y, b.Width, b.Height));
+                        continue;
+                    }
+
+                    if (collider.Type == ColliderType.Platform)
+                    {
+                        var b = collider.Bounds;
+                        placedPlatforms.Add(new Plataform(game, new Rectangle(b.X, b.Y, b.Width, b.Height)));
                     }
                 }
             }
@@ -492,7 +515,7 @@ namespace GameDuMouse.GameMain.UI
             && previousMouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released 
             && mouse.X < panelWidth)
             {
-                int index = (int)((mouse.Y + leftScroll - (Margin + 40)) / PaletteItemHeight);
+                int index = (int)((mouse.Y + leftScroll - (Margin * 2 + PaletteTopOffset)) / PaletteItemHeight);
                 if (index >= 0 && index < obstacleTextures.Count)
                     selectedPaletteIndex = index;
             }
@@ -548,12 +571,33 @@ namespace GameDuMouse.GameMain.UI
                         }
                     }
 
-                    if (dragging == null && selectedPaletteIndex >= 0)
+                    if (dragging == null)
+                    {
+                        for (int i = placedPlatforms.Count - 1; i >= 0; i--)
+                        {
+                            if (placedPlatforms[i].Contains(worldMouse))
+                            {
+                                draggingPlatform = placedPlatforms[i];
+                                dragOffset = new Point(worldMouse.X - draggingPlatform.Bounds.X, worldMouse.Y - draggingPlatform.Bounds.Y);
+                                break;
+                            }
+                        }
+                    }
+
+                    if (dragging == null && draggingPlatform == null && selectedPaletteIndex >= 0)
                     {
                         var tex = obstacleTextures[selectedPaletteIndex];
                         var name = selectedPaletteIndex >= 0 && selectedPaletteIndex < obstacleTextureNames.Count
                             ? obstacleTextureNames[selectedPaletteIndex]
                             : "Unknown";
+
+                        if (name == PlatformItemName)
+                        {
+                            var platformTopLeft = new Point(worldMouse.X - PlatformDefaultWidth / 2, worldMouse.Y - PlatformDefaultHeight / 2);
+                            var platformRect = new Rectangle(platformTopLeft, new Point(PlatformDefaultWidth, PlatformDefaultHeight));
+                            placedPlatforms.Add(new Plataform(game, platformRect));
+                            return;
+                        }
 
                         if (name == "Cheese")
                         {
@@ -589,11 +633,18 @@ namespace GameDuMouse.GameMain.UI
                 var worldMouse = ScreenToWorld(mouse.Position);
                 dragging.Bounds = new Rectangle(worldMouse.X - dragOffset.X, worldMouse.Y - dragOffset.Y, dragging.Bounds.Width, dragging.Bounds.Height);
             }
+            if (mouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && draggingPlatform != null)
+            {
+                var worldMouse = ScreenToWorld(mouse.Position);
+                var rect = new Rectangle(worldMouse.X - dragOffset.X, worldMouse.Y - dragOffset.Y, draggingPlatform.Bounds.Width, draggingPlatform.Bounds.Height);
+                draggingPlatform.SetBounds(rect);
+            }
 
             // release drag
             if (mouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released && previousMouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
             {
                 dragging = null;
+                draggingPlatform = null;
             }
         }
 
@@ -613,6 +664,15 @@ namespace GameDuMouse.GameMain.UI
                         break;
                     }
                 }
+
+                for (int i = placedPlatforms.Count - 1; i >= 0; i--)
+                {
+                    if (placedPlatforms[i].Contains(worldMouse))
+                    {
+                        placedPlatforms.RemoveAt(i);
+                        break;
+                    }
+                }
             }
 
             // delete obstacle with right mouse button
@@ -626,6 +686,15 @@ namespace GameDuMouse.GameMain.UI
                     if (activePlaced[i].Bounds.Contains(worldMouse))
                     {
                         activePlaced.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                for (int i = placedPlatforms.Count - 1; i >= 0; i--)
+                {
+                    if (placedPlatforms[i].Contains(worldMouse))
+                    {
+                        placedPlatforms.RemoveAt(i);
                         break;
                     }
                 }
@@ -820,6 +889,7 @@ namespace GameDuMouse.GameMain.UI
             DrawColliders(spriteBatch);
             DrawPanel(spriteBatch);
             DrawPalette(spriteBatch);
+            DrawPlacedPlatforms(spriteBatch);
             DrawPlacedObstacles(spriteBatch);
             DrawImportButton(spriteBatch);
             backButton?.Draw(spriteBatch);
@@ -932,6 +1002,7 @@ namespace GameDuMouse.GameMain.UI
                 {
                     currentPart = 2;
                     dragging = null;
+                    draggingPlatform = null;
                 }
             }
             else
@@ -940,6 +1011,7 @@ namespace GameDuMouse.GameMain.UI
                 {
                     currentPart = 1;
                     dragging = null;
+                    draggingPlatform = null;
                 }
             }
         }
@@ -1052,11 +1124,19 @@ namespace GameDuMouse.GameMain.UI
             // palette items
             for (int i = 0; i < obstacleTextures.Count; i++)
             {
-                int y = (Margin + i * PaletteItemHeight - (int)leftScroll + Margin) + 40;
+                int y = (Margin + i * PaletteItemHeight - (int)leftScroll + Margin) + PaletteTopOffset;
                 var thumb = obstacleTextures[i];
                 spriteBatch.Draw(thumb, new Vector2(Margin, y), Color.White);
                 Color c = (i == selectedPaletteIndex) ? Color.Yellow : Color.White;
-                spriteBatch.DrawString(font, "Item " + (i + 1), new Vector2(50, y + TextOffsetY), c);
+                string label = "Item " + (i + 1);
+                if (i < obstacleTextureNames.Count)
+                {
+                    if (obstacleTextureNames[i] == PlatformItemName)
+                        label = PlatformItemName;
+                    else if (obstacleTextureNames[i] == "Cheese")
+                        label = "Cheese";
+                }
+                spriteBatch.DrawString(font, label, new Vector2(50, y + TextOffsetY), c);
             }
         }
 
@@ -1097,6 +1177,16 @@ namespace GameDuMouse.GameMain.UI
                 spriteBatch.Draw(p.Texture, adjustedPos, Color.White);
                 var adjustedBounds = new Rectangle(topLeftScreen.X, topLeftScreen.Y, p.Bounds.Width, p.Bounds.Height);
                 spriteBatch.Draw(pixel, adjustedBounds, Color.Red * PlacedAlpha);
+            }
+        }
+
+        private void DrawPlacedPlatforms(SpriteBatch spriteBatch)
+        {
+            foreach (var platform in placedPlatforms)
+            {
+                var topLeftScreen = WorldToScreen(platform.Bounds.Location);
+                var screenRect = new Rectangle(topLeftScreen.X, topLeftScreen.Y, platform.Bounds.Width, platform.Bounds.Height);
+                spriteBatch.Draw(pixel, screenRect, Color.SteelBlue * PlacedAlpha);
             }
         }
 
@@ -1179,6 +1269,23 @@ namespace GameDuMouse.GameMain.UI
                     Name = $"Ground_{i}",
                     Type = ColliderType.Ground,
                     Bounds = new RectangleData { X = gc.X, Y = gc.Y, Width = gc.Width, Height = gc.Height }
+                });
+            }
+
+            for (int i = 0; i < placedPlatforms.Count; i++)
+            {
+                var platform = placedPlatforms[i];
+                data.Colliders.Add(new ColliderData
+                {
+                    Name = $"Platform_{i}",
+                    Type = ColliderType.Platform,
+                    Bounds = new RectangleData
+                    {
+                        X = platform.Bounds.X,
+                        Y = platform.Bounds.Y,
+                        Width = platform.Bounds.Width,
+                        Height = platform.Bounds.Height
+                    }
                 });
             }
 

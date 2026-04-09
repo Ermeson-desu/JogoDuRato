@@ -5,6 +5,7 @@ using GameDuMouse.GameMain.Rendering;
 using GameDuMouse.GameMain.Fases;
 using GameDuMouse.GameMain.Components;
 using GameDuMouse.GameMain.Systems;
+using GameDuMouse.GameMain.Core;
 
 namespace GameDuMouse.GameMain.Entities
 {
@@ -35,13 +36,15 @@ namespace GameDuMouse.GameMain.Entities
             animationSystem = new PlayerAnimationSystem();
         }
 
-        public Vector2 GetPosition() => new Vector2(Collider.X, 300);
+        public Vector2 GetPosition() => body != null ? body.Position : Vector2.Zero;
 
         public void Initialize()
         {
-            groundY = 400;
+            int screenHeight = game.GraphicsDevice != null ? game.GraphicsDevice.Viewport.Height : 0;
+            groundY = LayoutConfig.GetGroundY(screenHeight);
             body = new PlayerBody();
-            body.Position = new Vector2(210, groundY);
+            int spawnY = LayoutConfig.GetPlayerSpawnY(screenHeight);
+            body.Position = new Vector2(210, spawnY);
             body.IsGrounded = true;
         }
 
@@ -49,6 +52,11 @@ namespace GameDuMouse.GameMain.Entities
         {
             var cache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
             debugTexture = cache != null ? cache.Pixel : debugTexture;
+
+            int screenHeight = game.GraphicsDevice != null ? game.GraphicsDevice.Viewport.Height : 0;
+            groundY = LayoutConfig.GetGroundY(screenHeight);
+            if (body != null)
+                body.Position = new Vector2(body.Position.X, LayoutConfig.GetPlayerSpawnY(screenHeight));
 
             animationSystem.LoadContent(game, groundY);
             animationSystem.SetPosition(body.Position);
@@ -59,7 +67,8 @@ namespace GameDuMouse.GameMain.Entities
             if (body == null)
                 return;
 
-            body.Reset(new Vector2(210, 300));
+            int screenHeight = game.GraphicsDevice != null ? game.GraphicsDevice.Viewport.Height : 0;
+            body.Reset(new Vector2(210, LayoutConfig.GetPlayerSpawnY(screenHeight)));
             animationSystem.SetPosition(body.Position);
         }
 

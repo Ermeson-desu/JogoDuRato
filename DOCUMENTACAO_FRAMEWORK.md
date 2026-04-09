@@ -12,7 +12,7 @@ O projeto e um jogo 2D feito em C# com MonoGame. Ele inclui:
 - Sistema de saves
 
 A arquitetura foi refatorada para:
-- Evitar vazamentos de memoria
+- Evitar vazamentos de memoria 
 - Evitar IO bloqueante no loop
 - Centralizar servicos (input, assets, IO)
 - Reduzir acoplamento entre UI e core
@@ -82,6 +82,19 @@ Arquivo chave:
 **GameManager (IGameFlow)**
 - Adaptador de fluxo para a UI (StartNewGame, LoadSave, etc.)
 
+Exemplo (registro de services):
+```csharp
+// Game1.Initialize
+inputManager = new InputManager();
+Services.AddService(typeof(InputManager), inputManager);
+
+textureCache = new TextureCache(GraphicsDevice);
+Services.AddService(typeof(TextureCache), textureCache);
+
+gameManager = new GameManager(this);
+Services.AddService(typeof(IGameFlow), gameManager);
+```
+
 ---
 
 ## 5) Ciclo de Jogo (Loop)
@@ -89,6 +102,21 @@ Arquivo chave:
 - `Update(GameTime)` sempre usa `deltaTime` (TotalSeconds)
 - `Draw(GameTime)` cria `RenderContext` para culling simples
 - `RenderContext` e passado explicitamente para `IFase.Draw`
+- Culling aplicado para plataformas, obstaculos, queijo e background dinamico
+
+Exemplo (loop de jogo):
+```csharp
+// Game1.Update
+player1.Update(gameTime, levelManager.CurrentFase);
+levelManager.Update(player1);
+camera.Follow(player1.GetPosition());
+```
+
+```csharp
+// Game1.Draw
+var renderContext = RenderContext.FromCamera(camera, GraphicsDevice.Viewport);
+levelManager.Draw(spriteBatch, player1, renderContext);
+```
 
 ---
 
@@ -127,6 +155,15 @@ Uso:
 - Sempre acessar input via `InputManager`.
 - Nunca instanciar DirectInput direto em telas.
 
+Exemplo:
+```csharp
+var input = game.Services.GetService(typeof(InputManager)) as InputManager;
+if (input != null && input.Keyboard.IsKeyDown(Keys.Space))
+{
+    // pular
+}
+```
+
 ### 7.2 TextureCache
 Arquivo: `GameMain/Rendering/TextureCache.cs`
 
@@ -137,15 +174,36 @@ Regras:
 - Nunca criar `Texture2D` dentro de `Draw()`.
 - Use `Pixel` + tint para retangulos.
 
+Exemplo:
+```csharp
+var cache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
+spriteBatch.Draw(cache.Pixel, new Rectangle(10, 10, 100, 10), Color.White);
+```
+
 ### 7.3 RenderContext
 Arquivo: `GameMain/Rendering/RenderContext.cs`
 
 - Calcula bounds visiveis a partir da camera e viewport
 - Expande culling para reduzir draw calls fora da tela
+- Usa `Camera.ViewOffset` para alinhar o centro da tela
+- Padding padrao: `RenderContext.DefaultCullPadding`
 
 Uso:
 - Criar no `Draw` (ex: `RenderContext.FromCamera(camera, viewport)`)
 - Usar `IsVisible(Rectangle)` antes de desenhar
+
+Exemplo:
+```csharp
+// Game1.Draw
+var renderContext = RenderContext.FromCamera(camera, GraphicsDevice.Viewport);
+levelManager.Draw(spriteBatch, player1, renderContext);
+```
+
+```csharp
+// Em uma fase
+if (renderContext.IsVisible(platformRect))
+    spriteBatch.Draw(pixel, platformRect, Color.Blue * 0.4f);
+```
 
 ### 7.4 AssetManager
 Arquivo: `GameMain/Services/AssetManager.cs`
@@ -158,6 +216,12 @@ Regras:
 - Texturas externas devem ser copiadas para `Content/Imported`.
 - Caminhos fora da pasta do jogo sao bloqueados.
 
+Exemplo:
+```csharp
+var assets = game.Services.GetService(typeof(AssetManager)) as AssetManager;
+var texture = assets.LoadTextureFromFile(safePath);
+```
+
 ### 7.5 MapService
 Arquivo: `GameMain/Services/MapService.cs`
 
@@ -167,6 +231,12 @@ Arquivo: `GameMain/Services/MapService.cs`
 - `SaveMap()` / `DeleteMap()` / `AddMap()`
 - `ExportMap()` / `ClearExportedMap()`
 
+Exemplo:
+```csharp
+var maps = game.Services.GetService(typeof(MapService)) as MapService;
+var data = maps.GetByName("MeuMapa");
+```
+
 ### 7.6 SaveService
 Arquivo: `GameMain/Services/SaveService.cs`
 
@@ -175,12 +245,27 @@ Arquivo: `GameMain/Services/SaveService.cs`
 - `GetSavesSnapshot()`
 - `Save()`
 
+Exemplo:
+```csharp
+var saves = game.Services.GetService(typeof(SaveService)) as SaveService;
+var list = saves.GetSavesSnapshot();
+```
+
 ### 7.7 EditorService
 Arquivo: `GameMain/Services/EditorService.cs`
 
 - Dialogo de selecao de imagem (assinc)
 - Importa imagens para `Content/Imported` (sem travar o loop)
 - Remove arquivos importados nao utilizados
+
+Exemplo:
+```csharp
+// em tela de editor
+await editorService.ImportBackgroundAsync(filePath, onImported: path =>
+{
+    // usar path salvo no mapa
+});
+```
 
 ---
 
@@ -206,6 +291,12 @@ Systems usados:
 - `PlayerAnimationSystem`
 - `PlayerCollisionSystem`
 
+Exemplo:
+```csharp
+player.Update(gameTime, faseAtual);
+player.Draw(gameTime);
+```
+
 ### 8.2 Obstacle
 Arquivo: `GameMain/Entities/Obstacle.cs`
 
@@ -217,6 +308,19 @@ Arquivo: `GameMain/Entities/Obstacle.cs`
 Arquivos: `GameMain/Entities/Cheese.cs`, `GameMain/Entities/RatsBurrow.cs`
 
 - Entidades simples com colisao por retangulo.
+
+### 8.4 Plataform
+Arquivo: `GameMain/Entities/Plataform.cs`
+
+- Entidade simples para plataformas no editor
+- Usa `TextureCache.Pixel` para desenhar
+
+Exemplo:
+```csharp
+var bounds = new Rectangle(1200, 300, 190, LayoutConfig.EditorGroundThickness);
+var platform = new Plataform(game, bounds);
+platform.Draw(spriteBatch, Color.SteelBlue * 0.6f);
+```
 
 ---
 
@@ -232,18 +336,52 @@ Contrato:
 - `HasWon`, `IsReturning`
 - `GetSpawnPosition(bool returning)`
 
+Exemplo de assinatura:
+```csharp
+public void Draw(SpriteBatch spriteBatch, Player player, RenderContext renderContext)
+{
+    // culling simples
+    if (renderContext.IsVisible(someBounds))
+        spriteBatch.Draw(pixel, someBounds, Color.White);
+}
+```
+
 ### 9.2 Fase01
 Arquivo: `GameMain/Fases/Fase01.cs`
 
 - Exemplo de fase fixa
 - Inclui retorno e tela de vitoria
+- Culling aplicado para plataformas, obstaculos, queijo e buraco
 
-### 9.3 DynamicFase
+Exemplo de uso de helpers:
+```csharp
+private static void DrawObstacle(SpriteBatch spriteBatch, RenderContext renderContext, Obstacle obstacle)
+{
+    if (obstacle != null && renderContext.IsVisible(obstacle.Bounds))
+        obstacle.Draw(spriteBatch);
+}
+```
+
+### 9.3 ReturnStage
+Arquivo: `GameMain/Fases/ReturnStage.cs`
+
+- Subfase de retorno (parte final)
+- Culling aplicado para plataformas, obstaculos e queijo
+
+### 9.4 DynamicFase
 Arquivo: `GameMain/Fases/DynamicFase.cs`
 
 - Construcao via `MapData`
 - Background dinamico
 - Obstaculos e coliders do JSON
+- Culling aplicado para backgrounds, obstaculos e buraco
+
+Exemplo de background com culling:
+```csharp
+var bounds = new Rectangle((int)layer.StartX, 0, tex.Width, tex.Height);
+if (renderContext.IsVisible(bounds))
+    spriteBatch.Draw(tex, new Vector2(layer.StartX, 0), Color.White);
+```
 
 ---
 
@@ -264,6 +402,12 @@ Regras:
 - Nunca fazer IO direto em Update.
 - Nunca dar cast direto para Game1 (usar services).
 
+Exemplo (mudanca de estado via IGameFlow):
+```csharp
+var flow = game.Services.GetService(typeof(IGameFlow)) as IGameFlow;
+flow?.StartNewGame(playerName);
+```
+
 ---
 
 ## 11) Editor de Mapas
@@ -274,6 +418,20 @@ Fluxo de importacao:
 1. Usuario escolhe imagem
 2. Se arquivo esta fora da pasta do jogo, copia para `Content/Imported`
 3. Salva caminho seguro no mapa
+
+Plataformas:
+- Disponiveis na paleta lateral como `Plataform`
+- Sao salvas como `ColliderType.Platform` em `maps.json`
+
+Exemplo (salvando plataforma):
+```csharp
+data.Colliders.Add(new ColliderData
+{
+    Name = "Platform_0",
+    Type = ColliderType.Platform,
+    Bounds = new RectangleData { X = 1200, Y = 300, Width = 190, Height = 5 }
+});
+```
 
 Remocao:
 - Ao apagar o background, o arquivo em `Content/Imported` e removido
@@ -353,12 +511,11 @@ Campos:
 ## 16) Roadmap sugerido
 
 - Isolar editor em modulo separado
-- Melhorar culling para plataformas e coliders
 - Configuracao de resolucao em arquivo unico
+- Expandir culling para UI pesada e efeitos
 
 ---
 
 ## 17) Licenca
 
 Defina aqui a licenca do projeto.
-

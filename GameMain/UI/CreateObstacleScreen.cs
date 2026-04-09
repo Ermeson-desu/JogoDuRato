@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Input;
+using GameDuMouse.GameMain.Rendering;
 using GameDuMouse.GameMain.UI.Components;
 
 namespace GameDuMouse.GameMain.UI
@@ -46,8 +47,17 @@ namespace GameDuMouse.GameMain.UI
             screenWidth = game.GraphicsDevice.Viewport.Width;
             screenHeight = game.GraphicsDevice.Viewport.Height;
 
-            var textureCache = game.Services.GetService(typeof(Rendering.TextureCache)) as Rendering.TextureCache;
-            pixel = textureCache != null ? textureCache.Pixel : pixel;
+            var textureCache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
+            if (textureCache != null)
+            {
+                pixel = textureCache.Pixel;
+            }
+            else
+            {
+                // Create a fallback 1x1 white pixel if TextureCache is not available
+                pixel = new Texture2D(game.GraphicsDevice, 1, 1);
+                pixel.SetData(new[] { Color.White });
+            }
         }
 
         public void Update(StateManager stateManager)

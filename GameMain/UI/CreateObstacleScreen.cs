@@ -40,7 +40,7 @@ namespace GameDuMouse.GameMain.UI
             if (font == null)
                 return;
 
-            string title = "Criar Novo Obstáculo";
+            string title = "Criar Obstaculo";
             var titleSize = font.MeasureString(title);
             var titlePos = new Vector2((game.GraphicsDevice.Viewport.Width - titleSize.X) / 2f, 50);
             spriteBatch.DrawString(font, title, titlePos, Color.White);

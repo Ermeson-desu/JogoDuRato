@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using GameDuMouse.GameMain.Core;
 using GameDuMouse.GameMain.Input;
 using GameDuMouse.GameMain.Rendering;
+using GameDuMouse.GameMain.Services;
 using GameDuMouse.GameMain.UI.Components;
 
 namespace GameDuMouse.GameMain.UI
@@ -23,9 +24,13 @@ namespace GameDuMouse.GameMain.UI
         private SpriteFont font;
         private BackButton backButton;
         private UiActionButton saveButton;
+        private UiActionButton addImageButton;
         private InputManager inputManager;
         private TextureCache textureCache;
+        private EditorService editorService;
+        private AssetManager assetManager;
         private Texture2D pixel;
+        private Texture2D obstacleImage; // Loaded image texture
 
         private int panelWidth => game.GraphicsDevice.Viewport.Width / 4; // 1/4 of screen
         private int screenWidth;
@@ -82,6 +87,8 @@ namespace GameDuMouse.GameMain.UI
             this.game = game;
             inputManager = game.Services.GetService(typeof(InputManager)) as InputManager;
             textureCache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
+            editorService = game.Services.GetService(typeof(EditorService)) as EditorService;
+            assetManager = game.Services.GetService(typeof(AssetManager)) as AssetManager;
             previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
         }
@@ -98,6 +105,10 @@ namespace GameDuMouse.GameMain.UI
             // Initialize save button
             var saveButtonBounds = new Rectangle(Margin, screenHeight - 60, panelWidth - Margin * 2, 40);
             saveButton = new UiActionButton(saveButtonBounds, "Salvar", SaveObstacle);
+
+            // Initialize add image button
+            var addImageButtonBounds = new Rectangle(Margin, screenHeight - 110, panelWidth - Margin * 2, 40);
+            addImageButton = new UiActionButton(addImageButtonBounds, "Adicionar Imagem", AddImage);
 
             // Initialize obstacle data
             obstacleData = new ObstacleEditorData();
@@ -133,6 +144,16 @@ namespace GameDuMouse.GameMain.UI
             // Reset movement animation to start from beginning
             movementOffset = -obstacleData.MovementDistance;
             movementDirection = 1f;
+
+            // Load image if it exists
+            if (!string.IsNullOrWhiteSpace(obstacleData.ImagePath) && assetManager != null)
+            {
+                obstacleImage = assetManager.LoadTextureFromFile(obstacleData.ImagePath);
+            }
+            else
+            {
+                obstacleImage = null;
+            }
         }
 
         private void UpdateCheckboxes()
@@ -246,6 +267,9 @@ namespace GameDuMouse.GameMain.UI
             var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
 
+            // Handle image import from EditorService
+            HandleImageImport();
+
             // Handle panel scroll
             HandlePanelScroll(mouse);
 
@@ -264,6 +288,7 @@ namespace GameDuMouse.GameMain.UI
                 UpdateMovement(gameTime);
             }
 
+            addImageButton?.Update(mouse, previousMouse);
             saveButton?.Update(mouse, previousMouse);
 
             previousMouse = mouse;
@@ -471,6 +496,37 @@ namespace GameDuMouse.GameMain.UI
             onSaveCallback?.Invoke(obstacleData);
         }
 
+        private void AddImage()
+        {
+            if (editorService != null)
+            {
+                editorService.BeginPickImage();
+            }
+        }
+
+        private void HandleImageImport()
+        {
+            if (editorService == null)
+                return;
+
+            // Check if user picked an image
+            if (editorService.TryConsumePickedImage(out string pickedPath))
+            {
+                editorService.BeginImportImage(pickedPath);
+            }
+
+            // Check if image was imported
+            if (editorService.TryConsumeImportedImage(out string importedPath))
+            {
+                obstacleData.ImagePath = importedPath;
+                
+                if (assetManager != null)
+                {
+                    obstacleImage = assetManager.LoadTextureFromFile(importedPath);
+                }
+            }
+        }
+
         public void Draw(SpriteBatch spriteBatch)
         {
             DrawPanel(spriteBatch);
@@ -526,6 +582,9 @@ namespace GameDuMouse.GameMain.UI
 
             // Restore scissor rect
             game.GraphicsDevice.ScissorRectangle = previousScissorRect;
+
+            // Add image button (not scrolled, stays at bottom)
+            addImageButton?.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
 
             // Save button (not scrolled, stays at bottom)
             saveButton?.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
@@ -727,11 +786,20 @@ namespace GameDuMouse.GameMain.UI
                 }
             }
 
-            // Draw obstacle preview rectangle
-            Color obstacleColor = obstacleData.IsMortal ? Color.Red : Color.Green;
-            float colorAlpha = 0.7f;
+            // Draw image if available, otherwise draw colored rectangle
+            if (obstacleImage != null)
+            {
+                // Draw the image scaled to fit the obstacle bounds
+                spriteBatch.Draw(obstacleImage, animatedObstacleBounds, Color.White);
+            }
+            else
+            {
+                // Draw obstacle preview rectangle
+                Color obstacleColor = obstacleData.IsMortal ? Color.Red : Color.Green;
+                float colorAlpha = 0.7f;
 
-            spriteBatch.Draw(pixel, animatedObstacleBounds, obstacleColor * colorAlpha);
+                spriteBatch.Draw(pixel, animatedObstacleBounds, obstacleColor * colorAlpha);
+            }
 
             // Draw border
             DrawRectangleBorder(spriteBatch, animatedObstacleBounds, 2, Color.White);

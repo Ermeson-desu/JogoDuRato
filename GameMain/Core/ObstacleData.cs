@@ -50,6 +50,11 @@ namespace GameDuMouse.GameMain.Core
         /// </summary>
         public float MovementSpeed { get; set; }
 
+        /// <summary>
+        /// Path to the obstacle image (null if no image was assigned).
+        /// </summary>
+        public string ImagePath { get; set; }
+
         public ObstacleEditorData()
         {
             Name = "New Obstacle";
@@ -61,6 +66,7 @@ namespace GameDuMouse.GameMain.Core
             IsLooping = true;
             MovementDistance = 100;
             MovementSpeed = 50f;
+            ImagePath = null;
         }
 
         public ObstacleEditorData Clone()
@@ -75,7 +81,8 @@ namespace GameDuMouse.GameMain.Core
                 MovementType = this.MovementType,
                 IsLooping = this.IsLooping,
                 MovementDistance = this.MovementDistance,
-                MovementSpeed = this.MovementSpeed
+                MovementSpeed = this.MovementSpeed,
+                ImagePath = this.ImagePath
             };
         }
     }

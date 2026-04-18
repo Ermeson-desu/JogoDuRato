@@ -45,6 +45,11 @@ namespace GameDuMouse.GameMain.Core
         /// </summary>
         public int MovementDistance { get; set; }
 
+        /// <summary>
+        /// Speed of movement in pixels per second.
+        /// </summary>
+        public float MovementSpeed { get; set; }
+
         public ObstacleEditorData()
         {
             Name = "New Obstacle";
@@ -55,6 +60,7 @@ namespace GameDuMouse.GameMain.Core
             MovementType = MovementType.None;
             IsLooping = true;
             MovementDistance = 100;
+            MovementSpeed = 50f;
         }
 
         public ObstacleEditorData Clone()
@@ -68,7 +74,8 @@ namespace GameDuMouse.GameMain.Core
                 IsMovable = this.IsMovable,
                 MovementType = this.MovementType,
                 IsLooping = this.IsLooping,
-                MovementDistance = this.MovementDistance
+                MovementDistance = this.MovementDistance,
+                MovementSpeed = this.MovementSpeed
             };
         }
     }

@@ -48,13 +48,20 @@ namespace GameDuMouse.GameMain.UI
         // Movement animation
         private float movementOffset = 0f; // Offset from center position
         private float movementDirection = 1f; // 1 for forward, -1 for backward
-        private const float MoveSpeed = 50f; // pixels per second
+
+        // Panel scroll
+        private float panelScroll = 0f; // Scroll offset for the left panel
+        private const float ScrollSpeed = 0.5f;
 
         // Size adjustment buttons
         private Rectangle widthDecreaseBtn;
         private Rectangle widthIncreaseBtn;
         private Rectangle heightDecreaseBtn;
         private Rectangle heightIncreaseBtn;
+
+        // Speed adjustment buttons
+        private Rectangle speedDecreaseBtn;
+        private Rectangle speedIncreaseBtn;
 
         // Input tracking
         private MouseState previousMouse;
@@ -99,6 +106,10 @@ namespace GameDuMouse.GameMain.UI
             UpdateCheckboxes();
             UpdatePreviewBounds();
             UpdateSizeControls();
+            
+            // Initialize movement animation to start from beginning
+            movementOffset = -obstacleData.MovementDistance;
+            movementDirection = 1f;
         }
 
         public void SetObstacleData(ObstacleEditorData data, Action<ObstacleEditorData> saveCallback)
@@ -118,16 +129,20 @@ namespace GameDuMouse.GameMain.UI
             UpdateCheckboxes();
             UpdatePreviewBounds();
             UpdateSizeControls();
+            
+            // Reset movement animation to start from beginning
+            movementOffset = -obstacleData.MovementDistance;
+            movementDirection = 1f;
         }
 
         private void UpdateCheckboxes()
         {
             int checkboxSize = 20;
             int checkboxX = Margin + 20;
-            int checkboxY1 = 200;
-            int checkboxY2 = 240;
-            int movementCheckboxY = 280;
-            int loopingCheckboxY = 320;
+            int checkboxY1 = 250;
+            int checkboxY2 = 290;
+            int movementCheckboxY = 350;
+            int loopingCheckboxY = 450;
 
             mortalCheckbox = new CheckboxState
             {
@@ -183,6 +198,11 @@ namespace GameDuMouse.GameMain.UI
             int heightStartY = startY + btnSize + 20;
             heightDecreaseBtn = new Rectangle(startX, heightStartY, btnSize, btnSize);
             heightIncreaseBtn = new Rectangle(startX + btnSize + btnWidthDisplay + spacing, heightStartY, btnSize, btnSize);
+
+            // Speed controls (only if movable) [−] [ 50 ] [+]
+            int speedStartY = heightStartY + btnSize + 20;
+            speedDecreaseBtn = new Rectangle(startX, speedStartY, btnSize, btnSize);
+            speedIncreaseBtn = new Rectangle(startX + btnSize + btnWidthDisplay + spacing, speedStartY, btnSize, btnSize);
         }
 
         private void UpdatePreviewBounds()
@@ -226,6 +246,9 @@ namespace GameDuMouse.GameMain.UI
             var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
 
+            // Handle panel scroll
+            HandlePanelScroll(mouse);
+
             // Handle checkbox clicks
             HandleCheckboxClick(mouse);
 
@@ -250,7 +273,7 @@ namespace GameDuMouse.GameMain.UI
         private void UpdateMovement(GameTime gameTime)
         {
             float elapsed = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            float distance = MoveSpeed * elapsed * movementDirection;
+            float distance = obstacleData.MovementSpeed * elapsed * movementDirection;
             movementOffset += distance;
 
             if (obstacleData.IsLooping)
@@ -273,15 +296,19 @@ namespace GameDuMouse.GameMain.UI
         {
             if (mouse.LeftButton == ButtonState.Pressed && previousMouse.LeftButton == ButtonState.Released)
             {
+                // Only interact with left panel
+                if (mouse.X >= panelWidth)
+                    return;
+
                 // Check mortal checkbox
-                if (mortalCheckbox.Bounds.Contains(mouse.Position))
+                if (CheckboxContainsPoint(mortalCheckbox.Bounds, mouse.Position))
                 {
                     obstacleData.IsMortal = !obstacleData.IsMortal;
                     mortalCheckbox.IsChecked = obstacleData.IsMortal;
                 }
 
                 // Check movable checkbox
-                if (movableCheckbox.Bounds.Contains(mouse.Position))
+                if (CheckboxContainsPoint(movableCheckbox.Bounds, mouse.Position))
                 {
                     obstacleData.IsMovable = !obstacleData.IsMovable;
                     movableCheckbox.IsChecked = obstacleData.IsMovable;
@@ -291,7 +318,7 @@ namespace GameDuMouse.GameMain.UI
                         // Set default to Horizontal when enabling movement
                         obstacleData.MovementType = MovementType.Horizontal;
                         obstacleData.IsLooping = true;
-                        movementOffset = 0f; // Reset movement animation
+                        movementOffset = -obstacleData.MovementDistance; // Start from beginning
                         movementDirection = 1f;
                     }
                     else
@@ -305,29 +332,29 @@ namespace GameDuMouse.GameMain.UI
                 }
 
                 // Check horizontal checkbox (only if movable)
-                if (obstacleData.IsMovable && horizontalCheckbox.Bounds.Contains(mouse.Position))
+                if (obstacleData.IsMovable && CheckboxContainsPoint(horizontalCheckbox.Bounds, mouse.Position))
                 {
                     obstacleData.MovementType = obstacleData.MovementType == MovementType.Horizontal 
                         ? MovementType.None 
                         : MovementType.Horizontal;
                     horizontalCheckbox.IsChecked = obstacleData.MovementType == MovementType.Horizontal;
-                    movementOffset = 0f; // Reset animation
+                    movementOffset = -obstacleData.MovementDistance; // Start from beginning
                     movementDirection = 1f;
                 }
 
                 // Check vertical checkbox (only if movable)
-                if (obstacleData.IsMovable && verticalCheckbox.Bounds.Contains(mouse.Position))
+                if (obstacleData.IsMovable && CheckboxContainsPoint(verticalCheckbox.Bounds, mouse.Position))
                 {
                     obstacleData.MovementType = obstacleData.MovementType == MovementType.Vertical 
                         ? MovementType.None 
                         : MovementType.Vertical;
                     verticalCheckbox.IsChecked = obstacleData.MovementType == MovementType.Vertical;
-                    movementOffset = 0f; // Reset animation
+                    movementOffset = -obstacleData.MovementDistance; // Start from beginning
                     movementDirection = 1f;
                 }
 
                 // Check looping checkbox (only if movement is selected)
-                if (obstacleData.MovementType != MovementType.None && loopingCheckbox.Bounds.Contains(mouse.Position))
+                if (obstacleData.MovementType != MovementType.None && CheckboxContainsPoint(loopingCheckbox.Bounds, mouse.Position))
                 {
                     obstacleData.IsLooping = !obstacleData.IsLooping;
                     loopingCheckbox.IsChecked = obstacleData.IsLooping;
@@ -339,34 +366,50 @@ namespace GameDuMouse.GameMain.UI
         {
             if (mouse.LeftButton == ButtonState.Pressed && previousMouse.LeftButton == ButtonState.Released)
             {
+                // Only interact with left panel
+                if (mouse.X >= panelWidth)
+                    return;
+
                 int sizeStep = 10;
 
                 // Width decrease button
-                if (widthDecreaseBtn.Contains(mouse.Position))
+                if (ButtonContainsPoint(widthDecreaseBtn, mouse.Position))
                 {
                     obstacleData.Width = Math.Max(20, obstacleData.Width - sizeStep);
                     UpdatePreviewBounds();
                 }
 
                 // Width increase button
-                if (widthIncreaseBtn.Contains(mouse.Position))
+                if (ButtonContainsPoint(widthIncreaseBtn, mouse.Position))
                 {
                     obstacleData.Width = Math.Min(300, obstacleData.Width + sizeStep);
                     UpdatePreviewBounds();
                 }
 
                 // Height decrease button
-                if (heightDecreaseBtn.Contains(mouse.Position))
+                if (ButtonContainsPoint(heightDecreaseBtn, mouse.Position))
                 {
                     obstacleData.Height = Math.Max(20, obstacleData.Height - sizeStep);
                     UpdatePreviewBounds();
                 }
 
                 // Height increase button
-                if (heightIncreaseBtn.Contains(mouse.Position))
+                if (ButtonContainsPoint(heightIncreaseBtn, mouse.Position))
                 {
                     obstacleData.Height = Math.Min(300, obstacleData.Height + sizeStep);
                     UpdatePreviewBounds();
+                }
+
+                // Speed decrease button (only if movable)
+                if (obstacleData.IsMovable && ButtonContainsPoint(speedDecreaseBtn, mouse.Position))
+                {
+                    obstacleData.MovementSpeed = Math.Max(10f, obstacleData.MovementSpeed - 10f);
+                }
+
+                // Speed increase button (only if movable)
+                if (obstacleData.IsMovable && ButtonContainsPoint(speedIncreaseBtn, mouse.Position))
+                {
+                    obstacleData.MovementSpeed = Math.Min(500f, obstacleData.MovementSpeed + 10f);
                 }
             }
         }
@@ -388,6 +431,34 @@ namespace GameDuMouse.GameMain.UI
                 obstacleData.Height = Math.Min(300, obstacleData.Height + sizeStep);
 
             UpdatePreviewBounds();
+        }
+
+        private void HandlePanelScroll(MouseState mouse)
+        {
+            // Only scroll if mouse is over the left panel
+            if (mouse.X >= panelWidth)
+                return;
+
+            int wheelDelta = mouse.ScrollWheelValue - previousMouse.ScrollWheelValue;
+            if (wheelDelta == 0)
+                return;
+
+            panelScroll -= wheelDelta * ScrollSpeed;
+
+            // Clamp scroll to valid range
+            // Maximum content height is approximately 450 pixels
+            float maxScroll = Math.Max(0, 450 - screenHeight + 100);
+            panelScroll = MathHelper.Clamp(panelScroll, 0, maxScroll);
+        }
+
+        private bool CheckboxContainsPoint(Rectangle bounds, Point point)
+        {
+            return bounds.Contains(new Point(point.X, (int)(point.Y + panelScroll)));
+        }
+
+        private bool ButtonContainsPoint(Rectangle bounds, Point point)
+        {
+            return bounds.Contains(new Point(point.X, (int)(point.Y + panelScroll)));
         }
 
         private bool IsKeyPressed(Keys key, KeyboardState current)
@@ -414,66 +485,136 @@ namespace GameDuMouse.GameMain.UI
             var panelRect = new Rectangle(0, 0, panelWidth, screenHeight);
             spriteBatch.Draw(pixel, panelRect, Color.DarkSlateGray * PanelAlpha);
 
-            // Title
-            spriteBatch.DrawString(font, "Editar Obstaculo", new Vector2(Margin, Margin + 20), Color.White);
+            // Set up scissor rect to clip content to panel area
+            var previousScissorRect = game.GraphicsDevice.ScissorRectangle;
+            game.GraphicsDevice.ScissorRectangle = panelRect;
 
-            // Draw size controls
-            DrawSizeControls(spriteBatch);
+            spriteBatch.End();
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, new RasterizerState() { ScissorTestEnable = true });
 
-            // Checkboxes
-            DrawCheckbox(spriteBatch, mortalCheckbox);
-            DrawCheckbox(spriteBatch, movableCheckbox);
+            // Title (not scrolled)
+            spriteBatch.DrawString(font, "Editar Obstaculo", new Vector2(Margin, Margin + 20 - panelScroll), Color.White);
+
+            // Draw size controls with scroll
+            DrawSizeControlsScrolled(spriteBatch);
+
+            // Checkboxes with scroll
+            DrawCheckboxScrolled(spriteBatch, mortalCheckbox);
+            DrawCheckboxScrolled(spriteBatch, movableCheckbox);
 
             // Movement options (only if movable)
             if (obstacleData.IsMovable)
             {
-                spriteBatch.DrawString(font, "Movimento:", new Vector2(Margin + 30, 275), Color.LightGray);
-                DrawCheckbox(spriteBatch, horizontalCheckbox);
-                DrawCheckbox(spriteBatch, verticalCheckbox);
+                spriteBatch.DrawString(font, "Movimento:", new Vector2(Margin + 30, 320 - panelScroll), Color.LightGray);
+                DrawCheckboxScrolled(spriteBatch, horizontalCheckbox);
+                DrawCheckboxScrolled(spriteBatch, verticalCheckbox);
 
                 // Looping option (only if movement type is selected)
                 if (obstacleData.MovementType != MovementType.None)
                 {
-                    spriteBatch.DrawString(font, "Comportamento:", new Vector2(Margin + 30, 315), Color.LightGray);
-                    DrawCheckbox(spriteBatch, loopingCheckbox);
+                    spriteBatch.DrawString(font, "Comportamento:", new Vector2(Margin + 30, 420 - panelScroll), Color.LightGray);
+                    DrawCheckboxScrolled(spriteBatch, loopingCheckbox);
                 }
             }
 
-            // Size display
-            var sizeText = $"W: {obstacleData.Width}  H: {obstacleData.Height}";
-            spriteBatch.DrawString(font, sizeText, new Vector2(Margin, 260), Color.White);
+            // Size display with scroll
+            //var sizeText = $"W: {obstacleData.Width}  H: {obstacleData.Height}";
+            //spriteBatch.DrawString(font, sizeText, new Vector2(Margin, 260 - panelScroll), Color.White);
 
-            // Save button
+            spriteBatch.End();
+            spriteBatch.Begin();
+
+            // Restore scissor rect
+            game.GraphicsDevice.ScissorRectangle = previousScissorRect;
+
+            // Save button (not scrolled, stays at bottom)
             saveButton?.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
         }
 
-        private void DrawSizeControls(SpriteBatch spriteBatch)
+        private void DrawCheckboxScrolled(SpriteBatch spriteBatch, CheckboxState checkbox)
+        {
+            var scrolledBounds = new Rectangle(
+                checkbox.Bounds.X,
+                (int)(checkbox.Bounds.Y - panelScroll),
+                checkbox.Bounds.Width,
+                checkbox.Bounds.Height
+            );
+
+            // Draw checkbox border
+            spriteBatch.Draw(pixel, scrolledBounds, Color.White);
+
+            // Draw checkbox fill if checked
+            if (checkbox.IsChecked)
+            {
+                var innerRect = new Rectangle(
+                    scrolledBounds.X + 3,
+                    scrolledBounds.Y + 3,
+                    scrolledBounds.Width - 6,
+                    scrolledBounds.Height - 6
+                );
+                spriteBatch.Draw(pixel, innerRect, Color.LimeGreen);
+
+                // Draw X mark
+                DrawX(spriteBatch, scrolledBounds);
+            }
+
+            // Draw label
+            spriteBatch.DrawString(font, checkbox.Label, 
+                new Vector2(scrolledBounds.Right + 15, scrolledBounds.Y + 3), 
+                Color.White);
+        }
+
+        private void DrawSizeControlsScrolled(SpriteBatch spriteBatch)
         {
             int spacing = 5;
 
             // Width label and controls
-            spriteBatch.DrawString(font, "Largura:", new Vector2(Margin, 120), Color.LightGray);
+            spriteBatch.DrawString(font, "Largura:", new Vector2(Margin, 90 - panelScroll), Color.LightGray);
             
             // Width buttons: [-] [value] [+]
-            DrawButton(spriteBatch, widthDecreaseBtn, "-", Color.Firebrick);
+            var widthDecreaseBtnScrolled = new Rectangle(widthDecreaseBtn.X, (int)(widthDecreaseBtn.Y - panelScroll), widthDecreaseBtn.Width, widthDecreaseBtn.Height);
+            var widthIncreaseBtnScrolled = new Rectangle(widthIncreaseBtn.X, (int)(widthIncreaseBtn.Y - panelScroll), widthIncreaseBtn.Width, widthIncreaseBtn.Height);
+            
+            DrawButton(spriteBatch, widthDecreaseBtnScrolled, "-", Color.Firebrick);
             var widthValuePos = new Vector2(
-                widthDecreaseBtn.X + widthDecreaseBtn.Width + spacing,
-                widthDecreaseBtn.Y + (widthDecreaseBtn.Height - font.LineSpacing) / 2
+                widthDecreaseBtnScrolled.X + widthDecreaseBtnScrolled.Width + spacing,
+                widthDecreaseBtnScrolled.Y + (widthDecreaseBtnScrolled.Height - font.LineSpacing) / 2
             );
             spriteBatch.DrawString(font, obstacleData.Width.ToString(), widthValuePos, Color.Yellow);
-            DrawButton(spriteBatch, widthIncreaseBtn, "+", Color.Green);
+            DrawButton(spriteBatch, widthIncreaseBtnScrolled, "+", Color.Green);
 
             // Height label and controls
-            spriteBatch.DrawString(font, "Altura:", new Vector2(Margin, heightDecreaseBtn.Y - 25), Color.LightGray);
+            spriteBatch.DrawString(font, "Altura:", new Vector2(Margin, heightDecreaseBtn.Y - panelScroll - 25), Color.LightGray);
             
             // Height buttons: [-] [value] [+]
-            DrawButton(spriteBatch, heightDecreaseBtn, "-", Color.Firebrick);
+            var heightDecreaseBtnScrolled = new Rectangle(heightDecreaseBtn.X, (int)(heightDecreaseBtn.Y - panelScroll), heightDecreaseBtn.Width, heightDecreaseBtn.Height);
+            var heightIncreaseBtnScrolled = new Rectangle(heightIncreaseBtn.X, (int)(heightIncreaseBtn.Y - panelScroll), heightIncreaseBtn.Width, heightIncreaseBtn.Height);
+            
+            DrawButton(spriteBatch, heightDecreaseBtnScrolled, "-", Color.Firebrick);
             var heightValuePos = new Vector2(
-                heightDecreaseBtn.X + heightDecreaseBtn.Width + spacing,
-                heightDecreaseBtn.Y + (heightDecreaseBtn.Height - font.LineSpacing) / 2
+                heightDecreaseBtnScrolled.X + heightDecreaseBtnScrolled.Width + spacing,
+                heightDecreaseBtnScrolled.Y + (heightDecreaseBtnScrolled.Height - font.LineSpacing) / 2
             );
             spriteBatch.DrawString(font, obstacleData.Height.ToString(), heightValuePos, Color.Yellow);
-            DrawButton(spriteBatch, heightIncreaseBtn, "+", Color.Green);
+            DrawButton(spriteBatch, heightIncreaseBtnScrolled, "+", Color.Green);
+
+            // Speed label and controls (only if movable)
+            if (obstacleData.IsMovable)
+            {
+                spriteBatch.DrawString(font, "Velocidade:", new Vector2(Margin, speedDecreaseBtn.Y - panelScroll - 25), Color.LightGray);
+                
+                // Speed buttons: [-] [value] [+]
+                var speedDecreaseBtnScrolled = new Rectangle(speedDecreaseBtn.X, (int)(speedDecreaseBtn.Y - panelScroll), speedDecreaseBtn.Width, speedDecreaseBtn.Height);
+                var speedIncreaseBtnScrolled = new Rectangle(speedIncreaseBtn.X, (int)(speedIncreaseBtn.Y - panelScroll), speedIncreaseBtn.Width, speedIncreaseBtn.Height);
+                
+                DrawButton(spriteBatch, speedDecreaseBtnScrolled, "-", Color.Firebrick);
+                var speedValuePos = new Vector2(
+                    speedDecreaseBtnScrolled.X + speedDecreaseBtnScrolled.Width + spacing,
+                    speedDecreaseBtnScrolled.Y + (speedDecreaseBtnScrolled.Height - font.LineSpacing) / 2
+                );
+                spriteBatch.DrawString(font, ((int)obstacleData.MovementSpeed).ToString(), speedValuePos, Color.Yellow);
+                DrawButton(spriteBatch, speedIncreaseBtnScrolled, "+", Color.Green);
+            }
         }
 
         private void DrawButton(SpriteBatch spriteBatch, Rectangle bounds, string text, Color backgroundColor)

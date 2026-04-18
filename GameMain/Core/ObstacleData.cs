@@ -2,6 +2,13 @@ using System;
 
 namespace GameDuMouse.GameMain.Core
 {
+    public enum MovementType
+    {
+        None = 0,
+        Horizontal = 1,
+        Vertical = 2
+    }
+
     /// <summary>
     /// Represents editable obstacle properties for the obstacle editor
     /// </summary>
@@ -22,6 +29,22 @@ namespace GameDuMouse.GameMain.Core
         /// </summary>
         public bool IsMovable { get; set; }
 
+        /// <summary>
+        /// Type of movement when IsMovable is true.
+        /// </summary>
+        public MovementType MovementType { get; set; }
+
+        /// <summary>
+        /// If true, the obstacle goes back and forth.
+        /// If false, it only goes to the end and stays there.
+        /// </summary>
+        public bool IsLooping { get; set; }
+
+        /// <summary>
+        /// Distance of movement in pixels.
+        /// </summary>
+        public int MovementDistance { get; set; }
+
         public ObstacleEditorData()
         {
             Name = "New Obstacle";
@@ -29,6 +52,9 @@ namespace GameDuMouse.GameMain.Core
             Height = 50;
             IsMortal = true;
             IsMovable = false;
+            MovementType = MovementType.None;
+            IsLooping = true;
+            MovementDistance = 100;
         }
 
         public ObstacleEditorData Clone()
@@ -39,7 +65,10 @@ namespace GameDuMouse.GameMain.Core
                 Width = this.Width,
                 Height = this.Height,
                 IsMortal = this.IsMortal,
-                IsMovable = this.IsMovable
+                IsMovable = this.IsMovable,
+                MovementType = this.MovementType,
+                IsLooping = this.IsLooping,
+                MovementDistance = this.MovementDistance
             };
         }
     }

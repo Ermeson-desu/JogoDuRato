@@ -34,6 +34,7 @@ namespace GameDuMouse.GameMain.Core
         private NewMapMenuScreen newMapMenuScreen;
         private CreateMappingScreen mappingScreen;
         private CreateObstacleScreen createObstacleScreen;
+        private CreateObstacleEditorScreen createObstacleEditorScreen;
         private MapTestScreen mapTestScreen;
         private InputManager inputManager;
         private TextureCache textureCache;
@@ -122,6 +123,9 @@ namespace GameDuMouse.GameMain.Core
             // Create Obstacle Screen
             createObstacleScreen = new CreateObstacleScreen(this);
             createObstacleScreen.LoadContent(Content);
+            // Create Obstacle Editor Screen
+            createObstacleEditorScreen = new CreateObstacleEditorScreen(this);
+            createObstacleEditorScreen.LoadContent(Content);
             // Map Test Screen
             mapTestScreen = new MapTestScreen(this);
             mapTestScreen.LoadContent(Content);
@@ -144,6 +148,8 @@ namespace GameDuMouse.GameMain.Core
                     mappingScreen?.ResetInput();
                 if (stateManager.CurrentState == GameState.CreatingObstacle)
                     createObstacleScreen?.ResetInput();
+                if (stateManager.CurrentState == GameState.CreateObstacle)
+                    createObstacleEditorScreen?.ResetInput();
                 if (stateManager.CurrentState == GameState.MappingTest)
                 {
                     mapTestScreen?.ResetInput();
@@ -196,6 +202,11 @@ namespace GameDuMouse.GameMain.Core
                 case GameState.CreatingObstacle:
                     if (createObstacleScreen != null)
                         createObstacleScreen.Update(stateManager);
+                    break;
+
+                case GameState.CreateObstacle:
+                    if (createObstacleEditorScreen != null)
+                        createObstacleEditorScreen.Update(gameTime, stateManager);
                     break;
 
                 case GameState.MappingTest:
@@ -416,6 +427,11 @@ namespace GameDuMouse.GameMain.Core
                 case GameState.CreatingObstacle:
                     if (createObstacleScreen != null)
                         createObstacleScreen.Draw(spriteBatch);
+                    break;
+
+                case GameState.CreateObstacle:
+                    if (createObstacleEditorScreen != null)
+                        createObstacleEditorScreen.Draw(spriteBatch);
                     break;
 
                 case GameState.MappingTest:

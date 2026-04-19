@@ -62,6 +62,7 @@ namespace GameDuMouse.GameMain.UI
         private List<Texture2D> obstacleTextures = new List<Texture2D>();
         private List<string> obstacleTextureNames = new List<string>();
         private List<bool> isCustomObstacle = new List<bool>(); // Track which items are custom (from JSON)
+        private Dictionary<string, (int width, int height)> customObstacleDimensions = new Dictionary<string, (int, int)>(); // Stores width/height for custom obstacles from JSON
         private List<PlacedObstacle> placedPart1 = new List<PlacedObstacle>();
         private List<PlacedObstacle> placedPart2 = new List<PlacedObstacle>();
         private List<Plataform> placedPlatforms = new List<Plataform>();
@@ -223,6 +224,7 @@ namespace GameDuMouse.GameMain.UI
                     obstacleTextures.Add(obstacleTexture);
                     obstacleTextureNames.Add(obstacle.Name);
                     isCustomObstacle.Add(true); // Mark as custom
+                    customObstacleDimensions[obstacle.Name] = (obstacle.Width, obstacle.Height); // Store dimensions
                 }
             }
 
@@ -707,8 +709,17 @@ namespace GameDuMouse.GameMain.UI
                         }
 
                         // create bounds in world coords centered under the mouse
-                        var topLeft = new Point(worldMouse.X - tex.Width / 2, worldMouse.Y - tex.Height / 2);
-                        var rect = new Rectangle(topLeft, new Point(tex.Width, tex.Height));
+                        // For custom obstacles, use dimensions from JSON; otherwise use texture dimensions
+                        int obstacleWidth = tex.Width;
+                        int obstacleHeight = tex.Height;
+                        if (customObstacleDimensions.ContainsKey(name))
+                        {
+                            obstacleWidth = customObstacleDimensions[name].width;
+                            obstacleHeight = customObstacleDimensions[name].height;
+                        }
+                        
+                        var topLeft = new Point(worldMouse.X - obstacleWidth / 2, worldMouse.Y - obstacleHeight / 2);
+                        var rect = new Rectangle(topLeft, new Point(obstacleWidth, obstacleHeight));
                         activePlaced.Add(new PlacedObstacle
                         {
                             Texture = tex,
@@ -1243,7 +1254,17 @@ namespace GameDuMouse.GameMain.UI
             {
                 int y = (Margin + i * PaletteItemHeight - (int)leftScroll + Margin) + PaletteStartY;
                 var thumb = obstacleTextures[i];
-                spriteBatch.Draw(thumb, new Vector2(Margin, y), Color.White);
+                
+                // Draw custom obstacles at fixed size, native obstacles at original size
+                if (i < isCustomObstacle.Count && isCustomObstacle[i])
+                {
+                    spriteBatch.Draw(thumb, new Rectangle(Margin, y, TextureSize, TextureSize), null, Color.White);
+                }
+                else
+                {
+                    spriteBatch.Draw(thumb, new Vector2(Margin, y), Color.White);
+                }
+                
                 Color c = (i == selectedPaletteIndex) ? Color.Yellow : Color.White;
                 string label = "Item " + (i + 1);
                 if (i < obstacleTextureNames.Count)
@@ -1307,9 +1328,8 @@ namespace GameDuMouse.GameMain.UI
             foreach (var p in activePlaced)
             {
                 var topLeftScreen = WorldToScreen(p.Bounds.Location);
-                var adjustedPos = new Vector2(topLeftScreen.X, topLeftScreen.Y);
-                spriteBatch.Draw(p.Texture, adjustedPos, Color.White);
                 var adjustedBounds = new Rectangle(topLeftScreen.X, topLeftScreen.Y, p.Bounds.Width, p.Bounds.Height);
+                spriteBatch.Draw(p.Texture, adjustedBounds, Color.White);
                 spriteBatch.Draw(pixel, adjustedBounds, Color.Red * PlacedAlpha);
             }
         }
@@ -1475,6 +1495,12 @@ namespace GameDuMouse.GameMain.UI
             // Remove old custom obstacles from the lists
             if (customObstacleStartIndex > 0 && customObstacleStartIndex < obstacleTextureNames.Count)
             {
+                // Remove dimensions from dictionary for old custom obstacles
+                for (int i = customObstacleStartIndex; i < obstacleTextureNames.Count; i++)
+                {
+                    customObstacleDimensions.Remove(obstacleTextureNames[i]);
+                }
+                
                 int countToRemove = obstacleTextureNames.Count - customObstacleStartIndex;
                 obstacleTextures.RemoveRange(customObstacleStartIndex, countToRemove);
                 obstacleTextureNames.RemoveRange(customObstacleStartIndex, countToRemove);
@@ -1506,6 +1532,7 @@ namespace GameDuMouse.GameMain.UI
                 obstacleTextures.Add(obstacleTexture);
                 obstacleTextureNames.Add(obstacle.Name);
                 isCustomObstacle.Add(true); // Mark as custom
+                customObstacleDimensions[obstacle.Name] = (obstacle.Width, obstacle.Height); // Store dimensions
             }
         }
 

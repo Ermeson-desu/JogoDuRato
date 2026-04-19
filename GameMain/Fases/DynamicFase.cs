@@ -64,7 +64,10 @@ namespace GameDuMouse.GameMain.Fases
             foreach (var obstacle in data.Obstacles)
             {
                 var b = obstacle.Bounds;
-                Obstacles1.Add(new Obstacle(game, b.X, b.Y, b.Width, b.Height, "Square"));
+                string textureName = !string.IsNullOrWhiteSpace(obstacle.TextureName) ? obstacle.TextureName : "Square";
+                var obs = new Obstacle(game, b.X, b.Y, b.Width, b.Height, textureName);
+                obs.LoadCustomTexture(textureName);
+                Obstacles1.Add(obs);
             }
 
             if (data.ObstaclesReturn != null)
@@ -72,7 +75,10 @@ namespace GameDuMouse.GameMain.Fases
                 foreach (var obstacle in data.ObstaclesReturn)
                 {
                     var b = obstacle.Bounds;
-                    Obstacles2.Add(new Obstacle(game, b.X, b.Y, b.Width, b.Height, "Square"));
+                    string textureName = !string.IsNullOrWhiteSpace(obstacle.TextureName) ? obstacle.TextureName : "Square";
+                    var obs = new Obstacle(game, b.X, b.Y, b.Width, b.Height, textureName);
+                    obs.LoadCustomTexture(textureName);
+                    Obstacles2.Add(obs);
                 }
             }
 

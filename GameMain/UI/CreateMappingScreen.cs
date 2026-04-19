@@ -103,6 +103,7 @@ namespace GameDuMouse.GameMain.UI
         private string saveStatusMessage = "";
         private System.DateTime saveStatusExpiresAtUtc = System.DateTime.MinValue;
         private bool requestPreview = false;
+        private bool showDebugColliders = true; // Toggle debug visualization of colliders
         private bool isConfirmingBackgroundDelete = false;
         private int pendingDeleteLayerIndex = -1;
         private List<PendingObstacleRef> pendingDeleteObstacleIndices = new List<PendingObstacleRef>();
@@ -270,6 +271,7 @@ namespace GameDuMouse.GameMain.UI
             saveStatusMessage = "";
             saveStatusExpiresAtUtc = System.DateTime.MinValue;
             requestPreview = false;
+            showDebugColliders = true; // Reset debug colliders visibility
             currentPart = 1;
             draggingPlatform = null;
 
@@ -543,9 +545,16 @@ namespace GameDuMouse.GameMain.UI
             previewButton?.Update(mouse, previousMouse);
             addObstacleButton?.Update(mouse, previousMouse);
 
+            // Toggle debug colliders with 'D' key
+            if (IsKeyPressed(Microsoft.Xna.Framework.Input.Keys.D, keyboard))
+            {
+                showDebugColliders = !showDebugColliders;
+            }
+
             if (requestPreview)
             {
                 SaveCurrentMap();
+                showDebugColliders = false; // Hide debug colliders in preview
                 stateManager.ChangeState(GameState.MappingTest);
                 requestPreview = false;
                 return;
@@ -1297,6 +1306,10 @@ namespace GameDuMouse.GameMain.UI
 
         private void DrawColliders(SpriteBatch spriteBatch)
         {
+            // Only draw debug colliders if enabled
+            if (!showDebugColliders)
+                return;
+
             int rightWallX = customBackground != null ? phaseWidth : (defaultPhaseWidth > 0 ? defaultPhaseWidth : LayoutConfig.EditorMinPhaseWidth);
 
             // Draw map boundary colliders (left/right walls + ceiling)
@@ -1330,7 +1343,12 @@ namespace GameDuMouse.GameMain.UI
                 var topLeftScreen = WorldToScreen(p.Bounds.Location);
                 var adjustedBounds = new Rectangle(topLeftScreen.X, topLeftScreen.Y, p.Bounds.Width, p.Bounds.Height);
                 spriteBatch.Draw(p.Texture, adjustedBounds, Color.White);
-                spriteBatch.Draw(pixel, adjustedBounds, Color.Red * PlacedAlpha);
+                
+                // Only draw debug collider visualization if enabled
+                if (showDebugColliders)
+                {
+                    spriteBatch.Draw(pixel, adjustedBounds, Color.Red * PlacedAlpha);
+                }
             }
         }
 

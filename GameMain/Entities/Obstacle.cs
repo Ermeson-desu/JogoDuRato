@@ -19,6 +19,7 @@ namespace GameDuMouse.GameMain.Entities
         private int width, height;
         private ObstacleShape shape;
         private Game game;
+        private string customTextureName; // For custom obstacles loaded from .json
 
         public Rectangle Bounds => new Rectangle((int)position.X, (int)position.Y, width, height);
 
@@ -56,13 +57,16 @@ namespace GameDuMouse.GameMain.Entities
         {
             if (texture == null)
                 return;
-            Color color = shape switch
+            
+            // For custom textures, draw with white color to preserve original image colors
+            // For default shapes, apply colored tinting
+            Color color = !string.IsNullOrWhiteSpace(customTextureName) ? Color.White : (shape switch
             {
                 ObstacleShape.Circle => Color.Red * 0.6f,
                 ObstacleShape.Triangle => Color.Orange * 0.6f,
                 ObstacleShape.Square => Color.Purple * 0.6f,
                 _ => Color.Gray * 0.6f
-            };
+            });
 
             spriteBatch.Draw(texture, Bounds, color);
         }
@@ -124,5 +128,33 @@ namespace GameDuMouse.GameMain.Entities
 
             return alpha >= 0 && beta >= 0 && gamma >= 0;
         }
+
+        public void LoadCustomTexture(string textureName)
+        {
+            if (string.IsNullOrWhiteSpace(textureName) || textureName == "Square")
+                return;
+
+            customTextureName = textureName;
+            
+            // Try to load from CustomObstacleService
+            var customObstacleService = game.Services.GetService(typeof(GameDuMouse.GameMain.Services.CustomObstacleService)) as GameDuMouse.GameMain.Services.CustomObstacleService;
+            if (customObstacleService != null)
+            {
+                var obstacle = customObstacleService.GetByName(textureName);
+                if (obstacle != null && !string.IsNullOrWhiteSpace(obstacle.ImagePath))
+                {
+                    var assetManager = game.Services.GetService(typeof(GameDuMouse.GameMain.Services.AssetManager)) as GameDuMouse.GameMain.Services.AssetManager;
+                    if (assetManager != null)
+                    {
+                        var customTexture = assetManager.LoadTextureFromFile(obstacle.ImagePath);
+                        if (customTexture != null)
+                        {
+                            texture = customTexture;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
+

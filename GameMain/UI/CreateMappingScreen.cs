@@ -28,7 +28,7 @@ namespace GameDuMouse.GameMain.UI
         private const int ScrollPadding = 30;
         private const int TextureSize = 32;
         private const float ScrollSpeed = 0.5f;
-        private const float LeftScrollSpeed = 0.01f;
+        private const float LeftScrollSpeed = 0.05f;
         private const float ColliderAlpha = 0.6f;
         private const float PlacedAlpha = 0.4f;
         private const float PanelAlpha = 0.7f;
@@ -36,6 +36,8 @@ namespace GameDuMouse.GameMain.UI
         private const int BackgroundDrawOffsetX = 200;
         private const int TextOffsetY = 8;
         private const int PaletteTopOffset = 40;
+        private const int PaletteStartY = PaletteTopOffset + 50; // Where palette items start (after title)
+        private const int ButtonAreaHeight = 130; // Space reserved for buttons at bottom
         private const string PlatformItemName = "Plataform";
         private const int PlatformDefaultWidth = 190;
         private const int PlatformDefaultHeight = LayoutConfig.EditorGroundThickness;
@@ -54,9 +56,12 @@ namespace GameDuMouse.GameMain.UI
         private AssetManager assetManager;
         private MapService mapService;
         private EditorService editorService;
+        private CustomObstacleService customObstacleService;
+        private int lastCustomObstacleVersion = -1;
 
         private List<Texture2D> obstacleTextures = new List<Texture2D>();
         private List<string> obstacleTextureNames = new List<string>();
+        private List<bool> isCustomObstacle = new List<bool>(); // Track which items are custom (from JSON)
         private List<PlacedObstacle> placedPart1 = new List<PlacedObstacle>();
         private List<PlacedObstacle> placedPart2 = new List<PlacedObstacle>();
         private List<Plataform> placedPlatforms = new List<Plataform>();
@@ -65,6 +70,10 @@ namespace GameDuMouse.GameMain.UI
         private int panelWidth => game.GraphicsDevice.Viewport.Width / LayoutConfig.EditorPanelFraction;
         private int screenWidth;
         private int screenHeight;
+
+        // Palette sizing properties
+        private int PaletteMaxHeight => screenHeight - PaletteStartY - ButtonAreaHeight;
+        private int PaletteDynamicHeight => Math.Min(obstacleTextures.Count * PaletteItemHeight, PaletteMaxHeight);
 
         private float leftScroll = 0f;
         private int selectedPaletteIndex = -1;
@@ -131,6 +140,7 @@ namespace GameDuMouse.GameMain.UI
             assetManager = game.Services.GetService(typeof(AssetManager)) as AssetManager;
             mapService = game.Services.GetService(typeof(MapService)) as MapService;
             editorService = game.Services.GetService(typeof(EditorService)) as EditorService;
+            customObstacleService = game.Services.GetService(typeof(CustomObstacleService)) as CustomObstacleService;
             previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
             
@@ -160,6 +170,7 @@ namespace GameDuMouse.GameMain.UI
                 var t1 = content.Load<Texture2D>("Content/Windows/JOGO_DO_RATO");
                 obstacleTextures.Add(t1);
                 obstacleTextureNames.Add("Content/Windows/JOGO_DO_RATO");
+                isCustomObstacle.Add(false);
             }
             catch
             {
@@ -167,18 +178,53 @@ namespace GameDuMouse.GameMain.UI
                 obstacleTextures.Add(CreateSolidTexture(Color.SandyBrown));
                 obstacleTextures.Add(CreateSolidTexture(Color.DarkGray));
                 obstacleTextures.Add(CreateSolidTexture(Color.Olive));
-                obstacleTextureNames.Add("Placeholder_SandyBrown");
-                obstacleTextureNames.Add("Placeholder_DarkGray");
-                obstacleTextureNames.Add("Placeholder_Olive");
+                obstacleTextureNames.Add("SandyBrown");
+                obstacleTextureNames.Add("DarkGray");
+                obstacleTextureNames.Add("Olive");
+                isCustomObstacle.Add(false);
+                isCustomObstacle.Add(false);
+                isCustomObstacle.Add(false);
             }
 
             // Add platform item (for colliders)
             obstacleTextures.Add(CreateSolidTexture(Color.SlateGray));
             obstacleTextureNames.Add(PlatformItemName);
+            isCustomObstacle.Add(false);
 
             // Add Cheese item (unique, only allowed on Part 1)
             obstacleTextures.Add(CreateSolidTexture(Color.Yellow));
             obstacleTextureNames.Add("Cheese");
+            isCustomObstacle.Add(false);
+
+            // Load custom obstacles from library
+            if (customObstacleService != null)
+            {
+                var customObstacles = customObstacleService.GetObstaclesSnapshot();
+                foreach (var obstacle in customObstacles)
+                {
+                    if (obstacle == null || string.IsNullOrWhiteSpace(obstacle.Name))
+                        continue;
+
+                    Texture2D obstacleTexture = null;
+
+                    // Try to load the image if available
+                    if (!string.IsNullOrWhiteSpace(obstacle.ImagePath) && assetManager != null)
+                    {
+                        obstacleTexture = assetManager.LoadTextureFromFile(obstacle.ImagePath);
+                    }
+
+                    // If no image or failed to load, create a placeholder based on type
+                    if (obstacleTexture == null)
+                    {
+                        Color placeholderColor = obstacle.IsMortal ? Color.Crimson : Color.MediumSeaGreen;
+                        obstacleTexture = CreateSolidTexture(placeholderColor);
+                    }
+
+                    obstacleTextures.Add(obstacleTexture);
+                    obstacleTextureNames.Add(obstacle.Name);
+                    isCustomObstacle.Add(true); // Mark as custom
+                }
+            }
 
             // Initialize colliders based on default phaseWidth
             UpdateCollidersForBackground();
@@ -200,6 +246,9 @@ namespace GameDuMouse.GameMain.UI
             int addButtonSize = 30;
             var addButtonBounds = new Rectangle(panelWidth - Margin - addButtonSize, Margin + 15, addButtonSize, addButtonSize);
             addObstacleButton = new UiActionButton(addButtonBounds, "+", OpenCreateObstacleScreen);
+
+            // Initialize custom obstacle version tracker
+            lastCustomObstacleVersion = customObstacleService != null ? customObstacleService.Version : -1;
         }
 
         public void LoadMapForEditing(string mapName)
@@ -408,6 +457,13 @@ namespace GameDuMouse.GameMain.UI
             if (stateManager.CurrentState != GameState.Mapping)
                 return;
 
+            // Check if custom obstacles were updated and reload if needed
+            if (customObstacleService != null && customObstacleService.Version != lastCustomObstacleVersion)
+            {
+                ReloadCustomObstacles();
+                lastCustomObstacleVersion = customObstacleService.Version;
+            }
+
             var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             var keyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
 
@@ -477,6 +533,7 @@ namespace GameDuMouse.GameMain.UI
             }
 
             HandleScroll(mouse);
+            HandleCustomObstacleDelete(mouse);
             HandlePaletteSelection(mouse);
             HandlePlacingAndDragging(mouse);
             HandleDelete(mouse, keyboard);
@@ -513,7 +570,7 @@ namespace GameDuMouse.GameMain.UI
                 else
                 {
                     leftScroll -= wheelDelta * LeftScrollSpeed;
-                    leftScroll = MathHelper.Clamp(leftScroll, 0, Math.Max(0, (obstacleTextures.Count * PaletteItemHeight) - screenHeight + ScrollPadding));
+                    leftScroll = MathHelper.Clamp(leftScroll, 0, Math.Max(0, (obstacleTextures.Count * PaletteItemHeight) - PaletteDynamicHeight));
                 }
             }
         }
@@ -522,11 +579,38 @@ namespace GameDuMouse.GameMain.UI
         {
             if (mouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed 
             && previousMouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released 
-            && mouse.X < panelWidth)
+            && mouse.X < panelWidth && mouse.Y >= PaletteStartY && mouse.Y < PaletteStartY + PaletteDynamicHeight)
             {
-                int index = (int)((mouse.Y + leftScroll - (Margin * 2 + PaletteTopOffset)) / PaletteItemHeight);
+                int index = (int)((mouse.Y + leftScroll - (Margin * 2 + PaletteStartY)) / PaletteItemHeight);
                 if (index >= 0 && index < obstacleTextures.Count)
                     selectedPaletteIndex = index;
+            }
+        }
+
+        private void HandleCustomObstacleDelete(MouseState mouse)
+        {
+            if (mouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed 
+            && previousMouse.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released 
+            && mouse.X < panelWidth && mouse.Y >= PaletteStartY && mouse.Y < PaletteStartY + PaletteDynamicHeight)
+            {
+                int index = (int)((mouse.Y + leftScroll - (Margin * 2 + PaletteStartY)) / PaletteItemHeight);
+                
+                // Check if click is on delete button (right side of item)
+                int deleteButtonX = panelWidth - Margin - 30;
+                if (index >= 0 && index < obstacleTextures.Count && index < isCustomObstacle.Count && isCustomObstacle[index])
+                {
+                    if (mouse.X >= deleteButtonX && mouse.X < deleteButtonX + 28)
+                    {
+                        // Delete custom obstacle
+                        string obstacleName = obstacleTextureNames[index];
+                        if (customObstacleService != null)
+                        {
+                            customObstacleService.DeleteObstacle(obstacleName);
+                            ReloadCustomObstacles();
+                            selectedPaletteIndex = -1;
+                        }
+                    }
+                }
             }
         }
 
@@ -1131,10 +1215,33 @@ namespace GameDuMouse.GameMain.UI
 
         private void DrawPalette(SpriteBatch spriteBatch)
         {
+            // Draw palette background panel
+            var paletteBackgroundRect = new Rectangle(0, PaletteStartY, panelWidth, PaletteDynamicHeight);
+            spriteBatch.Draw(pixel, paletteBackgroundRect, Color.DarkSlateGray * (PanelAlpha * 0.8f));
+            
+            // Draw palette border
+            var paletteBorderColor = Color.Gray;
+            // Top border
+            spriteBatch.Draw(pixel, new Rectangle(0, PaletteStartY, panelWidth, 2), paletteBorderColor);
+            // Bottom border
+            spriteBatch.Draw(pixel, new Rectangle(0, PaletteStartY + PaletteDynamicHeight - 2, panelWidth, 2), paletteBorderColor);
+            // Left border
+            spriteBatch.Draw(pixel, new Rectangle(0, PaletteStartY, 2, PaletteDynamicHeight), paletteBorderColor);
+            // Right border
+            spriteBatch.Draw(pixel, new Rectangle(panelWidth - 2, PaletteStartY, 2, PaletteDynamicHeight), paletteBorderColor);
+
+            // Set up scissor rect to clip palette items
+            var previousScissorRect = game.GraphicsDevice.ScissorRectangle;
+            var paletteClipRect = new Rectangle(0, PaletteStartY, panelWidth, PaletteDynamicHeight);
+            game.GraphicsDevice.ScissorRectangle = paletteClipRect;
+            
+            spriteBatch.End();
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, new RasterizerState() { ScissorTestEnable = true });
+            
             // palette items
             for (int i = 0; i < obstacleTextures.Count; i++)
             {
-                int y = (Margin + i * PaletteItemHeight - (int)leftScroll + Margin) + PaletteTopOffset;
+                int y = (Margin + i * PaletteItemHeight - (int)leftScroll + Margin) + PaletteStartY;
                 var thumb = obstacleTextures[i];
                 spriteBatch.Draw(thumb, new Vector2(Margin, y), Color.White);
                 Color c = (i == selectedPaletteIndex) ? Color.Yellow : Color.White;
@@ -1145,9 +1252,26 @@ namespace GameDuMouse.GameMain.UI
                         label = PlatformItemName;
                     else if (obstacleTextureNames[i] == "Cheese")
                         label = "Cheese";
+                    else
+                        label = obstacleTextureNames[i];
                 }
                 spriteBatch.DrawString(font, label, new Vector2(50, y + TextOffsetY), c);
+                
+                // Draw delete button for custom obstacles
+                if (i < isCustomObstacle.Count && isCustomObstacle[i])
+                {
+                    int deleteButtonX = panelWidth - Margin - 30;
+                    var deleteButtonRect = new Rectangle(deleteButtonX, y, 28, 28);
+                    spriteBatch.Draw(pixel, deleteButtonRect, Color.DarkRed);
+                    DrawTrashIcon(spriteBatch, deleteButtonRect, Color.White);
+                }
             }
+            
+            spriteBatch.End();
+            spriteBatch.Begin();
+            
+            // Restore scissor rect
+            game.GraphicsDevice.ScissorRectangle = previousScissorRect;
         }
 
         private void DrawColliders(SpriteBatch spriteBatch)
@@ -1338,6 +1462,51 @@ namespace GameDuMouse.GameMain.UI
 
             mapService?.SaveMap(data);
             SetStatusMessage($"Mapa salvo: {mapName}");
+        }
+
+        private void ReloadCustomObstacles()
+        {
+            if (customObstacleService == null)
+                return;
+
+            // Find the index where custom obstacles start (after "Cheese")
+            int customObstacleStartIndex = obstacleTextureNames.IndexOf("Cheese") + 1;
+            
+            // Remove old custom obstacles from the lists
+            if (customObstacleStartIndex > 0 && customObstacleStartIndex < obstacleTextureNames.Count)
+            {
+                int countToRemove = obstacleTextureNames.Count - customObstacleStartIndex;
+                obstacleTextures.RemoveRange(customObstacleStartIndex, countToRemove);
+                obstacleTextureNames.RemoveRange(customObstacleStartIndex, countToRemove);
+                isCustomObstacle.RemoveRange(customObstacleStartIndex, countToRemove);
+            }
+
+            // Load custom obstacles from library
+            var customObstacles = customObstacleService.GetObstaclesSnapshot();
+            foreach (var obstacle in customObstacles)
+            {
+                if (obstacle == null || string.IsNullOrWhiteSpace(obstacle.Name))
+                    continue;
+
+                Texture2D obstacleTexture = null;
+
+                // Try to load the image if available
+                if (!string.IsNullOrWhiteSpace(obstacle.ImagePath) && assetManager != null)
+                {
+                    obstacleTexture = assetManager.LoadTextureFromFile(obstacle.ImagePath);
+                }
+
+                // If no image or failed to load, create a placeholder based on type
+                if (obstacleTexture == null)
+                {
+                    Color placeholderColor = obstacle.IsMortal ? Color.Crimson : Color.MediumSeaGreen;
+                    obstacleTexture = CreateSolidTexture(placeholderColor);
+                }
+
+                obstacleTextures.Add(obstacleTexture);
+                obstacleTextureNames.Add(obstacle.Name);
+                isCustomObstacle.Add(true); // Mark as custom
+            }
         }
 
         private void OpenCreateObstacleScreen()

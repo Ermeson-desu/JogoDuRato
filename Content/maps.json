@@ -1,21 +1,14 @@
 [
   {
     "MapName": "MINHA NOSSA",
-    "PhaseWidth": 894,
+    "PhaseWidth": 600,
     "ScreenHeight": 480,
-    "IsCustomBackgroundLoaded": true,
+    "IsCustomBackgroundLoaded": false,
     "DefaultBackgroundColor": "CornflowerBlue",
-    "DefaultBackgroundWidth": 894,
+    "DefaultBackgroundWidth": 600,
     "DefaultBackgroundHeight": 480,
-    "CreatedAtUtc": "2026-04-09T16:25:20.3651160Z",
-    "BackgroundLayers": [
-      {
-        "ImagePath": "C:\\Users\\ermes\\Documentos\\JogoDuRato_Backup\\JogoDuRato\\Content\\Imported\\Captura de tela 2025-03-18 074542.png",
-        "StartX": 0,
-        "Width": 894,
-        "Height": 615
-      }
-    ],
+    "CreatedAtUtc": "2026-04-19T15:39:39.6443482Z",
+    "BackgroundLayers": [],
     "Colliders": [
       {
         "Name": "LeftWall",
@@ -31,7 +24,7 @@
         "Name": "RightWall",
         "Type": "Wall",
         "Bounds": {
-          "X": 894,
+          "X": 600,
           "Y": 0,
           "Width": 10,
           "Height": 405
@@ -43,7 +36,7 @@
         "Bounds": {
           "X": 0,
           "Y": 0,
-          "Width": 894,
+          "Width": 600,
           "Height": 10
         }
       },
@@ -53,27 +46,7 @@
         "Bounds": {
           "X": 0,
           "Y": 400,
-          "Width": 894,
-          "Height": 5
-        }
-      },
-      {
-        "Name": "Platform_0",
-        "Type": "Platform",
-        "Bounds": {
-          "X": 193,
-          "Y": 250,
-          "Width": 190,
-          "Height": 5
-        }
-      },
-      {
-        "Name": "Platform_1",
-        "Type": "Platform",
-        "Bounds": {
-          "X": 615,
-          "Y": 250,
-          "Width": 190,
+          "Width": 600,
           "Height": 5
         }
       }
@@ -84,19 +57,19 @@
         "TextureIndex": 0,
         "TextureName": "Placeholder_SandyBrown",
         "Bounds": {
-          "X": 825,
-          "Y": 607,
-          "Width": 32,
-          "Height": 32
+          "X": 404,
+          "Y": -114,
+          "Width": 100,
+          "Height": 100
         }
       },
       {
         "Name": "Obstacle_1",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
+        "TextureIndex": 1,
+        "TextureName": "Placeholder_DarkGray",
         "Bounds": {
-          "X": 670,
-          "Y": -46,
+          "X": -9,
+          "Y": 178,
           "Width": 32,
           "Height": 32
         }
@@ -106,19 +79,19 @@
         "TextureIndex": 0,
         "TextureName": "Placeholder_SandyBrown",
         "Bounds": {
-          "X": 1120,
-          "Y": 550,
+          "X": 17,
+          "Y": 114,
           "Width": 32,
           "Height": 32
         }
       },
       {
         "Name": "Obstacle_3",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
+        "TextureIndex": 2,
+        "TextureName": "Placeholder_Olive",
         "Bounds": {
-          "X": 1408,
-          "Y": 690,
+          "X": 790,
+          "Y": 160,
           "Width": 32,
           "Height": 32
         }
@@ -128,547 +101,140 @@
         "TextureIndex": 2,
         "TextureName": "Placeholder_Olive",
         "Bounds": {
-          "X": 883,
-          "Y": -85,
+          "X": 858,
+          "Y": 651,
           "Width": 32,
           "Height": 32
         }
       },
       {
         "Name": "Obstacle_5",
-        "TextureIndex": 2,
-        "TextureName": "Placeholder_Olive",
+        "TextureIndex": 6,
+        "TextureName": "Veneno",
         "Bounds": {
-          "X": 930,
-          "Y": -41,
-          "Width": 32,
-          "Height": 32
+          "X": -49,
+          "Y": 599,
+          "Width": 100,
+          "Height": 100
         }
       },
       {
         "Name": "Obstacle_6",
-        "TextureIndex": 2,
-        "TextureName": "Placeholder_Olive",
+        "TextureIndex": 6,
+        "TextureName": "Veneno",
         "Bounds": {
-          "X": 755,
-          "Y": 530,
-          "Width": 32,
-          "Height": 32
+          "X": 140,
+          "Y": 579,
+          "Width": 100,
+          "Height": 100
         }
       },
       {
         "Name": "Obstacle_7",
-        "TextureIndex": 2,
-        "TextureName": "Placeholder_Olive",
+        "TextureIndex": 6,
+        "TextureName": "Veneno",
         "Bounds": {
-          "X": 772,
-          "Y": 515,
-          "Width": 32,
-          "Height": 32
+          "X": 215,
+          "Y": 21,
+          "Width": 100,
+          "Height": 100
         }
       },
       {
         "Name": "Obstacle_8",
-        "TextureIndex": 2,
-        "TextureName": "Placeholder_Olive",
+        "TextureIndex": 6,
+        "TextureName": "Veneno",
         "Bounds": {
-          "X": 735,
-          "Y": 535,
-          "Width": 32,
-          "Height": 32
+          "X": 223,
+          "Y": 122,
+          "Width": 100,
+          "Height": 100
         }
       },
       {
         "Name": "Obstacle_9",
-        "TextureIndex": 2,
-        "TextureName": "Placeholder_Olive",
+        "TextureIndex": 0,
+        "TextureName": "Placeholder_SandyBrown",
         "Bounds": {
-          "X": 1262,
-          "Y": -238,
+          "X": 428,
+          "Y": 95,
           "Width": 32,
           "Height": 32
         }
       },
       {
         "Name": "Obstacle_10",
-        "TextureIndex": 2,
-        "TextureName": "Placeholder_Olive",
+        "TextureIndex": 0,
+        "TextureName": "Placeholder_SandyBrown",
         "Bounds": {
-          "X": 858,
-          "Y": 693,
+          "X": 38,
+          "Y": 70,
           "Width": 32,
           "Height": 32
         }
       },
       {
         "Name": "Obstacle_11",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
+        "TextureIndex": 0,
+        "TextureName": "Placeholder_SandyBrown",
         "Bounds": {
-          "X": 1012,
-          "Y": -224,
+          "X": 349,
+          "Y": 76,
           "Width": 32,
           "Height": 32
         }
       },
       {
         "Name": "Obstacle_12",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
+        "TextureIndex": 0,
+        "TextureName": "Placeholder_SandyBrown",
         "Bounds": {
-          "X": 360,
-          "Y": 628,
+          "X": -8,
+          "Y": 124,
           "Width": 32,
           "Height": 32
         }
       },
       {
         "Name": "Obstacle_13",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
+        "TextureIndex": 0,
+        "TextureName": "Placeholder_SandyBrown",
         "Bounds": {
-          "X": 602,
-          "Y": 490,
+          "X": 338,
+          "Y": 159,
           "Width": 32,
           "Height": 32
         }
       },
       {
         "Name": "Obstacle_14",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
+        "TextureIndex": 0,
+        "TextureName": "Placeholder_SandyBrown",
         "Bounds": {
-          "X": 395,
-          "Y": 561,
+          "X": 39,
+          "Y": 160,
           "Width": 32,
           "Height": 32
         }
       },
       {
         "Name": "Obstacle_15",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
+        "TextureIndex": 2,
+        "TextureName": "Placeholder_Olive",
         "Bounds": {
-          "X": 409,
-          "Y": 580,
+          "X": 22,
+          "Y": 192,
           "Width": 32,
           "Height": 32
         }
       },
       {
         "Name": "Obstacle_16",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 409,
-          "Y": 643,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_17",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 720,
-          "Y": 700,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_18",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 597,
-          "Y": 685,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_19",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 954,
-          "Y": 506,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_20",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 949,
-          "Y": 543,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_21",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 640,
-          "Y": 650,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_22",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 633,
-          "Y": 736,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_23",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 669,
-          "Y": 725,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_24",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 907,
-          "Y": 515,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_25",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 1041,
-          "Y": 511,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_26",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 1126,
-          "Y": 589,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_27",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 1114,
-          "Y": 566,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_28",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 635,
-          "Y": 481,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_29",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 612,
-          "Y": 546,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_30",
-        "TextureIndex": 1,
-        "TextureName": "Placeholder_DarkGray",
-        "Bounds": {
-          "X": 665,
-          "Y": 523,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_31",
         "TextureIndex": 2,
         "TextureName": "Placeholder_Olive",
         "Bounds": {
-          "X": 684,
-          "Y": 545,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_32",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 690,
-          "Y": 576,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_33",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 980,
-          "Y": 486,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_34",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 996,
-          "Y": 510,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_35",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 698,
-          "Y": 656,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_36",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 701,
-          "Y": 678,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_37",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 610,
-          "Y": -155,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_38",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 591,
-          "Y": -155,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_39",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 949,
-          "Y": -156,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_40",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 782,
-          "Y": -156,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_41",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 978,
-          "Y": 506,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_42",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 989,
-          "Y": 537,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_43",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 1036,
-          "Y": 615,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_44",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 1016,
-          "Y": 639,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_45",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 632,
-          "Y": 606,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_46",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 592,
-          "Y": -223,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_47",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 378,
-          "Y": 619,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_48",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 1056,
-          "Y": 645,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_49",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 1215,
-          "Y": 590,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_50",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 1005,
-          "Y": 528,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_51",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 1040,
-          "Y": 666,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_52",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 363,
-          "Y": 668,
-          "Width": 32,
-          "Height": 32
-        }
-      },
-      {
-        "Name": "Obstacle_53",
-        "TextureIndex": 0,
-        "TextureName": "Placeholder_SandyBrown",
-        "Bounds": {
-          "X": 501,
-          "Y": 643,
+          "X": 53,
+          "Y": 239,
           "Width": 32,
           "Height": 32
         }

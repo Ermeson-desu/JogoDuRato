@@ -29,6 +29,7 @@ namespace GameDuMouse.GameMain.UI
         private TextureCache textureCache;
         private EditorService editorService;
         private AssetManager assetManager;
+        private CustomObstacleService customObstacleService;
         private Texture2D pixel;
         private Texture2D obstacleImage; // Loaded image texture
 
@@ -68,6 +69,16 @@ namespace GameDuMouse.GameMain.UI
         private Rectangle speedDecreaseBtn;
         private Rectangle speedIncreaseBtn;
 
+        // Obstacle name input field
+        private Rectangle nameInputBounds;
+        private string editingName = "New Obstacle";
+        private bool isNameInputFocused = false;
+        private double nameInputBlinkTime = 0;
+
+        // Status message display
+        private string saveStatusMessage = "";
+        private System.DateTime saveStatusExpiresAtUtc = System.DateTime.UtcNow;
+
         // Input tracking
         private MouseState previousMouse;
         private KeyboardState previousKeyboard;
@@ -89,6 +100,7 @@ namespace GameDuMouse.GameMain.UI
             textureCache = game.Services.GetService(typeof(TextureCache)) as TextureCache;
             editorService = game.Services.GetService(typeof(EditorService)) as EditorService;
             assetManager = game.Services.GetService(typeof(AssetManager)) as AssetManager;
+            customObstacleService = game.Services.GetService(typeof(CustomObstacleService)) as CustomObstacleService;
             previousMouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
             previousKeyboard = inputManager != null ? inputManager.Keyboard : Keyboard.GetState();
         }
@@ -113,6 +125,10 @@ namespace GameDuMouse.GameMain.UI
             // Initialize obstacle data
             obstacleData = new ObstacleEditorData();
             originalData = obstacleData.Clone();
+
+            // Initialize name editing
+            editingName = obstacleData.Name;
+            isNameInputFocused = false;
 
             UpdateCheckboxes();
             UpdatePreviewBounds();
@@ -144,6 +160,10 @@ namespace GameDuMouse.GameMain.UI
             // Reset movement animation to start from beginning
             movementOffset = -obstacleData.MovementDistance;
             movementDirection = 1f;
+
+            // Initialize name editing
+            editingName = string.IsNullOrWhiteSpace(obstacleData.Name) ? "New Obstacle" : obstacleData.Name;
+            isNameInputFocused = false;
 
             // Load image if it exists
             if (!string.IsNullOrWhiteSpace(obstacleData.ImagePath) && assetManager != null)
@@ -211,6 +231,9 @@ namespace GameDuMouse.GameMain.UI
             int startY = 120;
             int btnWidthDisplay = 50;
 
+            // Name input field (positioned above size controls)
+            nameInputBounds = new Rectangle(startX, startY - 50, panelWidth - Margin - startX, 25);
+
             // Width controls: [−] [ 50 ] [+]
             widthDecreaseBtn = new Rectangle(startX, startY, btnSize, btnSize);
             widthIncreaseBtn = new Rectangle(startX + btnSize + btnWidthDisplay + spacing, startY, btnSize, btnSize);
@@ -260,7 +283,7 @@ namespace GameDuMouse.GameMain.UI
 
         public void Update(GameTime gameTime, StateManager stateManager)
         {
-            backButton?.Update(stateManager);
+            backButton?.Update(stateManager, ignoreBackKey: isNameInputFocused);
             if (stateManager.CurrentState != GameState.CreateObstacle)
                 return;
 
@@ -269,6 +292,9 @@ namespace GameDuMouse.GameMain.UI
 
             // Handle image import from EditorService
             HandleImageImport();
+
+            // Handle name input
+            HandleNameInput(mouse, keyboard, gameTime);
 
             // Handle panel scroll
             HandlePanelScroll(mouse);
@@ -493,6 +519,14 @@ namespace GameDuMouse.GameMain.UI
 
         private void SaveObstacle()
         {
+            if (customObstacleService != null)
+            {
+                // Save to custom obstacle library
+                customObstacleService.SaveObstacle(obstacleData);
+                saveStatusMessage = "Obstacle saved!";
+                saveStatusExpiresAtUtc = System.DateTime.UtcNow.AddSeconds(2);
+            }
+
             onSaveCallback?.Invoke(obstacleData);
         }
 
@@ -501,6 +535,116 @@ namespace GameDuMouse.GameMain.UI
             if (editorService != null)
             {
                 editorService.BeginPickImage();
+            }
+        }
+
+        private void HandleNameInput(MouseState mouse, KeyboardState keyboard, GameTime gameTime)
+        {
+            // Handle click on name input field
+            if (mouse.LeftButton == ButtonState.Pressed && previousMouse.LeftButton == ButtonState.Released)
+            {
+                if (mouse.X >= panelWidth)
+                    return;
+
+                var adjustedNameInputBounds = new Rectangle(
+                    nameInputBounds.X,
+                    (int)(nameInputBounds.Y - panelScroll),
+                    nameInputBounds.Width,
+                    nameInputBounds.Height
+                );
+
+                if (adjustedNameInputBounds.Contains(mouse.Position))
+                {
+                    isNameInputFocused = true;
+                    nameInputBlinkTime = 0;
+                    return;
+                }
+                else
+                {
+                    isNameInputFocused = false;
+                }
+            }
+
+            // Handle text input when focused
+            if (isNameInputFocused)
+            {
+                // Update blink time for cursor
+                if (gameTime != null)
+                {
+                    nameInputBlinkTime += gameTime.ElapsedGameTime.TotalMilliseconds;
+                    if (nameInputBlinkTime > 500)
+                        nameInputBlinkTime = 0;
+                }
+
+                // Handle backspace
+                if (IsKeyPressed(Keys.Back, keyboard) && editingName.Length > 0)
+                {
+                    editingName = editingName.Substring(0, editingName.Length - 1);
+                    obstacleData.Name = editingName;
+                }
+
+                // Handle delete
+                if (IsKeyPressed(Keys.Delete, keyboard))
+                {
+                    editingName = "";
+                    obstacleData.Name = editingName;
+                }
+
+                // Handle text input (letters, numbers, spaces, and some symbols)
+                foreach (Keys key in keyboard.GetPressedKeys())
+                {
+                    if (!previousKeyboard.IsKeyDown(key))
+                    {
+                        char? character = null;
+
+                        // Letters
+                        if (key >= Keys.A && key <= Keys.Z)
+                        {
+                            character = (char)('A' + (int)key - (int)Keys.A);
+                            if (keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift))
+                                character = char.ToUpper(character.Value);
+                            else
+                                character = char.ToLower(character.Value);
+                        }
+                        // Numbers
+                        else if (key >= Keys.D0 && key <= Keys.D9)
+                        {
+                            character = (char)('0' + (int)key - (int)Keys.D0);
+                        }
+                        // Space
+                        else if (key == Keys.Space)
+                        {
+                            character = ' ';
+                        }
+                        // Common symbols
+                        else if (key == Keys.OemMinus)
+                        {
+                            character = '-';
+                        }
+
+                        if (character.HasValue && editingName.Length < 30)
+                        {
+                            editingName += character.Value;
+                            obstacleData.Name = editingName;
+                        }
+                    }
+                }
+
+                // Handle Enter to confirm
+                if (IsKeyPressed(Keys.Enter, keyboard))
+                {
+                    isNameInputFocused = false;
+                    if (string.IsNullOrWhiteSpace(editingName))
+                    {
+                        editingName = "New Obstacle";
+                        obstacleData.Name = editingName;
+                    }
+                }
+            }
+            else
+            {
+                // Sync editing name with obstacle data when not focused
+                editingName = string.IsNullOrWhiteSpace(obstacleData.Name) ? "New Obstacle" : obstacleData.Name;
             }
         }
 
@@ -583,6 +727,12 @@ namespace GameDuMouse.GameMain.UI
             // Restore scissor rect
             game.GraphicsDevice.ScissorRectangle = previousScissorRect;
 
+            // Status message (if visible)
+            if (!string.IsNullOrWhiteSpace(saveStatusMessage) && System.DateTime.UtcNow < saveStatusExpiresAtUtc)
+            {
+                spriteBatch.DrawString(font, saveStatusMessage, new Vector2(Margin, screenHeight - 135), Color.LimeGreen);
+            }
+
             // Add image button (not scrolled, stays at bottom)
             addImageButton?.Draw(spriteBatch, font, pixel, Color.DarkSlateGray, Color.White);
 
@@ -626,6 +776,9 @@ namespace GameDuMouse.GameMain.UI
         private void DrawSizeControlsScrolled(SpriteBatch spriteBatch)
         {
             int spacing = 5;
+
+            // Draw name input field
+            DrawNameInput(spriteBatch);
 
             // Width label and controls
             spriteBatch.DrawString(font, "Largura:", new Vector2(Margin, 90 - panelScroll), Color.LightGray);
@@ -673,6 +826,53 @@ namespace GameDuMouse.GameMain.UI
                 );
                 spriteBatch.DrawString(font, ((int)obstacleData.MovementSpeed).ToString(), speedValuePos, Color.Yellow);
                 DrawButton(spriteBatch, speedIncreaseBtnScrolled, "+", Color.Green);
+            }
+        }
+
+        private void DrawNameInput(SpriteBatch spriteBatch)
+        {
+            // Label
+            spriteBatch.DrawString(font, "Nome:", new Vector2(Margin, nameInputBounds.Y - 20 - panelScroll), Color.LightGray);
+
+            // Draw input field background
+            var scrolledNameInputBounds = new Rectangle(
+                nameInputBounds.X,
+                (int)(nameInputBounds.Y - panelScroll),
+                nameInputBounds.Width,
+                nameInputBounds.Height
+            );
+
+            // Draw background
+            Color backgroundColor = isNameInputFocused ? Color.DarkCyan : Color.DarkSlateGray;
+            spriteBatch.Draw(pixel, scrolledNameInputBounds, backgroundColor);
+
+            // Draw border
+            Color borderColor = isNameInputFocused ? Color.Cyan : Color.White;
+            spriteBatch.Draw(pixel, new Rectangle(scrolledNameInputBounds.X, scrolledNameInputBounds.Y, scrolledNameInputBounds.Width, 2), borderColor);
+            spriteBatch.Draw(pixel, new Rectangle(scrolledNameInputBounds.X, scrolledNameInputBounds.Bottom - 2, scrolledNameInputBounds.Width, 2), borderColor);
+            spriteBatch.Draw(pixel, new Rectangle(scrolledNameInputBounds.X, scrolledNameInputBounds.Y, 2, scrolledNameInputBounds.Height), borderColor);
+            spriteBatch.Draw(pixel, new Rectangle(scrolledNameInputBounds.Right - 2, scrolledNameInputBounds.Y, 2, scrolledNameInputBounds.Height), borderColor);
+
+            // Draw text
+            string displayText = string.IsNullOrWhiteSpace(editingName) ? "New Obstacle" : editingName;
+            var textSize = font.MeasureString(displayText);
+            var textPos = new Vector2(
+                scrolledNameInputBounds.X + 5,
+                scrolledNameInputBounds.Y + (scrolledNameInputBounds.Height - textSize.Y) / 2
+            );
+            spriteBatch.DrawString(font, displayText, textPos, Color.White);
+
+            // Draw cursor if focused
+            if (isNameInputFocused && nameInputBlinkTime < 250)
+            {
+                var cursorX = textPos.X + textSize.X + 3;
+                var cursorRect = new Rectangle(
+                    (int)cursorX,
+                    scrolledNameInputBounds.Y + 3,
+                    2,
+                    scrolledNameInputBounds.Height - 6
+                );
+                spriteBatch.Draw(pixel, cursorRect, Color.Cyan);
             }
         }
 

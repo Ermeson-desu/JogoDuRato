@@ -128,6 +128,13 @@
 /processorParam:TextureFormat=Compressed
 /build:Font/Arial.spritefont
 
+#begin Font/File.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Font/File.spritefont
+
 #begin Idle/Idle01.png
 /importer:TextureImporter
 /processor:TextureProcessor

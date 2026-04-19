@@ -42,6 +42,7 @@ namespace GameDuMouse.GameMain.Core
         private MapService mapService;
         private SaveService saveService;
         private EditorService editorService;
+        private CustomObstacleService customObstacleService;
         private GameManager gameManager;
 
         // player/name state used for saving mid–game
@@ -72,6 +73,8 @@ namespace GameDuMouse.GameMain.Core
             Services.AddService(typeof(SaveService), saveService);
             editorService = new EditorService();
             Services.AddService(typeof(EditorService), editorService);
+            customObstacleService = new CustomObstacleService();
+            Services.AddService(typeof(CustomObstacleService), customObstacleService);
             gameManager = new GameManager(this);
             Services.AddService(typeof(IGameFlow), gameManager);
             base.Initialize();
@@ -473,6 +476,7 @@ namespace GameDuMouse.GameMain.Core
                 mapService?.Dispose();
                 saveService?.Dispose();
                 editorService?.Dispose();
+                customObstacleService?.Dispose();
             }
             base.Dispose(disposing);
         }

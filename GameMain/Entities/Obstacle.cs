@@ -133,8 +133,6 @@ namespace GameDuMouse.GameMain.Entities
         {
             if (string.IsNullOrWhiteSpace(textureName) || textureName == "Square")
                 return;
-
-            customTextureName = textureName;
             
             // Try to load from CustomObstacleService
             var customObstacleService = game.Services.GetService(typeof(GameDuMouse.GameMain.Services.CustomObstacleService)) as GameDuMouse.GameMain.Services.CustomObstacleService;
@@ -150,10 +148,15 @@ namespace GameDuMouse.GameMain.Entities
                         if (customTexture != null)
                         {
                             texture = customTexture;
+                            customTextureName = textureName;
+                            return;
                         }
                     }
                 }
             }
+
+            // Keep default obstacle tint if the custom texture cannot be loaded.
+            customTextureName = null;
         }
     }
 }

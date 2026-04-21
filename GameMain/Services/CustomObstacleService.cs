@@ -23,7 +23,7 @@ namespace GameDuMouse.GameMain.Services
 
         public CustomObstacleService()
         {
-            _ = RefreshAsync();
+            LoadObstaclesSync();
         }
 
         public int Version => Volatile.Read(ref version);
@@ -149,6 +149,39 @@ namespace GameDuMouse.GameMain.Services
 
             Interlocked.Increment(ref version);
             _ = SaveObstaclesAsync(snapshot);
+        }
+
+        private void LoadObstaclesSync()
+        {
+            try
+            {
+                if (!File.Exists(customObstaclesPath))
+                {
+                    lock (sync)
+                    {
+                        customObstacles = new List<CustomObstacleEntry>();
+                    }
+                    return;
+                }
+
+                string json = File.ReadAllText(customObstaclesPath);
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var loaded = JsonSerializer.Deserialize<List<CustomObstacleEntry>>(json, options) ?? new List<CustomObstacleEntry>();
+
+                lock (sync)
+                {
+                    customObstacles = loaded;
+                }
+
+                Interlocked.Increment(ref version);
+            }
+            catch
+            {
+                lock (sync)
+                {
+                    customObstacles = new List<CustomObstacleEntry>();
+                }
+            }
         }
 
         private async Task LoadObstaclesAsync()

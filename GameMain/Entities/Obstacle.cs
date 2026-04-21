@@ -2,6 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using GameDuMouse.GameMain.Rendering;
+using GameDuMouse.GameMain.Core;
 
 namespace GameDuMouse.GameMain.Entities
 {
@@ -20,6 +21,14 @@ namespace GameDuMouse.GameMain.Entities
         private ObstacleShape shape;
         private Game game;
         private string customTextureName; // For custom obstacles loaded from .json
+        private bool isMovable;
+        private MovementType movementType;
+        private bool isLooping;
+        private float movementDistance;
+        private float movementSpeed;
+        private float movementProgress;
+        private float movementDirection = 1f;
+        private Vector2 initialPosition;
 
         public Rectangle Bounds => new Rectangle((int)position.X, (int)position.Y, width, height);
 
@@ -34,6 +43,7 @@ namespace GameDuMouse.GameMain.Entities
         {
             this.game = game;
             this.position = new Vector2(x, y);
+            this.initialPosition = this.position;
             this.width = width;
             this.height = height;
             this.shape = Enum.TryParse(shapeStr, true, out ObstacleShape parsedShape) ? parsedShape : ObstacleShape.Square;
@@ -69,6 +79,56 @@ namespace GameDuMouse.GameMain.Entities
             });
 
             spriteBatch.Draw(texture, Bounds, color);
+        }
+
+        public void ConfigureMovement(bool movable, MovementType type, bool looping, int distance, float speed)
+        {
+            isMovable = movable;
+            movementType = type;
+            isLooping = looping;
+            movementDistance = Math.Max(0, distance);
+            movementSpeed = Math.Max(0f, speed);
+            movementProgress = 0f;
+            movementDirection = 1f;
+            SetPosition(initialPosition);
+        }
+
+        public void Update(float deltaSeconds)
+        {
+            if (!isMovable || movementType == MovementType.None || movementDistance <= 0f || movementSpeed <= 0f || deltaSeconds <= 0f)
+                return;
+
+            float delta = movementSpeed * deltaSeconds * movementDirection;
+            movementProgress += delta;
+
+            if (isLooping)
+            {
+                if (movementProgress >= movementDistance)
+                {
+                    movementProgress = movementDistance;
+                    movementDirection = -1f;
+                }
+                else if (movementProgress <= 0f)
+                {
+                    movementProgress = 0f;
+                    movementDirection = 1f;
+                }
+            }
+            else
+            {
+                if (movementProgress > movementDistance)
+                    movementProgress = movementDistance;
+                if (movementProgress < 0f)
+                    movementProgress = 0f;
+            }
+
+            Vector2 nextPosition = initialPosition;
+            if (movementType == MovementType.Horizontal)
+                nextPosition.X += movementProgress;
+            else if (movementType == MovementType.Vertical)
+                nextPosition.Y += movementProgress;
+
+            SetPosition(nextPosition);
         }
 
         public bool CollidesWith(Rectangle playerCollider)
@@ -157,6 +217,21 @@ namespace GameDuMouse.GameMain.Entities
 
             // Keep default obstacle tint if the custom texture cannot be loaded.
             customTextureName = null;
+        }
+
+        private void SetPosition(Vector2 newPosition)
+        {
+            position = newPosition;
+
+            if (shape == ObstacleShape.Triangle)
+            {
+                triangleVertices = new Vector2[]
+                {
+                    new Vector2(position.X + width / 2f, position.Y),
+                    new Vector2(position.X, position.Y + height),
+                    new Vector2(position.X + width, position.Y + height)
+                };
+            }
         }
     }
 }

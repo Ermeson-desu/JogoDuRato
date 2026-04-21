@@ -11,6 +11,7 @@ using GameDuMouse.GameMain.UI.Components;
 using GameDuMouse.GameMain.Rendering;
 using GameDuMouse.GameMain.Services;
 using System.Runtime.InteropServices;
+using System.Linq;
 
 namespace GameDuMouse.GameMain.UI
 {
@@ -63,6 +64,7 @@ namespace GameDuMouse.GameMain.UI
         private List<string> obstacleTextureNames = new List<string>();
         private List<bool> isCustomObstacle = new List<bool>(); // Track which items are custom (from JSON)
         private Dictionary<string, (int width, int height)> customObstacleDimensions = new Dictionary<string, (int, int)>(); // Stores width/height for custom obstacles from JSON
+        private Dictionary<string, CustomObstacleEntry> customObstacleEntries = new Dictionary<string, CustomObstacleEntry>(StringComparer.OrdinalIgnoreCase);
         private List<PlacedObstacle> placedPart1 = new List<PlacedObstacle>();
         private List<PlacedObstacle> placedPart2 = new List<PlacedObstacle>();
         private List<Plataform> placedPlatforms = new List<Plataform>();
@@ -132,6 +134,11 @@ namespace GameDuMouse.GameMain.UI
             public Rectangle Bounds;
             public int PaletteIndex;
             public string TextureName;
+            public bool IsMovable;
+            public MovementType MovementType;
+            public bool IsLooping;
+            public int MovementDistance;
+            public float MovementSpeed;
         }
 
         public CreateMappingScreen(Game game)
@@ -202,6 +209,11 @@ namespace GameDuMouse.GameMain.UI
             if (customObstacleService != null)
             {
                 var customObstacles = customObstacleService.GetObstaclesSnapshot();
+                customObstacleEntries = customObstacles
+                    .Where(o => o != null && !string.IsNullOrWhiteSpace(o.Name))
+                    .GroupBy(o => o.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(g => g.Key, g => g.Last(), StringComparer.OrdinalIgnoreCase);
+
                 foreach (var obstacle in customObstacles)
                 {
                     if (obstacle == null || string.IsNullOrWhiteSpace(obstacle.Name))
@@ -373,6 +385,7 @@ namespace GameDuMouse.GameMain.UI
                             ? obstacleTextureNames[texIndex]
                             : "Unknown"
                     });
+                    ApplyCustomMovementSettings(placedPart1[placedPart1.Count - 1]);
                 }
             }
 
@@ -398,6 +411,7 @@ namespace GameDuMouse.GameMain.UI
                             ? obstacleTextureNames[texIndex]
                             : "Unknown"
                     });
+                    ApplyCustomMovementSettings(placedPart2[placedPart2.Count - 1]);
                 }
             }
 
@@ -736,6 +750,7 @@ namespace GameDuMouse.GameMain.UI
                             PaletteIndex = selectedPaletteIndex,
                             TextureName = name
                         });
+                        ApplyCustomMovementSettings(activePlaced[activePlaced.Count - 1]);
                     }
                 }
             }
@@ -1527,6 +1542,11 @@ namespace GameDuMouse.GameMain.UI
 
             // Load custom obstacles from library
             var customObstacles = customObstacleService.GetObstaclesSnapshot();
+            customObstacleEntries = customObstacles
+                .Where(o => o != null && !string.IsNullOrWhiteSpace(o.Name))
+                .GroupBy(o => o.Name, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.Last(), StringComparer.OrdinalIgnoreCase);
+
             foreach (var obstacle in customObstacles)
             {
                 if (obstacle == null || string.IsNullOrWhiteSpace(obstacle.Name))
@@ -1552,6 +1572,94 @@ namespace GameDuMouse.GameMain.UI
                 isCustomObstacle.Add(true); // Mark as custom
                 customObstacleDimensions[obstacle.Name] = (obstacle.Width, obstacle.Height); // Store dimensions
             }
+
+            RefreshPlacedObstacleMovementSettings();
+        }
+
+        private void ApplyCustomMovementSettings(PlacedObstacle placedObstacle)
+        {
+            if (placedObstacle == null || string.IsNullOrWhiteSpace(placedObstacle.TextureName))
+                return;
+
+            placedObstacle.IsMovable = false;
+            placedObstacle.MovementType = MovementType.None;
+            placedObstacle.IsLooping = false;
+            placedObstacle.MovementDistance = 0;
+            placedObstacle.MovementSpeed = 0f;
+
+            if (!customObstacleEntries.TryGetValue(placedObstacle.TextureName, out var entry) || entry == null)
+                return;
+
+            if (!entry.IsMovable || entry.MovementDistance <= 0 || entry.MovementSpeed <= 0f)
+                return;
+
+            var movementType = entry.MovementType == (int)MovementType.Vertical
+                ? MovementType.Vertical
+                : (entry.MovementType == (int)MovementType.Horizontal ? MovementType.Horizontal : MovementType.None);
+
+            if (movementType == MovementType.None)
+                return;
+
+            placedObstacle.IsMovable = true;
+            placedObstacle.MovementType = movementType;
+            placedObstacle.IsLooping = entry.IsLooping;
+            placedObstacle.MovementDistance = Math.Max(0, entry.MovementDistance);
+            placedObstacle.MovementSpeed = Math.Max(0f, entry.MovementSpeed);
+        }
+
+        private void RefreshPlacedObstacleMovementSettings()
+        {
+            for (int i = 0; i < placedPart1.Count; i++)
+                ApplyCustomMovementSettings(placedPart1[i]);
+
+            for (int i = 0; i < placedPart2.Count; i++)
+                ApplyCustomMovementSettings(placedPart2[i]);
+        }
+
+        private Rectangle GetAnimatedBounds(PlacedObstacle placedObstacle)
+        {
+            if (placedObstacle == null || !placedObstacle.IsMovable || placedObstacle.MovementType == MovementType.None)
+                return placedObstacle != null ? placedObstacle.Bounds : Rectangle.Empty;
+
+            if (placedObstacle.MovementDistance <= 0 || placedObstacle.MovementSpeed <= 0f)
+                return placedObstacle.Bounds;
+
+            float elapsedSeconds = (float)(DateTime.UtcNow - DateTime.UnixEpoch).TotalSeconds;
+            float rawOffset = elapsedSeconds * placedObstacle.MovementSpeed;
+            float movementOffset;
+
+            if (placedObstacle.IsLooping)
+            {
+                float cycle = placedObstacle.MovementDistance * 2f;
+                if (cycle <= 0f)
+                    return placedObstacle.Bounds;
+
+                float cycleProgress = rawOffset % cycle;
+                if (cycleProgress <= placedObstacle.MovementDistance)
+                    movementOffset = cycleProgress;
+                else
+                    movementOffset = cycle - cycleProgress;
+            }
+            else
+            {
+                movementOffset = Math.Min(rawOffset, placedObstacle.MovementDistance);
+            }
+
+            int delta = (int)Math.Round(movementOffset);
+            if (placedObstacle.MovementType == MovementType.Horizontal)
+            {
+                return new Rectangle(
+                    placedObstacle.Bounds.X + delta,
+                    placedObstacle.Bounds.Y,
+                    placedObstacle.Bounds.Width,
+                    placedObstacle.Bounds.Height);
+            }
+
+            return new Rectangle(
+                placedObstacle.Bounds.X,
+                placedObstacle.Bounds.Y + delta,
+                placedObstacle.Bounds.Width,
+                placedObstacle.Bounds.Height);
         }
 
         private void OpenCreateObstacleScreen()

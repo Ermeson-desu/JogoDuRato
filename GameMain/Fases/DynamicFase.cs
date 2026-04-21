@@ -18,6 +18,7 @@ namespace GameDuMouse.GameMain.Fases
         private Cheese cheese;
         private Rectangle burrowBounds;
         private AssetManager assetManager;
+        private CustomObstacleService customObstacleService;
 
         public bool IsReturning { get; private set; } = false;
         public bool HasWon { get; private set; } = false;
@@ -33,6 +34,7 @@ namespace GameDuMouse.GameMain.Fases
             this.game = game;
             this.data = data;
             assetManager = game.Services.GetService(typeof(AssetManager)) as AssetManager;
+            customObstacleService = game.Services.GetService(typeof(CustomObstacleService)) as CustomObstacleService;
             BuildFromData();
         }
 
@@ -67,6 +69,7 @@ namespace GameDuMouse.GameMain.Fases
                 string textureName = !string.IsNullOrWhiteSpace(obstacle.TextureName) ? obstacle.TextureName : "Square";
                 var obs = new Obstacle(game, b.X, b.Y, b.Width, b.Height, textureName);
                 obs.LoadCustomTexture(textureName);
+                ApplyCustomMovement(obs, textureName);
                 Obstacles1.Add(obs);
             }
 
@@ -78,6 +81,7 @@ namespace GameDuMouse.GameMain.Fases
                     string textureName = !string.IsNullOrWhiteSpace(obstacle.TextureName) ? obstacle.TextureName : "Square";
                     var obs = new Obstacle(game, b.X, b.Y, b.Width, b.Height, textureName);
                     obs.LoadCustomTexture(textureName);
+                    ApplyCustomMovement(obs, textureName);
                     Obstacles2.Add(obs);
                 }
             }
@@ -119,6 +123,9 @@ namespace GameDuMouse.GameMain.Fases
 
         public void Update(Player player)
         {
+            float deltaSeconds = (float)game.TargetElapsedTime.TotalSeconds;
+            UpdateObstacleMovement(deltaSeconds);
+
             if (!IsReturning && cheese != null && cheese.CollidesWith(player.Collider))
             {
                 IsReturning = true;
@@ -199,6 +206,42 @@ namespace GameDuMouse.GameMain.Fases
         {
             if (obstacle != null && renderContext.IsVisible(obstacle.Bounds))
                 obstacle.Draw(spriteBatch);
+        }
+
+        private void ApplyCustomMovement(Obstacle obstacle, string textureName)
+        {
+            if (obstacle == null || string.IsNullOrWhiteSpace(textureName) || customObstacleService == null)
+                return;
+
+            var custom = customObstacleService.GetByName(textureName);
+            if (custom == null || !custom.IsMovable)
+                return;
+
+            MovementType movementType = custom.MovementType == (int)MovementType.Vertical
+                ? MovementType.Vertical
+                : (custom.MovementType == (int)MovementType.Horizontal ? MovementType.Horizontal : MovementType.None);
+
+            if (movementType == MovementType.None)
+                return;
+
+            obstacle.ConfigureMovement(
+                movable: true,
+                type: movementType,
+                looping: custom.IsLooping,
+                distance: custom.MovementDistance,
+                speed: custom.MovementSpeed);
+        }
+
+        private void UpdateObstacleMovement(float deltaSeconds)
+        {
+            var activeObstacles = IsReturning ? Obstacles2 : Obstacles1;
+            if (activeObstacles == null || activeObstacles.Count == 0)
+                return;
+
+            for (int i = 0; i < activeObstacles.Count; i++)
+            {
+                activeObstacles[i]?.Update(deltaSeconds);
+            }
         }
 
         private static void DrawCheese(SpriteBatch spriteBatch, RenderContext renderContext, Cheese targetCheese)

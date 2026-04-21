@@ -63,6 +63,8 @@ namespace GameDuMouse.GameMain.Services
                 MovementType = (int)obstacle.MovementType,
                 IsLooping = obstacle.IsLooping,
                 MovementDistance = obstacle.MovementDistance,
+                MovementDistanceStart = obstacle.MovementDistanceStart,
+                MovementDistanceEnd = obstacle.MovementDistanceEnd,
                 MovementSpeed = obstacle.MovementSpeed,
                 ImagePath = obstacle.ImagePath,
                 CreatedAtUtc = DateTime.UtcNow.ToString("o")
@@ -271,6 +273,8 @@ namespace GameDuMouse.GameMain.Services
         public int MovementType { get; set; }
         public bool IsLooping { get; set; }
         public int MovementDistance { get; set; }
+        public int MovementDistanceStart { get; set; }
+        public int MovementDistanceEnd { get; set; }
         public float MovementSpeed { get; set; }
         public string ImagePath { get; set; }
         public string CreatedAtUtc { get; set; }

@@ -24,7 +24,8 @@ namespace GameDuMouse.GameMain.Entities
         private bool isMovable;
         private MovementType movementType;
         private bool isLooping;
-        private float movementDistance;
+        private float movementDistanceStart;
+        private float movementDistanceEnd;
         private float movementSpeed;
         private float movementProgress;
         private float movementDirection = 1f;
@@ -81,21 +82,23 @@ namespace GameDuMouse.GameMain.Entities
             spriteBatch.Draw(texture, Bounds, color);
         }
 
-        public void ConfigureMovement(bool movable, MovementType type, bool looping, int distance, float speed)
+        public void ConfigureMovement(bool movable, MovementType type, bool looping, int distanceStart, int distanceEnd, float speed)
         {
             isMovable = movable;
             movementType = type;
             isLooping = looping;
-            movementDistance = Math.Max(0, distance);
+            movementDistanceStart = Math.Max(0, distanceStart);
+            movementDistanceEnd = Math.Max(0, distanceEnd);
             movementSpeed = Math.Max(0f, speed);
-            movementProgress = 0f;
+            movementProgress = -movementDistanceStart;
             movementDirection = 1f;
-            SetPosition(initialPosition);
+            ApplyMovementPosition();
         }
 
         public void Update(float deltaSeconds)
         {
-            if (!isMovable || movementType == MovementType.None || movementDistance <= 0f || movementSpeed <= 0f || deltaSeconds <= 0f)
+            float range = movementDistanceStart + movementDistanceEnd;
+            if (!isMovable || movementType == MovementType.None || range <= 0f || movementSpeed <= 0f || deltaSeconds <= 0f)
                 return;
 
             float delta = movementSpeed * deltaSeconds * movementDirection;
@@ -103,25 +106,30 @@ namespace GameDuMouse.GameMain.Entities
 
             if (isLooping)
             {
-                if (movementProgress >= movementDistance)
+                if (movementProgress >= movementDistanceEnd)
                 {
-                    movementProgress = movementDistance;
+                    movementProgress = movementDistanceEnd;
                     movementDirection = -1f;
                 }
-                else if (movementProgress <= 0f)
+                else if (movementProgress <= -movementDistanceStart)
                 {
-                    movementProgress = 0f;
+                    movementProgress = -movementDistanceStart;
                     movementDirection = 1f;
                 }
             }
             else
             {
-                if (movementProgress > movementDistance)
-                    movementProgress = movementDistance;
-                if (movementProgress < 0f)
-                    movementProgress = 0f;
+                if (movementProgress > movementDistanceEnd)
+                    movementProgress = movementDistanceEnd;
+                if (movementProgress < -movementDistanceStart)
+                    movementProgress = -movementDistanceStart;
             }
 
+            ApplyMovementPosition();
+        }
+
+        private void ApplyMovementPosition()
+        {
             Vector2 nextPosition = initialPosition;
             if (movementType == MovementType.Horizontal)
                 nextPosition.X += movementProgress;

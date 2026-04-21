@@ -44,6 +44,8 @@ namespace GameDuMouse.GameMain.Core
         /// Distance of movement in pixels.
         /// </summary>
         public int MovementDistance { get; set; }
+        public int MovementDistanceStart { get; set; }
+        public int MovementDistanceEnd { get; set; }
 
         /// <summary>
         /// Speed of movement in pixels per second.
@@ -65,6 +67,8 @@ namespace GameDuMouse.GameMain.Core
             MovementType = MovementType.None;
             IsLooping = true;
             MovementDistance = 100;
+            MovementDistanceStart = 100;
+            MovementDistanceEnd = 100;
             MovementSpeed = 50f;
             ImagePath = null;
         }
@@ -81,6 +85,8 @@ namespace GameDuMouse.GameMain.Core
                 MovementType = this.MovementType,
                 IsLooping = this.IsLooping,
                 MovementDistance = this.MovementDistance,
+                MovementDistanceStart = this.MovementDistanceStart,
+                MovementDistanceEnd = this.MovementDistanceEnd,
                 MovementSpeed = this.MovementSpeed,
                 ImagePath = this.ImagePath
             };

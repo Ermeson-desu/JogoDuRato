@@ -19,6 +19,9 @@ namespace GameDuMouse.GameMain.UI
     {
         private const int Margin = 10;
         private const float PanelAlpha = 0.7f;
+        private const int MovementEndpointSize = 15;
+        private const int MovementEndpointHitPadding = 8;
+        private const int MaxMovementDistance = 2000;
 
         private Game game;
         private SpriteFont font;
@@ -54,6 +57,7 @@ namespace GameDuMouse.GameMain.UI
         // Movement animation
         private float movementOffset = 0f; // Offset from center position
         private float movementDirection = 1f; // 1 for forward, -1 for backward
+        private bool isDraggingMovementEndpoint = false;
 
         // Panel scroll
         private float panelScroll = 0f; // Scroll offset for the left panel
@@ -92,6 +96,15 @@ namespace GameDuMouse.GameMain.UI
             public bool IsChecked;
             public string Label;
         }
+
+        private enum MovementEndpointHandle
+        {
+            None = 0,
+            Start,
+            End
+        }
+
+        private MovementEndpointHandle activeEndpointHandle = MovementEndpointHandle.None;
 
         public CreateObstacleEditorScreen(Game game)
         {
@@ -135,7 +148,7 @@ namespace GameDuMouse.GameMain.UI
             UpdateSizeControls();
             
             // Initialize movement animation to start from beginning
-            movementOffset = -obstacleData.MovementDistance;
+            movementOffset = -GetStartDistance();
             movementDirection = 1f;
         }
 
@@ -158,7 +171,11 @@ namespace GameDuMouse.GameMain.UI
             UpdateSizeControls();
             
             // Reset movement animation to start from beginning
-            movementOffset = -obstacleData.MovementDistance;
+            if (obstacleData.MovementDistanceStart <= 0)
+                obstacleData.MovementDistanceStart = obstacleData.MovementDistance > 0 ? obstacleData.MovementDistance : 100;
+            if (obstacleData.MovementDistanceEnd <= 0)
+                obstacleData.MovementDistanceEnd = obstacleData.MovementDistance > 0 ? obstacleData.MovementDistance : 100;
+            movementOffset = -GetStartDistance();
             movementDirection = 1f;
 
             // Initialize name editing
@@ -305,6 +322,9 @@ namespace GameDuMouse.GameMain.UI
             // Handle size button clicks
             HandleSizeButtonClick(mouse);
 
+            // Handle draggable movement endpoints in preview area
+            HandleMovementDistanceDrag(mouse);
+
             // Handle width/height adjustments with arrow keys or mouse wheel
             HandleSizeAdjustment(mouse, keyboard);
 
@@ -323,6 +343,8 @@ namespace GameDuMouse.GameMain.UI
 
         private void UpdateMovement(GameTime gameTime)
         {
+            int startDistance = GetStartDistance();
+            int endDistance = GetEndDistance();
             float elapsed = (float)gameTime.ElapsedGameTime.TotalSeconds;
             float distance = obstacleData.MovementSpeed * elapsed * movementDirection;
             movementOffset += distance;
@@ -330,16 +352,21 @@ namespace GameDuMouse.GameMain.UI
             if (obstacleData.IsLooping)
             {
                 // Bounce back and forth
-                if (Math.Abs(movementOffset) >= obstacleData.MovementDistance)
+                if (movementOffset >= endDistance)
                 {
                     movementDirection *= -1f;
-                    movementOffset = MathHelper.Clamp(movementOffset, -obstacleData.MovementDistance, obstacleData.MovementDistance);
+                    movementOffset = endDistance;
+                }
+                else if (movementOffset <= -startDistance)
+                {
+                    movementDirection *= -1f;
+                    movementOffset = -startDistance;
                 }
             }
             else
             {
                 // Only go one direction
-                movementOffset = Math.Min(movementOffset, obstacleData.MovementDistance);
+                movementOffset = MathHelper.Clamp(movementOffset, -startDistance, endDistance);
             }
         }
 
@@ -369,7 +396,7 @@ namespace GameDuMouse.GameMain.UI
                         // Set default to Horizontal when enabling movement
                         obstacleData.MovementType = MovementType.Horizontal;
                         obstacleData.IsLooping = true;
-                        movementOffset = -obstacleData.MovementDistance; // Start from beginning
+                        movementOffset = -GetStartDistance(); // Start from beginning
                         movementDirection = 1f;
                     }
                     else
@@ -389,7 +416,7 @@ namespace GameDuMouse.GameMain.UI
                         ? MovementType.None 
                         : MovementType.Horizontal;
                     horizontalCheckbox.IsChecked = obstacleData.MovementType == MovementType.Horizontal;
-                    movementOffset = -obstacleData.MovementDistance; // Start from beginning
+                    movementOffset = -GetStartDistance(); // Start from beginning
                     movementDirection = 1f;
                 }
 
@@ -400,7 +427,7 @@ namespace GameDuMouse.GameMain.UI
                         ? MovementType.None 
                         : MovementType.Vertical;
                     verticalCheckbox.IsChecked = obstacleData.MovementType == MovementType.Vertical;
-                    movementOffset = -obstacleData.MovementDistance; // Start from beginning
+                    movementOffset = -GetStartDistance(); // Start from beginning
                     movementDirection = 1f;
                 }
 
@@ -484,6 +511,72 @@ namespace GameDuMouse.GameMain.UI
             UpdatePreviewBounds();
         }
 
+        private void HandleMovementDistanceDrag(MouseState mouse)
+        {
+            if (!obstacleData.IsMovable || obstacleData.MovementType == MovementType.None)
+            {
+                isDraggingMovementEndpoint = false;
+                activeEndpointHandle = MovementEndpointHandle.None;
+                return;
+            }
+
+            GetMovementEndpointRects(out var startRect, out var endRect);
+            var startHit = InflateRect(startRect, MovementEndpointHitPadding);
+            var endHit = InflateRect(endRect, MovementEndpointHitPadding);
+
+            if (mouse.LeftButton == ButtonState.Pressed && previousMouse.LeftButton == ButtonState.Released)
+            {
+                if (mouse.X < panelWidth)
+                    return;
+
+                if (startHit.Contains(mouse.Position))
+                {
+                    isDraggingMovementEndpoint = true;
+                    activeEndpointHandle = MovementEndpointHandle.Start;
+                }
+                else if (endHit.Contains(mouse.Position))
+                {
+                    isDraggingMovementEndpoint = true;
+                    activeEndpointHandle = MovementEndpointHandle.End;
+                }
+            }
+
+            if (isDraggingMovementEndpoint && mouse.LeftButton == ButtonState.Pressed)
+            {
+                int newDistance;
+                if (obstacleData.MovementType == MovementType.Horizontal)
+                {
+                    newDistance = activeEndpointHandle == MovementEndpointHandle.Start
+                        ? obstaclePreviewBounds.X - mouse.X
+                        : mouse.X - obstaclePreviewBounds.X;
+                }
+                else
+                {
+                    newDistance = activeEndpointHandle == MovementEndpointHandle.Start
+                        ? obstaclePreviewBounds.Y - mouse.Y
+                        : mouse.Y - obstaclePreviewBounds.Y;
+                }
+
+                newDistance = Math.Clamp(newDistance, 0, MaxMovementDistance);
+                if (activeEndpointHandle == MovementEndpointHandle.Start && newDistance != obstacleData.MovementDistanceStart)
+                {
+                    obstacleData.MovementDistanceStart = newDistance;
+                    movementOffset = MathHelper.Clamp(movementOffset, -GetStartDistance(), GetEndDistance());
+                }
+                else if (activeEndpointHandle == MovementEndpointHandle.End && newDistance != obstacleData.MovementDistanceEnd)
+                {
+                    obstacleData.MovementDistanceEnd = newDistance;
+                    movementOffset = MathHelper.Clamp(movementOffset, -GetStartDistance(), GetEndDistance());
+                }
+            }
+
+            if (mouse.LeftButton == ButtonState.Released)
+            {
+                isDraggingMovementEndpoint = false;
+                activeEndpointHandle = MovementEndpointHandle.None;
+            }
+        }
+
         private void HandlePanelScroll(MouseState mouse)
         {
             // Only scroll if mouse is over the left panel
@@ -498,7 +591,7 @@ namespace GameDuMouse.GameMain.UI
 
             // Clamp scroll to valid range
             // Maximum content height is approximately 450 pixels
-            float maxScroll = Math.Max(0, 450 - screenHeight + 100);
+            float maxScroll = Math.Max(0, 650 - screenHeight + 100);
             panelScroll = MathHelper.Clamp(panelScroll, 0, maxScroll);
         }
 
@@ -519,6 +612,10 @@ namespace GameDuMouse.GameMain.UI
 
         private void SaveObstacle()
         {
+            obstacleData.MovementDistance = Math.Max(GetStartDistance(), GetEndDistance());
+            obstacleData.MovementDistanceStart = GetStartDistance();
+            obstacleData.MovementDistanceEnd = GetEndDistance();
+
             if (customObstacleService != null)
             {
                 // Save to custom obstacle library
@@ -1017,7 +1114,15 @@ namespace GameDuMouse.GameMain.UI
         private void DrawMovementPath(SpriteBatch spriteBatch)
         {
             int lineThickness = 2;
-            int checkboxSize = 15;
+            GetMovementEndpointRects(out var startRect, out var endRect);
+            var mouse = inputManager != null ? inputManager.Mouse : Mouse.GetState();
+            bool startHighlight = isDraggingMovementEndpoint && activeEndpointHandle == MovementEndpointHandle.Start;
+            bool endHighlight = isDraggingMovementEndpoint && activeEndpointHandle == MovementEndpointHandle.End;
+            if (!isDraggingMovementEndpoint)
+            {
+                startHighlight = InflateRect(startRect, MovementEndpointHitPadding).Contains(mouse.Position);
+                endHighlight = InflateRect(endRect, MovementEndpointHitPadding).Contains(mouse.Position);
+            }
 
             if (obstacleData.MovementType == MovementType.Horizontal)
             {
@@ -1030,8 +1135,8 @@ namespace GameDuMouse.GameMain.UI
                 spriteBatch.Draw(pixel, lineRect, Color.Yellow * 0.5f);
 
                 // Draw endpoints
-                DrawMovementEndpoint(spriteBatch, new Point(startX, centerY), checkboxSize);
-                DrawMovementEndpoint(spriteBatch, new Point(endX, centerY), checkboxSize);
+                DrawMovementEndpoint(spriteBatch, startRect, startHighlight);
+                DrawMovementEndpoint(spriteBatch, endRect, endHighlight);
             }
             else if (obstacleData.MovementType == MovementType.Vertical)
             {
@@ -1044,17 +1149,50 @@ namespace GameDuMouse.GameMain.UI
                 spriteBatch.Draw(pixel, lineRect, Color.Yellow * 0.5f);
 
                 // Draw endpoints
-                DrawMovementEndpoint(spriteBatch, new Point(centerX, startY), checkboxSize);
-                DrawMovementEndpoint(spriteBatch, new Point(centerX, endY), checkboxSize);
+                DrawMovementEndpoint(spriteBatch, startRect, startHighlight);
+                DrawMovementEndpoint(spriteBatch, endRect, endHighlight);
             }
         }
 
-        private void DrawMovementEndpoint(SpriteBatch spriteBatch, Point position, int size)
+        private void GetMovementEndpointRects(out Rectangle startRect, out Rectangle endRect)
         {
-            var rect = new Rectangle(position.X - size / 2, position.Y - size / 2, size, size);
-            
+            if (obstacleData.MovementType == MovementType.Horizontal)
+            {
+                int startX = obstaclePreviewBounds.X - GetStartDistance();
+                int endX = obstaclePreviewBounds.X + GetEndDistance();
+                int centerY = obstaclePreviewBounds.Center.Y;
+                startRect = new Rectangle(startX - MovementEndpointSize / 2, centerY - MovementEndpointSize / 2, MovementEndpointSize, MovementEndpointSize);
+                endRect = new Rectangle(endX - MovementEndpointSize / 2, centerY - MovementEndpointSize / 2, MovementEndpointSize, MovementEndpointSize);
+                return;
+            }
+
+            if (obstacleData.MovementType == MovementType.Vertical)
+            {
+                int startY = obstaclePreviewBounds.Y - GetStartDistance();
+                int endY = obstaclePreviewBounds.Y + GetEndDistance();
+                int centerX = obstaclePreviewBounds.Center.X;
+                startRect = new Rectangle(centerX - MovementEndpointSize / 2, startY - MovementEndpointSize / 2, MovementEndpointSize, MovementEndpointSize);
+                endRect = new Rectangle(centerX - MovementEndpointSize / 2, endY - MovementEndpointSize / 2, MovementEndpointSize, MovementEndpointSize);
+                return;
+            }
+
+            startRect = Rectangle.Empty;
+            endRect = Rectangle.Empty;
+        }
+
+        private static Rectangle InflateRect(Rectangle rect, int amount)
+        {
+            if (rect == Rectangle.Empty)
+                return rect;
+
+            return new Rectangle(rect.X - amount, rect.Y - amount, rect.Width + amount * 2, rect.Height + amount * 2);
+        }
+
+        private void DrawMovementEndpoint(SpriteBatch spriteBatch, Rectangle rect, bool highlight)
+        {
             // Draw circle/endpoint
-            spriteBatch.Draw(pixel, rect, Color.Cyan * 0.7f);
+            var fill = highlight ? Color.Gold * 0.85f : Color.Cyan * 0.7f;
+            spriteBatch.Draw(pixel, rect, fill);
             
             // Draw border
             spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, rect.Width, 1), Color.White);
@@ -1082,6 +1220,20 @@ namespace GameDuMouse.GameMain.UI
             spriteBatch.Draw(pixel, new Rectangle(bounds.X, bounds.Y, thickness, bounds.Height), color);
             // Right
             spriteBatch.Draw(pixel, new Rectangle(bounds.Right - thickness, bounds.Y, thickness, bounds.Height), color);
+        }
+
+        private int GetStartDistance()
+        {
+            if (obstacleData.MovementDistanceStart > 0)
+                return obstacleData.MovementDistanceStart;
+            return obstacleData.MovementDistance > 0 ? obstacleData.MovementDistance : 100;
+        }
+
+        private int GetEndDistance()
+        {
+            if (obstacleData.MovementDistanceEnd > 0)
+                return obstacleData.MovementDistanceEnd;
+            return obstacleData.MovementDistance > 0 ? obstacleData.MovementDistance : 100;
         }
     }
 }

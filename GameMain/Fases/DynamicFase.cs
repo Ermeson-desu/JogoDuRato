@@ -224,11 +224,20 @@ namespace GameDuMouse.GameMain.Fases
             if (movementType == MovementType.None)
                 return;
 
+            int distanceStart = custom.MovementDistanceStart;
+            int distanceEnd = custom.MovementDistanceEnd;
+            if (distanceStart == 0 && distanceEnd == 0 && custom.MovementDistance > 0)
+            {
+                distanceStart = custom.MovementDistance;
+                distanceEnd = custom.MovementDistance;
+            }
+
             obstacle.ConfigureMovement(
                 movable: true,
                 type: movementType,
                 looping: custom.IsLooping,
-                distance: custom.MovementDistance,
+                distanceStart: distanceStart,
+                distanceEnd: distanceEnd,
                 speed: custom.MovementSpeed);
         }
 

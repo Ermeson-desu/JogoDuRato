@@ -963,15 +963,20 @@ namespace GameDuMouse.GameMain.UI
 
             if (editorService != null && !string.IsNullOrWhiteSpace(toRemove.sourcePath))
             {
-                var remainingPaths = new List<string>();
-                for (int i = 0; i < backgroundLayers.Count; i++)
+                // Keep map consistency: if the same imported file is repeated in
+                // multiple layers, remove all references before deleting the file.
+                for (int i = backgroundLayers.Count - 1; i >= 0; i--)
                 {
                     var path = backgroundLayers[i].sourcePath;
-                    if (!string.IsNullOrWhiteSpace(path))
-                        remainingPaths.Add(path);
+                    if (!string.IsNullOrWhiteSpace(path) &&
+                        string.Equals(path, toRemove.sourcePath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        backgroundLayers.RemoveAt(i);
+                    }
                 }
 
-                editorService.BeginDeleteImportedIfUnused(toRemove.sourcePath, remainingPaths);
+                assetManager?.UnloadTextureFromFile(toRemove.sourcePath);
+                editorService.BeginDeleteImported(toRemove.sourcePath);
             }
 
             if (backgroundLayers.Count == 0)

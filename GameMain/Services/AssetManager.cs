@@ -51,6 +51,19 @@ namespace GameDuMouse.GameMain.Services
             }
         }
 
+        public void UnloadTextureFromFile(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return;
+
+            string fullPath = Path.GetFullPath(path);
+            if (!fileTextureCache.TryGetValue(fullPath, out var texture))
+                return;
+
+            fileTextureCache.Remove(fullPath);
+            texture?.Dispose();
+        }
+
         public void Dispose()
         {
             if (disposed)

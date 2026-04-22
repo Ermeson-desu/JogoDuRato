@@ -109,6 +109,14 @@ namespace GameDuMouse.GameMain.Services
             Task.Run(() => DeleteImportedIfUnusedInternal(imagePath, snapshot));
         }
 
+        public void BeginDeleteImported(string imagePath)
+        {
+            if (disposed || string.IsNullOrWhiteSpace(imagePath))
+                return;
+
+            Task.Run(() => DeleteImportedInternal(imagePath));
+        }
+
         private string ImportImageInternal(string sourcePath)
         {
             try
@@ -158,12 +166,53 @@ namespace GameDuMouse.GameMain.Services
                     }
                 }
 
-                if (File.Exists(fullPath))
-                    File.Delete(fullPath);
+                DeleteFileWithRetry(fullPath);
             }
             catch
             {
                 // ignore delete failures
+            }
+        }
+
+        private void DeleteImportedInternal(string imagePath)
+        {
+            try
+            {
+                string fullPath = Path.GetFullPath(imagePath);
+                if (!IsUnderDirectory(fullPath, importedDir))
+                    return;
+
+                DeleteFileWithRetry(fullPath);
+            }
+            catch
+            {
+                // ignore delete failures
+            }
+        }
+
+        private static void DeleteFileWithRetry(string fullPath)
+        {
+            if (string.IsNullOrWhiteSpace(fullPath))
+                return;
+
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                try
+                {
+                    if (!File.Exists(fullPath))
+                        return;
+
+                    File.Delete(fullPath);
+                    return;
+                }
+                catch (IOException)
+                {
+                    Thread.Sleep(50);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    Thread.Sleep(50);
+                }
             }
         }
 

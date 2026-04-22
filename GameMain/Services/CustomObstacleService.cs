@@ -121,8 +121,14 @@ namespace GameDuMouse.GameMain.Services
 
         public void DeleteObstacle(string name)
         {
+            DeleteObstacle(name, out _);
+        }
+
+        public bool DeleteObstacle(string name, out string removedImagePath)
+        {
+            removedImagePath = null;
             if (string.IsNullOrWhiteSpace(name))
-                return;
+                return false;
 
             List<CustomObstacleEntry> snapshot;
             lock (sync)
@@ -136,6 +142,7 @@ namespace GameDuMouse.GameMain.Services
                     if (obstacle != null && obstacle.Name == name)
                     {
                         found = true;
+                        removedImagePath = obstacle.ImagePath;
                         continue;
                     }
 
@@ -143,7 +150,7 @@ namespace GameDuMouse.GameMain.Services
                 }
 
                 if (!found)
-                    return;
+                    return false;
 
                 customObstacles = updated;
                 snapshot = new List<CustomObstacleEntry>(updated);
@@ -151,6 +158,7 @@ namespace GameDuMouse.GameMain.Services
 
             Interlocked.Increment(ref version);
             _ = SaveObstaclesAsync(snapshot);
+            return true;
         }
 
         private void LoadObstaclesSync()

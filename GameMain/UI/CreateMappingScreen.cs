@@ -630,7 +630,28 @@ namespace GameDuMouse.GameMain.UI
                         string obstacleName = obstacleTextureNames[index];
                         if (customObstacleService != null)
                         {
-                            customObstacleService.DeleteObstacle(obstacleName);
+                            if (customObstacleService.DeleteObstacle(obstacleName, out var removedImagePath))
+                            {
+                                if (!string.IsNullOrWhiteSpace(removedImagePath))
+                                {
+                                    assetManager?.UnloadTextureFromFile(removedImagePath);
+
+                                    if (editorService != null)
+                                    {
+                                        var remainingPaths = new List<string>();
+                                        var remainingObstacles = customObstacleService.GetObstaclesSnapshot();
+                                        for (int i = 0; i < remainingObstacles.Count; i++)
+                                        {
+                                            var path = remainingObstacles[i]?.ImagePath;
+                                            if (!string.IsNullOrWhiteSpace(path))
+                                                remainingPaths.Add(path);
+                                        }
+
+                                        editorService.BeginDeleteImportedIfUnused(removedImagePath, remainingPaths);
+                                    }
+                                }
+                            }
+
                             ReloadCustomObstacles();
                             selectedPaletteIndex = -1;
                         }

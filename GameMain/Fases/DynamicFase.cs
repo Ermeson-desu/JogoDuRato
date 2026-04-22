@@ -11,6 +11,7 @@ namespace GameDuMouse.GameMain.Fases
 {
     public class DynamicFase : IFase
     {
+        private const float OneShotActivationDistancePx = 150f;
         private readonly Game game;
         private readonly MapData data;
         private Texture2D pixel;
@@ -124,7 +125,7 @@ namespace GameDuMouse.GameMain.Fases
         public void Update(Player player)
         {
             float deltaSeconds = (float)game.TargetElapsedTime.TotalSeconds;
-            UpdateObstacleMovement(deltaSeconds);
+            UpdateObstacleMovement(player, deltaSeconds);
 
             if (!IsReturning && cheese != null && cheese.CollidesWith(player.Collider))
             {
@@ -238,10 +239,12 @@ namespace GameDuMouse.GameMain.Fases
                 looping: custom.IsLooping,
                 distanceStart: distanceStart,
                 distanceEnd: distanceEnd,
-                speed: custom.MovementSpeed);
+                speed: custom.MovementSpeed,
+                waitForTrigger: !custom.IsLooping,
+                activationDistance: OneShotActivationDistancePx);
         }
 
-        private void UpdateObstacleMovement(float deltaSeconds)
+        private void UpdateObstacleMovement(Player player, float deltaSeconds)
         {
             var activeObstacles = IsReturning ? Obstacles2 : Obstacles1;
             if (activeObstacles == null || activeObstacles.Count == 0)
@@ -249,7 +252,14 @@ namespace GameDuMouse.GameMain.Fases
 
             for (int i = 0; i < activeObstacles.Count; i++)
             {
-                activeObstacles[i]?.Update(deltaSeconds);
+                var obstacle = activeObstacles[i];
+                if (obstacle == null)
+                    continue;
+
+                if (player != null)
+                    obstacle.TryActivateByHorizontalDistance(player.Collider);
+
+                obstacle.Update(deltaSeconds);
             }
         }
 

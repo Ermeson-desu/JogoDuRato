@@ -30,6 +30,10 @@ namespace GameDuMouse.GameMain.Entities
         private float movementProgress;
         private float movementDirection = 1f;
         private Vector2 initialPosition;
+        private bool requiresTrigger;
+        private bool triggerActivated;
+        private float triggerDistance;
+        private bool colliderEnabled = true;
 
         public Rectangle Bounds => new Rectangle((int)position.X, (int)position.Y, width, height);
 
@@ -82,7 +86,7 @@ namespace GameDuMouse.GameMain.Entities
             spriteBatch.Draw(texture, Bounds, color);
         }
 
-        public void ConfigureMovement(bool movable, MovementType type, bool looping, int distanceStart, int distanceEnd, float speed)
+        public void ConfigureMovement(bool movable, MovementType type, bool looping, int distanceStart, int distanceEnd, float speed, bool waitForTrigger = false, float activationDistance = 0f)
         {
             isMovable = movable;
             movementType = type;
@@ -92,6 +96,10 @@ namespace GameDuMouse.GameMain.Entities
             movementSpeed = Math.Max(0f, speed);
             movementProgress = -movementDistanceStart;
             movementDirection = 1f;
+            requiresTrigger = waitForTrigger;
+            triggerActivated = !waitForTrigger;
+            triggerDistance = Math.Max(0f, activationDistance);
+            colliderEnabled = true;
             ApplyMovementPosition();
         }
 
@@ -99,6 +107,8 @@ namespace GameDuMouse.GameMain.Entities
         {
             float range = movementDistanceStart + movementDistanceEnd;
             if (!isMovable || movementType == MovementType.None || range <= 0f || movementSpeed <= 0f || deltaSeconds <= 0f)
+                return;
+            if (requiresTrigger && !triggerActivated)
                 return;
 
             float delta = movementSpeed * deltaSeconds * movementDirection;
@@ -123,9 +133,34 @@ namespace GameDuMouse.GameMain.Entities
                     movementProgress = movementDistanceEnd;
                 if (movementProgress < -movementDistanceStart)
                     movementProgress = -movementDistanceStart;
+
+                // One-shot movement reached the end: disable collisions after the path ends.
+                if (movementProgress >= movementDistanceEnd)
+                {
+                    movementSpeed = 0f;
+                    colliderEnabled = false;
+                }
             }
 
             ApplyMovementPosition();
+        }
+
+        public void TryActivateByDistance(Rectangle otherBounds)
+        {
+            if (!requiresTrigger || triggerActivated)
+                return;
+
+            if (DistanceBetweenRectangles(Bounds, otherBounds) <= triggerDistance)
+                triggerActivated = true;
+        }
+
+        public void TryActivateByHorizontalDistance(Rectangle otherBounds)
+        {
+            if (!requiresTrigger || triggerActivated)
+                return;
+
+            if (HorizontalGapBetweenRectangles(Bounds, otherBounds) <= triggerDistance)
+                triggerActivated = true;
         }
 
         private void ApplyMovementPosition()
@@ -141,6 +176,9 @@ namespace GameDuMouse.GameMain.Entities
 
         public bool CollidesWith(Rectangle playerCollider)
         {
+            if (!colliderEnabled)
+                return false;
+
             switch (shape)
             {
                 case ObstacleShape.Circle:
@@ -240,6 +278,32 @@ namespace GameDuMouse.GameMain.Entities
                     new Vector2(position.X + width, position.Y + height)
                 };
             }
+        }
+
+        private static float DistanceBetweenRectangles(Rectangle a, Rectangle b)
+        {
+            int dx = 0;
+            if (a.Right < b.Left)
+                dx = b.Left - a.Right;
+            else if (b.Right < a.Left)
+                dx = a.Left - b.Right;
+
+            int dy = 0;
+            if (a.Bottom < b.Top)
+                dy = b.Top - a.Bottom;
+            else if (b.Bottom < a.Top)
+                dy = a.Top - b.Bottom;
+
+            return (float)Math.Sqrt((dx * dx) + (dy * dy));
+        }
+
+        private static int HorizontalGapBetweenRectangles(Rectangle a, Rectangle b)
+        {
+            if (a.Right < b.Left)
+                return b.Left - a.Right;
+            if (b.Right < a.Left)
+                return a.Left - b.Right;
+            return 0;
         }
     }
 }

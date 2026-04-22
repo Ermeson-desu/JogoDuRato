@@ -44,6 +44,7 @@ namespace GameDuMouse.GameMain.Core
         private EditorService editorService;
         private CustomObstacleService customObstacleService;
         private GameManager gameManager;
+        private bool pausedBecauseWindowInactive;
 
         // player/name state used for saving mid–game
         public string CurrentPlayerName { get; private set; }
@@ -54,6 +55,7 @@ namespace GameDuMouse.GameMain.Core
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            InactiveSleepTime = System.TimeSpan.FromMilliseconds(250);
 
             // create mapping screen early so it's never null; content will be
             // loaded later in LoadContent.
@@ -137,6 +139,20 @@ namespace GameDuMouse.GameMain.Core
 
         protected override void Update(GameTime gameTime)
         {
+            if (!IsActive)
+            {
+                pausedBecauseWindowInactive = true;
+                SuppressDraw();
+                base.Update(gameTime);
+                return;
+            }
+
+            if (pausedBecauseWindowInactive)
+            {
+                pausedBecauseWindowInactive = false;
+                ResetAllScreenInput();
+            }
+
             if (inputManager != null && inputManager.Keyboard.IsKeyDown(Keys.Escape))
                 Exit();
 
@@ -234,6 +250,19 @@ namespace GameDuMouse.GameMain.Core
             }
 
             base.Update(gameTime);
+        }
+
+        private void ResetAllScreenInput()
+        {
+            menuScreen?.ResetInput();
+            loadScreen?.ResetInput();
+            mappingScreen?.ResetInput();
+            createObstacleScreen?.ResetInput();
+            createObstacleEditorScreen?.ResetInput();
+            mapTestScreen?.ResetInput();
+            newMapMenuScreen?.ResetInput();
+            chapterSelectScreen?.ResetInput();
+            preGameScreen?.ResetInput();
         }
 
         public void StartNewGame(string playerName)

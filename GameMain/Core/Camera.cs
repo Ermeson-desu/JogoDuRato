@@ -35,6 +35,7 @@ namespace GameDuMouse.GameMain.Core
         {
             float clampedX = Math.Max(0, Math.Min(targetPosition.X, MaxPosition.X));
             float clampedY = Math.Max(0, Math.Min(targetPosition.Y, MaxPosition.Y));
+            float horizontalTarget = ResolveHorizontalTarget(clampedX);
 
             if (LockVertical)
             {
@@ -44,19 +45,35 @@ namespace GameDuMouse.GameMain.Core
                     hasLockedY = true;
                 }
 
-                targetPos = new Vector2(clampedX, lockedY);
+                targetPos = new Vector2(horizontalTarget, lockedY);
                 float nextX = MathHelper.Lerp(Position.X, targetPos.X, LerpSpeed);
                 Position = new Vector2(nextX, lockedY);
             }
             else
             {
-                targetPos = new Vector2(clampedX, clampedY);
+                targetPos = new Vector2(horizontalTarget, clampedY);
                 Position = Vector2.Lerp(Position, targetPos, LerpSpeed);
             }
             
             Transform = Matrix.CreateTranslation(
                 new Vector3(-Position.X + ViewOffset.X, -Position.Y + ViewOffset.Y, 0)
             );
+        }
+
+        private float ResolveHorizontalTarget(float playerX)
+        {
+            float centerX = Math.Max(300, ViewOffset.X);
+
+            // Keep camera fixed at the start until player reaches screen center.
+            if (playerX <= centerX)
+                return 300f;
+
+            // Keep camera fixed at the end when player passes the symmetric center zone.
+            float endLockThreshold = MaxPosition.X - centerX - 250f;
+            if (playerX >= endLockThreshold)
+                return MaxPosition.X - 500f;
+
+            return playerX;
         }
     }
 }

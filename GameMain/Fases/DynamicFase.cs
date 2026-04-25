@@ -170,7 +170,7 @@ namespace GameDuMouse.GameMain.Fases
                     {
                         var bounds = new Rectangle((int)layer.StartX, 0, tex.Width, tex.Height);
                         if (renderContext.IsVisible(bounds))
-                            spriteBatch.Draw(tex, new Vector2(layer.StartX, 0), Color.White);
+                            spriteBatch.Draw(tex, new Vector2(layer.StartX, -10), Color.White);
                     }
                 }
             }
